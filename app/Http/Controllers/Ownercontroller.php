@@ -70,7 +70,7 @@ class OwnerController extends Controller
     // ==========================================
     public function indexUser(Request $request)
     {
-        $query = User::query();
+        $query = User::wherein('role', ['admin', 'kasir'])->orderBy('nama');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {

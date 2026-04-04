@@ -10,12 +10,12 @@ use App\Http\Controllers\OwnerController;
 // ================================================================
 // PUBLIC
 // ================================================================
-Route::get('/', [LandingController::class, 'index'])->name('landing');
+// Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 // ================================================================
 // AUTH
 // ================================================================
-Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
+Route::get('/',  [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -60,6 +60,8 @@ Route::middleware(['auth', 'role:admin'])
             Route::post('/',       [AdminController::class, 'storeMenu'])->name('store');
             Route::put('/{menu}',  [AdminController::class, 'updateMenu'])->name('update');
             Route::delete('/{menu}', [AdminController::class, 'destroyMenu'])->name('destroy');
+            // Tambahkan route ini untuk cek pesanan
+            Route::get('/{menu}/check-orders', [AdminController::class, 'checkOrders'])->name('checkOrders');
         });
 
         // Riwayat Transaksi
@@ -67,11 +69,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     });
-
-
-// ================================================================
-// KASIR
-// ================================================================
+    
 // ================================================================
 // KASIR
 // ================================================================

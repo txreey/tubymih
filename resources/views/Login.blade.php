@@ -84,14 +84,13 @@
                             Masuk
                         </button>
 
-                        <a href="{{ route('landing') }}"
+                        {{-- <a href="{{ route('landing') }}"
                            class="bg-red-500 hover:bg-red-600 
                                   text-white px-8 py-2 
                                   rounded-full transition text-center">
                             Batal
-                        </a>
+                        </a> --}}
                     </div>
-
                 </form>
 
             </div>

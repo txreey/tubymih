@@ -63,11 +63,15 @@ class AdminController extends Controller
     // =============================================
     public function indexUser(Request $request)
     {
-        $users = User::query()
-            ->when($request->search, fn($q, $s) =>
-            $q->where('nama', 'like', "%$s%")->orWhere('username', 'like', "%$s%"))
+        $users = User::whereIn('role', ['kasir'])
+            ->when($request->search, function ($q, $s) {
+                $q->where(function ($query) use ($s) {
+                    $query->where('nama', 'like', "%$s%")
+                        ->orWhere('username', 'like', "%$s%");
+                });
+            })
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->role,   fn($q, $r) => $q->where('role', $r))
+            ->when($request->role, fn($q, $r) => $q->where('role', $r))
             ->orderByRaw("FIELD(role, 'owner', 'admin', 'kasir')")
             ->orderBy('nama')
             ->get();
@@ -152,97 +156,6 @@ class AdminController extends Controller
             'no_hp.regex'       => 'Format nomor HP tidak valid.',
             'status.in'         => 'Status tidak valid.',
         ];
-    }
-
-
-    // ==========================================
-    // KELOLA MENU
-    // ==========================================
-    public function indexMenu(Request $request)
-    {
-        $menus = Menu::with('kategori')
-            ->when($request->search, fn($q, $s) => $q->where('nama_makanan', 'like', "%$s%"))
-            ->when($request->kategori, fn($q, $k) => $q->where('id_kategori', $k))
-            ->orderBy('nama_makanan')
-            ->get();
-
-        $kategoris = Kategori::orderBy('nama_kategori')->get();
-
-        return view('admin.menu', compact('menus', 'kategoris'));
-    }
-
-    // STORE MENU - AJAX JSON (tetap sama, gak perlu ubah)
-    public function storeMenu(Request $request)
-    {
-        $validated = $request->validate([
-            'id_kategori'   => 'required|exists:kategori,id',
-            'nama_makanan'  => 'required|string|max:100',
-            'harga'         => 'required|numeric|min:0',
-            'stok'          => 'required|integer|min:0',
-            'gambar'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $data = [
-            'id_kategori'   => $validated['id_kategori'],
-            'nama_makanan'  => $validated['nama_makanan'],
-            'harga'         => $validated['harga'],
-            'stok'          => $validated['stok'],
-        ];
-
-        if ($request->hasFile('gambar')) {
-            $path = $request->file('gambar')->store('menu', 'public');
-            $data['gambar'] = $path;
-        }
-
-        $menu = Menu::create($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu berhasil ditambahkan!',
-            'data'    => $menu->load('kategori')
-        ]);
-    }
-
-    // UPDATE MENU - AJAX JSON (tetap sama)
-    public function updateMenu(Request $request, Menu $menu)
-    {
-        $validated = $request->validate([
-            'id_kategori'  => 'required|exists:kategori,id',
-            'nama_makanan' => 'required|string|max:100',
-            'harga'        => 'required|numeric|min:0',
-            'stok'         => 'required|integer|min:0',
-            'gambar'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $data = collect($validated)->except('gambar')->toArray();
-
-        if ($request->hasFile('gambar')) {
-            if ($menu->gambar) Storage::disk('public')->delete($menu->gambar);
-            $data['gambar'] = $request->file('gambar')->store('menu', 'public');
-        }
-
-        $menu->update($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu berhasil diperbarui!',
-            'data'    => $menu->fresh()->load('kategori'),
-        ]);
-    }
-
-    // DESTROY MENU - AJAX JSON (tetap sama)
-    public function destroyMenu(Menu $menu)
-    {
-        if ($menu->gambar) {
-            Storage::disk('public')->delete($menu->gambar);
-        }
-
-        $menu->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu berhasil dihapus!'
-        ]);
     }
 
     // ==========================================
@@ -357,8 +270,113 @@ class AdminController extends Controller
         ]);
     }
 
-    // INDEX KATEGORI
-    // INDEX KATEGORI
+
+    // ==========================================
+    // KELOLA MENU
+    // ==========================================
+    public function indexMenu(Request $request)
+    {
+        $menus = Menu::with('kategori')
+            ->when($request->search, fn($q, $s) => $q->where('nama_makanan', 'like', "%$s%"))
+            ->when($request->kategori, fn($q, $k) => $q->where('id_kategori', $k))
+            ->orderBy('nama_makanan')
+            ->get();
+
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        return view('admin.menu', compact('menus', 'kategoris'));
+    }
+
+    // STORE MENU - AJAX JSON (tetap sama, gak perlu ubah)
+    public function storeMenu(Request $request)
+    {
+        $validated = $request->validate([
+            'id_kategori'   => 'required|exists:kategori,id',
+            'nama_makanan'  => 'required|string|max:100',
+            'harga'         => 'required|numeric|min:0',
+            'stok'          => 'required|integer|min:0',
+            'gambar'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = [
+            'id_kategori'   => $validated['id_kategori'],
+            'nama_makanan'  => $validated['nama_makanan'],
+            'harga'         => $validated['harga'],
+            'stok'          => $validated['stok'],
+        ];
+
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('menu', 'public');
+            $data['gambar'] = $path;
+        }
+
+        $menu = Menu::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Menu berhasil ditambahkan!',
+            'data'    => $menu->load('kategori')
+        ]);
+    }
+
+    // UPDATE MENU - AJAX JSON (tetap sama)
+    public function updateMenu(Request $request, Menu $menu)
+    {
+        $validated = $request->validate([
+            'id_kategori'  => 'required|exists:kategori,id',
+            'nama_makanan' => 'required|string|max:100',
+            'harga'        => 'required|numeric|min:0',
+            'stok'         => 'required|integer|min:0',
+            'gambar'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = collect($validated)->except('gambar')->toArray();
+
+        if ($request->hasFile('gambar')) {
+            if ($menu->gambar) Storage::disk('public')->delete($menu->gambar);
+            $data['gambar'] = $request->file('gambar')->store('menu', 'public');
+        }
+
+        $menu->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Menu berhasil diperbarui!',
+            'data'    => $menu->fresh()->load('kategori'),
+        ]);
+    }
+
+    public function checkOrders($id)
+    {
+        $menu = Menu::findOrFail($id);
+
+        // Cek apakah menu ini ada di detail transaksi (sedang dipesan)
+        $hasOrders = $menu->detailTransaksi()->exists();
+
+        return response()->json([
+            'success' => true,
+            'has_orders' => $hasOrders
+        ]);
+    }
+
+    // DESTROY MENU - AJAX JSON (tetap sama)
+    public function destroyMenu(Menu $menu)
+    {
+        if ($menu->gambar) {
+            Storage::disk('public')->delete($menu->gambar);
+        }
+
+        $menu->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Menu berhasil dihapus!'
+        ]);
+    }
+
+    // =======================
+    // KELOLA KATEGORI
+    // ======================
     public function indexKategori(Request $request)
     {
         $kategoris = Kategori::withCount('menus')
@@ -463,73 +481,65 @@ class AdminController extends Controller
         ]);
     }
 
-    // RIWAYAT TRANSAKSI - UNTUK SEMENTARA PAKE DUMMY DATA AJA, NANTI BISA DIUBAH KE QUERY NYA
+    // RIWAYAT TRANSAKSI
     public function indexRiwayat()
     {
-        $dummyTransaksi = [
-            [
-                'id' => 'TRX-20260909001',
-                'tanggal' => '09-09-2026',
-                'staff' => 'Kasir A (Rina)',
-                'items' => [
-                    ['nama' => 'Nasi Goreng Spesial', 'qty' => 2, 'harga' => 25000],
-                    ['nama' => 'Es Teh Manis', 'qty' => 2, 'harga' => 8000],
-                    ['nama' => 'Cappuccino', 'qty' => 1, 'harga' => 28000],
-                ],
-                'total' => 94000,
-                'metode' => 'Cash',
-                'bayar' => 100000,
-                'kembalian' => 6000,
-            ],
-            [
-                'id' => 'TRX-20260909002',
-                'tanggal' => '09-09-2026',
-                'staff' => 'Kasir B (Budi)',
-                'items' => [
-                    ['nama' => 'Mie Ayam Bakso', 'qty' => 1, 'harga' => 22000],
-                    ['nama' => 'Jus Mangga', 'qty' => 1, 'harga' => 15000],
-                ],
-                'total' => 37000,
-                'metode' => 'QRIS',
-                'bayar' => 37000,
-                'kembalian' => 0,
-            ],
-            [
-                'id' => 'TRX-20260909003',
-                'tanggal' => '09-09-2026',
-                'staff' => 'Kasir A (Rina)',
-                'items' => [
-                    ['nama' => 'Ayam Bakar Kecap', 'qty' => 1, 'harga' => 32000],
-                ],
-                'total' => 32000,
-                'metode' => 'Cash',
-                'bayar' => 50000,
-                'kembalian' => 18000,
-            ],
-            [
-                'id' => 'TRX-20260910001',
-                'tanggal' => '10-09-2026',
-                'staff' => 'Kasir B (Budi)',
-                'items' => [
-                    ['nama' => 'Nasi Goreng Spesial', 'qty' => 3, 'harga' => 25000],
-                    ['nama' => 'Es Teh Manis', 'qty' => 3, 'harga' => 8000],
-                ],
-                'total' => 99000,
-                'metode' => 'QRIS',
-                'bayar' => 99000,
-                'kembalian' => 0,
-            ],
-        ];
+        $transaksis = Transaksi::with([
+            'kasir',
+            'meja',
+            'detailTransaksi.menu'
+        ])->latest()->get();
 
-        $totalTransaksi   = count($dummyTransaksi);
-        $totalPendapatan  = array_sum(array_column($dummyTransaksi, 'total'));
-        $totalPengeluaran = 125000; // dummy aja
+        // Statistik
+        $totalTransaksi = $transaksis->count();
+
+        $totalPendapatan = $transaksis
+            ->where('status', 'lunas')
+            ->sum('total_harga');
+
+        // Mapping biar cocok ke Blade kamu
+        $transaksis = $transaksis->map(function ($trx) {
+
+            return [
+                'id' => $trx->id,
+                'no_transaksi' => $trx->no_transaksi,
+                'created_at' => $trx->tanggal,
+
+                // kasir
+                'nama_kasir' => $trx->kasir->nama ?? '-',
+
+                // tipe (sesuai blade: dine_in / take_away)
+                'tipe_order' => $trx->jenis_pemesanan,
+
+                // meja
+                'nama_meja' => $trx->meja->no_meja ?? '-',
+
+                // status
+                'status' => $trx->status,
+
+                // total
+                'total_harga' => $trx->total_harga,
+                'jumlah_bayar' => $trx->jumlah_bayar,
+                'kembalian' => $trx->kembalian,
+
+                // pelanggan
+                'nama_pelanggan' => $trx->nama_pelanggan,
+
+                // detail item
+                'detail_transaksi' => $trx->detailTransaksi->map(function ($item) {
+                    return [
+                        'nama_menu' => $item->menu->nama_makanan ?? '-',
+                        'qty' => $item->qty,
+                        'harga_satuan' => $item->harga_satuan,
+                    ];
+                }),
+            ];
+        });
 
         return view('admin.riwayat', compact(
-            'dummyTransaksi',
+            'transaksis',
             'totalTransaksi',
-            'totalPendapatan',
-            'totalPengeluaran'
+            'totalPendapatan'
         ));
     }
 

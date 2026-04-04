@@ -10,14 +10,14 @@
             <p class="text-gray-600 mt-1">Kelola nomor meja, tipe, kapasitas dan status ketersediaan</p>
         </div>
 
-        {{-- Filter --}}
-        <div class="bg-white rounded-xl shadow border border-gray-200">
+        {{-- Filter Box --}}
+        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari No Meja</label>
                         <input type="text" id="filterSearch" placeholder="Ketik no meja..."
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Meja</label>
@@ -40,121 +40,156 @@
                     </div>
                     <div class="flex items-end gap-3">
                         <button onclick="applyFilter()"
-                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition text-sm">Cari</button>
+                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">Cari</button>
                         <button onclick="resetFilter()"
-                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition text-sm">Reset</button>
+                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-sm">Reset</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Tabel --}}
-        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900">Daftar Meja</h2>
+        {{-- TABEL DAFTAR MEJA --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-chair text-teal-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 leading-none">Daftar Meja</p>
+                        <p class="text-xs text-gray-400 mt-1" id="totalMeja">Total: {{ count($mejas) }} Meja</p>
+                    </div>
+                </div>
                 <button onclick="openCreateModal()"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 transition text-sm">
-                    <i class="fas fa-plus text-sm"></i> Tambah Meja
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-xl shadow-sm hover:bg-teal-700 transition text-sm">
+                    + Tambah Meja
                 </button>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/40">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-12">
+                                No</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No
                                 Meja</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Tipe</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Tipe Meja</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Kapasitas</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Deskripsi</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="mejaTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    <tbody id="mejaTableBody"></tbody>
                 </table>
             </div>
 
-            <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-500">
-                <i class="fas fa-chair text-5xl text-gray-300 mb-4 block"></i>
+            <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-400">
+                <i class="fas fa-chair text-5xl text-gray-200 mb-4 block"></i>
                 Belum ada data meja
+            </div>
+
+            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-400" id="paginationInfo"></p>
+                <div id="paginationBtns" class="flex items-center gap-1.5"></div>
             </div>
         </div>
     </div>
 
-    {{-- MODAL TAMBAH --}}
+    {{-- MODAL TAMBAH MEJA --}}
     <div id="createModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="createContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
+
             <div class="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i
-                            class="fas fa-plus-circle"></i></div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
                     <div>
                         <h2 class="text-xl font-bold">Tambah Meja Baru</h2>
-                        <p class="text-teal-100 text-xs mt-0.5">Isi data meja baru</p>
                     </div>
                 </div>
                 <button onclick="closeModal('createModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10"><i
-                        class="fas fa-times"></i></button>
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
-            <div class="p-6 bg-gray-50 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div class="p-6 bg-gray-50 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-hashtag text-teal-600 text-sm"></i> No Meja <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="createNoMeja" placeholder="Contoh: A01"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-chair text-teal-600 text-sm"></i> Tipe Meja <span class="text-red-500">*</span>
+                        </label>
+                        <select id="createTipeMeja" onchange="generateNoMeja()"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
+                            <option value="">Pilih Tipe</option>
+                            <option value="Lesehan">Lesehan</option>
+                            <option value="Meja Kursi">Meja Kursi</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-hashtag text-teal-600 text-sm"></i> No Meja <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="createNoMeja" readonly placeholder="Otomatis terisi"
+                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 rounded-lg text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateNoMeja"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-utensils text-teal-600 text-sm"></i> Tipe Meja</label>
-                        <input type="text" id="createTipeMeja" placeholder="Contoh: Lesehan"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="createKapasitas" placeholder="Contoh: 4"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="createKapasitas" placeholder="Contoh: 4"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateKapasitas"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-toggle-on text-teal-600 text-sm"></i> Status <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-toggle-on text-teal-600 text-sm"></i> Status <span
+                                class="text-red-500">*</span>
+                        </label>
                         <select id="createStatus"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                             <option value="tersedia">Tersedia</option>
                             <option value="terisi">Terisi</option>
                             <option value="reserved">Reserved</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                            class="fas fa-align-left text-teal-600 text-sm"></i> Deskripsi</label>
-                    <textarea id="createDeskripsi" rows="2" placeholder="Contoh: Meja VIP dekat jendela"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm"></textarea>
+                    <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                        <i class="fas fa-align-left text-teal-600 text-sm"></i> Deskripsi <span
+                            class="text-red-500">*</span>
+                    </label>
+                    <textarea id="createDeskripsi" rows="2" placeholder="Contoh: Meja panjang dekat jendela"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm"></textarea>
                 </div>
-                <div class="bg-teal-50 border-l-4 border-teal-500 p-3 rounded-lg flex items-start gap-3 text-xs">
+
+                <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg flex items-start gap-3 text-xs">
                     <i class="fas fa-info-circle text-teal-600 text-base mt-0.5"></i>
-                    <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.</p>
+                    <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.
+                        Pastikan data diisi dengan benar.</p>
                 </div>
+
                 <div class="flex justify-end gap-3 pt-2">
-                    <button onclick="closeModal('createModal')"
-                        class="px-6 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
+                    <button type="button" onclick="closeModal('createModal')"
+                        class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm flex items-center gap-2">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
                     <button onclick="submitCreate()"
                         class="px-8 py-2.5 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition shadow-md flex items-center gap-2 text-sm">
                         <i class="fas fa-save text-sm"></i> Simpan
@@ -164,73 +199,89 @@
         </div>
     </div>
 
-    {{-- MODAL EDIT --}}
+    {{-- MODAL EDIT MEJA --}}
     <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="editContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
+
             <div class="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i
-                            class="fas fa-edit"></i></div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
                     <div>
                         <h2 class="text-xl font-bold">Edit Meja</h2>
-                        <p class="text-teal-100 text-xs mt-0.5">Ubah data meja</p>
                     </div>
                 </div>
                 <button onclick="closeModal('editModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10"><i
-                        class="fas fa-times"></i></button>
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
-            <div class="p-6 bg-gray-50 space-y-4">
+
+            <div class="p-6 bg-gray-50 space-y-5">
                 <input type="hidden" id="editMejaId">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-hashtag text-teal-600 text-sm"></i> No Meja <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="editNoMeja"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                        <p class="text-red-500 text-xs mt-1 hidden" id="errEditNoMeja"></p>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-hashtag text-teal-600 text-sm"></i> No Meja
+                        </label>
+                        <input type="text" id="editNoMeja" readonly
+                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm">
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-utensils text-teal-600 text-sm"></i> Tipe Meja</label>
-                        <input type="text" id="editTipeMeja"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-chair text-teal-600 text-sm"></i> Tipe Meja
+                        </label>
+                        <select id="editTipeMeja"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
+                            <option value="Lesehan">Lesehan</option>
+                            <option value="Meja Kursi">Meja Kursi</option>
+                        </select>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas
+                        </label>
                         <input type="text" id="editKapasitas"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errEditKapasitas"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-toggle-on text-teal-600 text-sm"></i> Status <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-toggle-on text-teal-600 text-sm"></i> Status
+                        </label>
                         <select id="editStatus"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                             <option value="tersedia">Tersedia</option>
                             <option value="terisi">Terisi</option>
                             <option value="reserved">Reserved</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                            class="fas fa-align-left text-teal-600 text-sm"></i> Deskripsi</label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                        <i class="fas fa-align-left text-teal-600 text-sm"></i> Deskripsi
+                    </label>
                     <textarea id="editDeskripsi" rows="2"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm"></textarea>
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm"></textarea>
                 </div>
-                <div class="bg-teal-50 border-l-4 border-teal-500 p-3 rounded-lg flex items-start gap-3 text-xs">
+
+                <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg flex items-start gap-3 text-xs">
                     <i class="fas fa-info-circle text-teal-600 text-base mt-0.5"></i>
-                    <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.</p>
+                    <p class="text-teal-800">Perbarui data meja sesuai kebutuhan.</p>
                 </div>
+
                 <div class="flex justify-end gap-3 pt-2">
-                    <button onclick="closeModal('editModal')"
-                        class="px-6 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
+                    <button type="button" onclick="closeModal('editModal')"
+                        class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm flex items-center gap-2">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
                     <button onclick="submitEdit()"
                         class="px-8 py-2.5 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition shadow-md flex items-center gap-2 text-sm">
                         <i class="fas fa-save text-sm"></i> Update
@@ -241,8 +292,90 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .ab {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .ab-edit {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .ab-edit:hover {
+            background: #6d28d9;
+            color: #fff;
+        }
+
+        .ab-del {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .ab-del:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .pg {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border-radius: 7px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pg:hover {
+            border-color: #0d9488;
+            color: #0d9488;
+        }
+
+        .pg.active {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+
+        .s-tersedia {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .s-terisi {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .s-reserved {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+
     <script>
         let allMeja = @json($mejas);
+        let filteredMeja = [...allMeja];
+        const PER_PAGE = 5;
+        let currentPage = 1;
 
         const CSRF = '{{ csrf_token() }}';
         const ROUTES = {
@@ -251,281 +384,272 @@
             destroy: (id) => `{{ url('admin/meja') }}/${id}`,
         };
 
-        // ── RENDER ──────────────────────────────────────
-        function renderTable(data) {
+        function escHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function capitalize(str) {
+            return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+        }
+
+        function generateNoMeja() {
+            const tipe = document.getElementById('createTipeMeja').value;
+            const noMejaInput = document.getElementById('createNoMeja');
+            if (!tipe) {
+                noMejaInput.value = '';
+                return;
+            }
+            const prefix = tipe === 'Lesehan' ? 'L' : 'K';
+            const existing = allMeja.filter(m => m.no_meja && m.no_meja.startsWith(prefix)).length;
+            noMejaInput.value = prefix + String(existing + 1).padStart(2, '0');
+        }
+
+        function isNoMejaExist(noMeja) {
+            return allMeja.some(m => m.no_meja.toLowerCase() === noMeja.toLowerCase());
+        }
+
+        function susunDataGrouped(data) {
+            const lesehan = data.filter(m => m.tipe_meja === 'Lesehan').sort((a, b) => a.no_meja.localeCompare(b.no_meja));
+            const kursi = data.filter(m => m.tipe_meja === 'Meja Kursi').sort((a, b) => a.no_meja.localeCompare(b.no_meja));
+            return [...lesehan, ...kursi];
+        }
+
+        function renderTable() {
             const tbody = document.getElementById('mejaTableBody');
             const empty = document.getElementById('emptyState');
 
-            if (!data.length) {
+            if (!filteredMeja.length) {
                 tbody.innerHTML = '';
                 empty.classList.remove('hidden');
+                document.getElementById('paginationInfo').textContent = '';
+                document.getElementById('paginationBtns').innerHTML = '';
                 return;
             }
             empty.classList.add('hidden');
 
-            tbody.innerHTML = data.map((meja, idx) => {
-                const id = meja.id;
-                const statusBadge = meja.status === 'tersedia' ? 'bg-green-100 text-green-800' :
-                    meja.status === 'terisi' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800';
-                const deskripsi = meja.deskripsi ?
-                    `<span class="text-gray-700">${escHtml(meja.deskripsi)}</span>` :
-                    `<span class="text-gray-400 italic">-</span>`;
+            const sortedData = susunDataGrouped(filteredMeja);
+            const total = sortedData.length;
+            const totalPages = Math.ceil(total / PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages;
 
-                return `
-        <tr class="hover:bg-gray-50 transition duration-150" id="row-${id}">
-            <td class="px-6 py-4 text-sm text-gray-600">${idx + 1}</td>
-            <td class="px-6 py-4 text-sm font-semibold text-gray-900">${escHtml(meja.no_meja)}</td>
-            <td class="px-6 py-4 text-sm text-gray-600">${escHtml(meja.tipe_meja || '-')}</td>
-            <td class="px-6 py-4 text-sm text-gray-600">${meja.kapasitas} orang</td>
-            <td class="px-6 py-4 text-sm max-w-xs truncate">${deskripsi}</td>
-            <td class="px-6 py-4">
-                <span class="inline-flex px-2.5 py-0.5 text-xs font-medium rounded-full ${statusBadge}">
-                    ${capitalize(meja.status)}
-                </span>
-            </td>
-            <td class="px-6 py-4 text-sm font-medium flex items-center gap-5">
-                <button onclick="window.doEdit(${id})" title="Edit Meja"
-                    class="text-indigo-600 hover:text-indigo-800 transition text-xl">
-                    <i class="fas fa-pencil-alt"></i>
-                </button>
-                <button onclick="window.doDelete(${id})" title="Hapus Meja"
-                    class="text-red-600 hover:text-red-800 transition text-xl">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        </tr>`;
-            }).join('');
+            const start = (currentPage - 1) * PER_PAGE;
+            const end = Math.min(start + PER_PAGE, total);
+            const pageData = sortedData.slice(start, end);
+
+            let html = '';
+            pageData.forEach((meja, i) => {
+                const sBadge = meja.status === 'tersedia' ? 's-tersedia' : meja.status === 'terisi' ? 's-terisi' :
+                    's-reserved';
+                html += `
+                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-400 font-medium">${start + i + 1}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escHtml(meja.no_meja)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${escHtml(meja.tipe_meja || '-')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${meja.kapasitas} orang</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${escHtml(meja.deskripsi || '-')}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${sBadge}">
+                            ${capitalize(meja.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <button class="ab ab-edit" onclick="window.doEdit(${meja.id})" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            <button class="ab ab-del"  onclick="window.doDelete(${meja.id})" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('paginationInfo').innerHTML =
+                `Menampilkan <strong>${start + 1}-${end}</strong> dari <strong>${total}</strong> meja`;
+            document.getElementById('totalMeja').textContent = `Total: ${total} Meja`;
+
+            let btns = '';
+            for (let p = 1; p <= totalPages; p++) {
+                btns += `<button class="pg ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+            }
+            document.getElementById('paginationBtns').innerHTML = btns;
         }
 
-        // ── FILTER ──────────────────────────────────────
+        function goPage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
         function applyFilter() {
             const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const tipe = document.getElementById('filterTipe').value.toLowerCase().trim();
-            const status = document.getElementById('filterStatus').value.toLowerCase().trim();
-
-            const filtered = allMeja.filter(m => {
-                const noMeja = (m.no_meja || '').toLowerCase();
-                const tipeMeja = (m.tipe_meja || '').toLowerCase();
-                const deskrip = (m.deskripsi || '').toLowerCase();
-                const statusVal = (m.status || '').toLowerCase();
-
-                const matchSearch = !search || noMeja.includes(search) || deskrip.includes(search);
-                const matchTipe = !tipe || tipeMeja.includes(tipe);
-                const matchStatus = !status || statusVal === status;
-
-                return matchSearch && matchTipe && matchStatus;
+            const tipe = document.getElementById('filterTipe').value;
+            const status = document.getElementById('filterStatus').value;
+            filteredMeja = allMeja.filter(m => {
+                const matchSearch = !search || (m.no_meja || '').toLowerCase().includes(search) || (m.deskripsi ||
+                    '').toLowerCase().includes(search);
+                return matchSearch && (!tipe || m.tipe_meja === tipe) && (!status || m.status === status);
             });
-            renderTable(filtered);
+            currentPage = 1;
+            renderTable();
         }
 
         function resetFilter() {
             document.getElementById('filterSearch').value = '';
             document.getElementById('filterTipe').value = '';
             document.getElementById('filterStatus').value = '';
-            renderTable(allMeja);
+            filteredMeja = [...allMeja];
+            currentPage = 1;
+            renderTable();
         }
 
-        document.getElementById('filterSearch').addEventListener('input', applyFilter);
-        document.getElementById('filterTipe').addEventListener('change', applyFilter);
-        document.getElementById('filterStatus').addEventListener('change', applyFilter);
-
-        // ── MODAL ───────────────────────────────────────
         function openCreateModal() {
-            ['createNoMeja', 'createTipeMeja', 'createKapasitas', 'createDeskripsi'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
+            document.getElementById('createNoMeja').value = '';
+            document.getElementById('createTipeMeja').value = '';
+            document.getElementById('createKapasitas').value = '';
+            document.getElementById('createDeskripsi').value = '';
             document.getElementById('createStatus').value = 'tersedia';
-            clearErrors('create');
+            document.getElementById('errCreateNoMeja').classList.add('hidden');
+            document.getElementById('errCreateKapasitas').classList.add('hidden');
             showModal('createModal');
         }
 
-        function openEditModal(id) {
-            const meja = allMeja.find(m => Number(m.id) === Number(id));
-            if (!meja) return;
-
-            document.getElementById('editMejaId').value = meja.id;
-            document.getElementById('editNoMeja').value = meja.no_meja || '';
-            document.getElementById('editTipeMeja').value = meja.tipe_meja || '';
-            document.getElementById('editKapasitas').value = meja.kapasitas || '';
-            document.getElementById('editStatus').value = meja.status || 'tersedia';
-            document.getElementById('editDeskripsi').value = meja.deskripsi || '';
-            clearErrors('edit');
-            showModal('editModal');
-        }
-
-        function showModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-            setTimeout(() => {
-                const c = document.getElementById(id.replace('Modal', 'Content'));
-                c.classList.remove('scale-95', 'opacity-0');
-                c.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeModal(id) {
-            const c = document.getElementById(id.replace('Modal', 'Content'));
-            c.classList.remove('scale-100', 'opacity-100');
-            c.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => document.getElementById(id).classList.add('hidden'), 300);
-        }
-
-        // ── VALIDASI ─────────────────────────────────────
-        function validate(prefix) {
-            let ok = true;
-            clearErrors(prefix);
-
-            const noMeja = document.getElementById(`${prefix}NoMeja`).value.trim();
-            const kapasitas = document.getElementById(`${prefix}Kapasitas`).value.trim();
-
-            if (!noMeja) {
-                showErr(`err${cap(prefix)}NoMeja`, 'No meja wajib diisi.');
-                ok = false;
-            } else if (noMeja.length > 20) {
-                showErr(`err${cap(prefix)}NoMeja`, 'No meja maks 20 karakter.');
-                ok = false;
-            }
-
-            if (!kapasitas) {
-                showErr(`err${cap(prefix)}Kapasitas`, 'Kapasitas wajib diisi.');
-                ok = false;
-            } else if (!/^\d+$/.test(kapasitas)) {
-                showErr(`err${cap(prefix)}Kapasitas`, 'Kapasitas harus angka.');
-                ok = false;
-            } else if (parseInt(kapasitas) < 1) {
-                showErr(`err${cap(prefix)}Kapasitas`, 'Kapasitas minimal 1.');
-                ok = false;
-            }
-
-            return ok;
-        }
-
-        // ── SUBMIT CREATE ────────────────────────────────
         async function submitCreate() {
-            if (!validate('create')) return;
+            const noMeja = document.getElementById('createNoMeja').value.trim();
+            const tipeMeja = document.getElementById('createTipeMeja').value;
+            const kapasitas = document.getElementById('createKapasitas').value.trim();
+            const deskripsi = document.getElementById('createDeskripsi').value.trim();
+            const status = document.getElementById('createStatus').value;
 
-            const payload = {
-                no_meja: document.getElementById('createNoMeja').value.trim(),
-                tipe_meja: document.getElementById('createTipeMeja').value.trim(),
-                kapasitas: document.getElementById('createKapasitas').value.trim(),
-                status: document.getElementById('createStatus').value,
-                deskripsi: document.getElementById('createDeskripsi').value.trim(),
-            };
+            document.getElementById('errCreateNoMeja').classList.add('hidden');
+            document.getElementById('errCreateKapasitas').classList.add('hidden');
+
+            let valid = true;
+            if (!tipeMeja) {
+                Swal.fire('Peringatan', 'Tipe Meja wajib dipilih!', 'warning');
+                valid = false;
+            }
+            if (!noMeja) {
+                const el = document.getElementById('errCreateNoMeja');
+                el.textContent = 'No Meja wajib diisi';
+                el.classList.remove('hidden');
+                valid = false;
+            } else if (isNoMejaExist(noMeja)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Duplikasi No Meja',
+                    text: `Nomor "${noMeja}" sudah terdaftar.`
+                });
+                valid = false;
+            }
+            if (!kapasitas || parseInt(kapasitas) <= 0) {
+                const el = document.getElementById('errCreateKapasitas');
+                el.textContent = 'Kapasitas harus angka > 0';
+                el.classList.remove('hidden');
+                valid = false;
+            }
+            if (!deskripsi) {
+                Swal.fire('Peringatan', 'Deskripsi wajib diisi!', 'warning');
+                valid = false;
+            }
+            if (!valid) return;
 
             const btn = document.querySelector('#createContent button[onclick="submitCreate()"]');
-            setLoading(btn, true);
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+            btn.disabled = true;
 
             try {
                 const res = await fetch(ROUTES.store, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': CSRF
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                        no_meja: noMeja,
+                        tipe_meja: tipeMeja,
+                        kapasitas,
+                        deskripsi,
+                        _token: CSRF
+                    })
                 });
                 const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    if (res.status === 422 && data.errors) handleLaravelErrors(data.errors, 'create');
-                    else Swal.fire({
+                if (res.ok && data.success) {
+                    allMeja.push(data.data);
+                    filteredMeja = [...allMeja];
+                    renderTable();
+                    closeModal('createModal');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Meja berhasil ditambahkan.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                } else {
+                    Swal.fire({
                         icon: 'error',
-                        title: 'Gagal!',
+                        title: 'Gagal',
                         text: data.message || 'Terjadi kesalahan.'
                     });
-                    return;
                 }
-
-                allMeja.push(data.data);
-                renderTable(allMeja);
-                closeModal('createModal');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Meja berhasil ditambahkan.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-
             } catch {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
+                    text: 'Gagal terhubung ke server.'
                 });
             } finally {
-                setLoading(btn, false);
+                btn.innerHTML = orig;
+                btn.disabled = false;
             }
         }
 
-        // ── SUBMIT EDIT ──────────────────────────────────
         async function submitEdit() {
-            if (!validate('edit')) return;
-
             const id = document.getElementById('editMejaId').value;
             const payload = {
                 no_meja: document.getElementById('editNoMeja').value.trim(),
                 tipe_meja: document.getElementById('editTipeMeja').value.trim(),
                 kapasitas: document.getElementById('editKapasitas').value.trim(),
-                status: document.getElementById('editStatus').value,
                 deskripsi: document.getElementById('editDeskripsi').value.trim(),
-                _method: 'PUT',
+                status: document.getElementById('editStatus').value,
+                _token: CSRF,
+                _method: 'PUT'
             };
-
-            const btn = document.querySelector('#editContent button[onclick="submitEdit()"]');
-            setLoading(btn, true);
-
             try {
                 const res = await fetch(ROUTES.update(id), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': CSRF
                     },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    if (res.status === 422 && data.errors) handleLaravelErrors(data.errors, 'edit');
-                    else Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message || 'Terjadi kesalahan.'
+                if (data.success) {
+                    const idx = allMeja.findIndex(m => Number(m.id) === Number(id));
+                    if (idx !== -1) allMeja[idx] = data.data;
+                    filteredMeja = [...allMeja];
+                    renderTable();
+                    closeModal('editModal');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Meja berhasil diperbarui.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
                     });
-                    return;
                 }
-
-                const idx = allMeja.findIndex(m => Number(m.id) === Number(id));
-                if (idx !== -1) allMeja[idx] = data.data;
-                applyFilter();
-                closeModal('editModal');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Meja berhasil diperbarui.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-
             } catch {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
-                });
-            } finally {
-                setLoading(btn, false);
+                Swal.fire('Error!', 'Gagal memperbarui meja.', 'error');
             }
         }
 
-        // ── DELETE ────────────────────────────────────────
         async function deleteMeja(id) {
             const result = await Swal.fire({
                 title: 'Hapus meja ini?',
@@ -538,106 +662,74 @@
                 cancelButtonText: 'Batal',
             });
             if (!result.isConfirmed) return;
-
             try {
                 const res = await fetch(ROUTES.destroy(id), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify({
                         _method: 'DELETE'
-                    }),
+                    })
                 });
                 const data = await res.json();
-
-                if (!res.ok || !data.success) {
+                if (data.success) {
+                    allMeja = allMeja.filter(m => Number(m.id) !== Number(id));
+                    filteredMeja = [...allMeja];
+                    renderTable();
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message || 'Terjadi kesalahan.'
+                        icon: 'success',
+                        title: 'Dihapus!',
+                        text: 'Meja berhasil dihapus.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
                     });
-                    return;
                 }
-
-                allMeja = allMeja.filter(m => Number(m.id) !== Number(id));
-                applyFilter();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Dihapus!',
-                    text: 'Meja berhasil dihapus.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-
             } catch {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
-                });
+                Swal.fire('Error!', 'Gagal menghapus meja.', 'error');
             }
         }
 
-        // ── UTILS ─────────────────────────────────────────
+        function openEditModal(id) {
+            const meja = allMeja.find(m => Number(m.id) === Number(id));
+            if (!meja) return;
+            document.getElementById('editMejaId').value = meja.id;
+            document.getElementById('editNoMeja').value = meja.no_meja || '';
+            document.getElementById('editTipeMeja').value = meja.tipe_meja || '';
+            document.getElementById('editKapasitas').value = meja.kapasitas || '';
+            document.getElementById('editDeskripsi').value = meja.deskripsi || '';
+            document.getElementById('editStatus').value = meja.status || 'tersedia';
+            showModal('editModal');
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(modalId.replace('Modal', 'Content'));
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const content = document.getElementById(modalId.replace('Modal', 'Content'));
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => document.getElementById(modalId).classList.add('hidden'), 300);
+        }
+
         window.doEdit = (id) => openEditModal(id);
         window.doDelete = (id) => deleteMeja(id);
 
-        function capitalize(s) {
-            return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
-        }
-
-        function cap(s) {
-            return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
-        }
-
-        function escHtml(str) {
-            const d = document.createElement('div');
-            d.appendChild(document.createTextNode(str || ''));
-            return d.innerHTML;
-        }
-
-        function showErr(elId, msg) {
-            const el = document.getElementById(elId);
-            if (!el) return;
-            el.textContent = msg;
-            el.classList.remove('hidden');
-        }
-
-        function clearErrors(prefix) {
-            document.querySelectorAll(`[id^="err${cap(prefix)}"]`).forEach(el => {
-                el.textContent = '';
-                el.classList.add('hidden');
-            });
-        }
-
-        function handleLaravelErrors(errors, prefix) {
-            const map = {
-                no_meja: `err${cap(prefix)}NoMeja`,
-                kapasitas: `err${cap(prefix)}Kapasitas`
-            };
-            Object.entries(errors).forEach(([field, msgs]) => {
-                if (map[field]) showErr(map[field], msgs[0]);
-            });
-        }
-
-        function setLoading(btn, loading) {
-            if (!btn) return;
-            if (loading) {
-                btn.disabled = true;
-                btn.dataset.orig = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i> Proses...';
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = btn.dataset.orig;
-            }
-        }
-
-        // ── INIT ──────────────────────────────────────────
-        renderTable(allMeja);
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('filterSearch').addEventListener('input', applyFilter);
+            document.getElementById('filterTipe').addEventListener('change', applyFilter);
+            document.getElementById('filterStatus').addEventListener('change', applyFilter);
+            renderTable();
+        });
     </script>
 @endsection

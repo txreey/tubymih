@@ -4,6 +4,7 @@
 @section('content')
     <div class="space-y-5 max-w-7xl mx-auto p-1">
 
+        {{-- Header --}}
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Kelola Menu</h1>
             <p class="text-gray-600 mt-1">Kelola daftar menu makanan dan minuman</p>
@@ -13,26 +14,49 @@
         <div class="bg-white rounded-xl shadow border border-gray-200">
             <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {{-- Cari --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari Nama Menu</label>
-                        <input type="text" id="filterSearch" placeholder="Ketik nama menu..."
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                <i class="fas fa-search text-sm"></i>
+                            </span>
+                            <input type="text" id="filterSearch" placeholder="Ketik nama menu..."
+                                class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        </div>
                     </div>
+
+                    {{-- Kategori --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Kategori</label>
                         <select id="filterKategori"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                            <option value="">Semua Kategori</option>
-                            @foreach ($kategoris as $kat)
-                                <option value="{{ $kat->id }}">{{ $kat->nama_kategori }} - {{ $kat->jenis }}</option>
-                            @endforeach
+                            <option value="">-- Semua --</option>
+                            <option value="Makanan">Makanan</option>
+                            <option value="Minuman">Minuman</option>
                         </select>
                     </div>
-                    <div class="flex items-end gap-3 lg:col-span-2">
-                        <button onclick="applyFilter()"
-                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition text-sm">Cari</button>
+
+                    {{-- Jenis --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Jenis</label>
+                        <select id="filterJenis"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm bg-gray-100 cursor-not-allowed"
+                            disabled>
+                            <option value="">pilih kategori dulu</option>
+                        </select>
+                    </div>
+
+                    {{-- Tombol --}}
+                    <div class="flex items-end gap-3">
+                        <button onclick="terapkanFilter()"
+                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition text-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-search text-sm"></i> Cari
+                        </button>
                         <button onclick="resetFilter()"
-                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition text-sm">Reset</button>
+                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition text-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-rotate-left text-sm"></i> Reset
+                        </button>
                     </div>
                 </div>
             </div>
@@ -40,116 +64,156 @@
 
         {{-- Tabel --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900">Daftar Menu</h2>
-                <button onclick="openCreateModal()"
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-utensils text-teal-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Daftar Menu</h2>
+                        <p class="text-xs text-gray-500" id="totalMenuLabel">Total: 0 Menu</p>
+                    </div>
+                </div>
+                <button onclick="bukaModalTambah()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 transition text-sm">
                     <i class="fas fa-plus text-sm"></i> Tambah Menu
                 </button>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Gambar</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Nama Menu</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Kategori</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Harga</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Stok</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Aksi</th>
-                        </tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-14">No
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama
+                            Menu</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Harga
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Stok
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gambar
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi
+                        </th>
                     </thead>
-                    <tbody id="menuTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    <tbody id="menuTableBody" class="bg-white divide-y divide-gray-100"></tbody>
                 </table>
             </div>
+
             <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-500">
                 <i class="fas fa-utensils text-5xl text-gray-300 mb-4 block"></i>
                 Belum ada data menu
             </div>
+
+            <div id="paginationWrapper"
+                class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-sm text-gray-600" id="paginationInfo">Menampilkan 0-0 dari 0 Menu</p>
+                <div class="flex items-center gap-1" id="paginationButtons"></div>
+            </div>
         </div>
     </div>
 
-    {{-- ── MODAL TAMBAH ──────────────────────────────────────────────── --}}
+    {{-- MODAL TAMBAH --}}
     <div id="createModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="createContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
             <div class="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i
-                            class="fas fa-plus-circle"></i></div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
                     <div>
                         <h2 class="text-xl font-bold">Tambah Menu Baru</h2>
                         <p class="text-teal-100 text-xs mt-0.5">Isi data menu baru</p>
                     </div>
                 </div>
-                <button onclick="closeModal('createModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10"><i
-                        class="fas fa-times"></i></button>
+                <button onclick="tutupModal('createModal')"
+                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <form id="createForm" enctype="multipart/form-data" class="p-6 bg-gray-50 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-tag text-teal-600 text-sm"></i> Kategori <span
-                                class="text-red-500">*</span></label>
-                        <select id="createKategori" name="id_kategori"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-tag text-teal-600 text-sm"></i> Kategori <span class="text-red-500">*</span>
+                        </label>
+                        <select id="createKategoriInduk"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm"
+                            onchange="onKategoriIndukBerubah()">
                             <option value="">-- Pilih Kategori --</option>
-                            @foreach ($kategoris as $kat)
-                                <option value="{{ $kat->id }}">{{ $kat->nama_kategori }} - {{ $kat->jenis }}</option>
-                            @endforeach
+                            <option value="Makanan">Makanan</option>
+                            <option value="Minuman">Minuman</option>
+                        </select>
+                        <p class="text-red-500 text-xs mt-1 hidden" id="errCreateKategoriInduk"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-layer-group text-teal-600 text-sm"></i> Jenis <span
+                                class="text-red-500">*</span>
+                        </label>
+                        <select id="createKategori" name="id_kategori"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm bg-gray-100 cursor-not-allowed"
+                            disabled>
+                            <option value="" selected disabled>pilih kategori dulu</option>
                         </select>
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateKategori"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-utensils text-teal-600 text-sm"></i> Nama Menu <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" id="createNama" name="nama_makanan" placeholder="Contoh: Nasi Goreng Spesial"
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-utensils text-teal-600 text-sm"></i> Nama Menu <span
+                                class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="createNama" name="nama_makanan"
+                            placeholder="Contoh: Nasi Goreng Spesial"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateNama"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-money-bill text-teal-600 text-sm"></i> Harga <span
-                                class="text-red-500">*</span></label>
-                        <input type="number" id="createHarga" name="harga" placeholder="Contoh: 25000" min="0"
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-money-bill text-teal-600 text-sm"></i> Harga <span
+                                class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="createHarga" name="harga" placeholder="Contoh: 25000"
+                            min="0"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateHarga"></p>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                                class="fas fa-boxes-stacked text-teal-600 text-sm"></i> Stok <span
-                                class="text-red-500">*</span></label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-boxes-stacked text-teal-600 text-sm"></i> Stok <span
+                                class="text-red-500">*</span>
+                        </label>
                         <input type="number" id="createStok" name="stok" placeholder="Contoh: 50" min="0"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateStok"></p>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-image text-teal-600 text-sm"></i> Gambar Menu
+                        </label>
+                        <input type="file" id="createGambar" name="gambar" accept="image/*"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <img id="createGambarPreview" src="#" alt="Preview"
+                            class="mt-2 w-24 h-24 object-cover rounded-lg hidden shadow">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1.5"><i
-                            class="fas fa-image text-teal-600 text-sm"></i> Gambar Menu</label>
-                    <input type="file" id="createGambar" name="gambar" accept="image/*"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                    {{-- preview --}}
-                    <img id="createGambarPreview" src="#" alt="Preview"
-                        class="mt-2 w-24 h-24 object-cover rounded-lg hidden shadow">
-                </div>
+
                 <div class="bg-teal-50 border-l-4 border-teal-500 p-3 rounded-lg flex items-start gap-3 text-xs">
                     <i class="fas fa-info-circle text-teal-600 text-base mt-0.5"></i>
-                    <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.</p>
+                    <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.
+                        Pilih <strong>Kategori</strong> terlebih dahulu sebelum memilih Jenis.</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeModal('createModal')"
+                    <button type="button" onclick="tutupModal('createModal')"
                         class="px-6 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
                     <button type="button" onclick="submitCreate()"
                         class="px-8 py-2.5 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition shadow-md flex items-center gap-2 text-sm">
@@ -160,23 +224,25 @@
         </div>
     </div>
 
-    {{-- ── MODAL HARGA ───────────────────────────────────────────────── --}}
+    {{-- MODAL HARGA --}}
     <div id="hargaModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="hargaContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
             <div
                 class="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i
-                            class="fas fa-money-bill-wave"></i></div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
                     <div>
                         <h2 class="text-xl font-bold">Kelola Harga</h2>
                         <p class="text-emerald-100 text-xs mt-0.5">Ubah harga jual menu</p>
                     </div>
                 </div>
-                <button onclick="closeModal('hargaModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10"><i
-                        class="fas fa-times"></i></button>
+                <button onclick="tutupModal('hargaModal')"
+                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="p-6 space-y-5">
                 <input type="hidden" id="hargaMenuId">
@@ -199,7 +265,7 @@
                 </div>
             </div>
             <div class="px-6 pb-5 flex justify-end gap-3">
-                <button onclick="closeModal('hargaModal')"
+                <button onclick="tutupModal('hargaModal')"
                     class="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
                 <button onclick="submitHarga()"
                     class="px-7 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-semibold">
@@ -209,22 +275,24 @@
         </div>
     </div>
 
-    {{-- ── MODAL STOK ────────────────────────────────────────────────── --}}
+    {{-- MODAL STOK --}}
     <div id="stokModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="stokContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i
-                            class="fas fa-boxes-stacked"></i></div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-boxes-stacked"></i>
+                    </div>
                     <div>
                         <h2 class="text-xl font-bold">Kelola Stok</h2>
                         <p class="text-blue-100 text-xs mt-0.5">Tambah / kurangi stok menu</p>
                     </div>
                 </div>
-                <button onclick="closeModal('stokModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10"><i
-                        class="fas fa-times"></i></button>
+                <button onclick="tutupModal('stokModal')"
+                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="p-6 space-y-5">
                 <input type="hidden" id="stokMenuId">
@@ -248,8 +316,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Stok Baru
-                        <span class="text-gray-400 font-normal text-xs ml-1">(tulis angka positif untuk tambah, negatif
-                            untuk kurang)</span>
+                        <span class="text-gray-400 font-normal text-xs ml-1">(positif untuk tambah, negatif untuk
+                            kurang)</span>
                     </label>
                     <input type="number" id="inputJumlahStok" placeholder="Contoh: 10 atau -5"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 text-lg outline-none"
@@ -258,7 +326,7 @@
                 </div>
             </div>
             <div class="px-6 pb-5 flex justify-end gap-3">
-                <button onclick="closeModal('stokModal')"
+                <button onclick="tutupModal('stokModal')"
                     class="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
                 <button onclick="submitStok()"
                     class="px-7 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-semibold">
@@ -270,224 +338,400 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // ── DATA ──────────────────────────────────────────────────────────
-        let allMenu = @json($menus);
+        // ============================================================
+        // DATA
+        // ============================================================
+        let semuaMenu = @json($menus);
+        let semuaKategori = @json($kategoris);
+        let menuTerfilter = [...semuaMenu];
 
         const CSRF = '{{ csrf_token() }}';
         const ROUTES = {
-            store: '{{ route('admin.menu.store') }}',
+            simpan: '{{ route('admin.menu.store') }}',
             update: (id) => `{{ url('admin/menu') }}/${id}`,
-            destroy: (id) => `{{ url('admin/menu') }}/${id}`,
+            hapus: (id) => `{{ url('admin/menu') }}/${id}`,
+            cekPesanan: (id) => `{{ url('admin/menu') }}/${id}/check-orders`,
         };
 
-        const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n || 0);
+        const formatRupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n || 0);
+        const PER_PAGE = 5;
+        let halamanAktif = 1;
 
-        // ── RENDER ────────────────────────────────────────────────────────
-        function renderTable(data) {
-            const tbody = document.getElementById('menuTableBody');
-            const empty = document.getElementById('emptyState');
-
-            if (!data.length) {
-                tbody.innerHTML = '';
-                empty.classList.remove('hidden');
-                return;
-            }
-            empty.classList.add('hidden');
-
-            tbody.innerHTML = data.map((m, idx) => {
-                const id = m.id;
-                const kat = m.kategori ? `${m.kategori.nama_kategori} - ${m.kategori.jenis || ''}` : '-';
-                const gambar = m.gambar ?
-                    `<img src="/storage/${m.gambar}" class="w-14 h-14 object-cover rounded-lg shadow-sm" onerror="this.src='https://placehold.co/56x56/e2e8f0/94a3b8?text=No+Img'">` :
-                    `<div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image text-xl"></i></div>`;
-                const stokClass = m.stok <= 5 ? 'text-red-600 font-bold' : m.stok <= 15 ?
-                    'text-amber-600 font-semibold' : 'text-gray-700';
-
-                return `
-        <tr class="hover:bg-gray-50 transition duration-150" id="row-${id}">
-            <td class="px-6 py-4 text-sm text-gray-600">${idx + 1}</td>
-            <td class="px-6 py-4">${gambar}</td>
-            <td class="px-6 py-4 text-sm font-semibold text-gray-900">${escHtml(m.nama_makanan)}</td>
-            <td class="px-6 py-4">
-                <span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-teal-100 text-teal-800">
-                    ${escHtml(kat)}
-                </span>
-            </td>
-            <td class="px-6 py-4 text-sm font-semibold text-gray-800" id="harga-${id}">${rupiah(m.harga)}</td>
-            <td class="px-6 py-4 text-sm ${stokClass}" id="stok-${id}">${m.stok} pcs</td>
-            <td class="px-6 py-4 text-sm font-medium flex items-center gap-4">
-                <button onclick="window.doHarga(${id})" title="Kelola Harga"
-                    class="text-emerald-600 hover:text-emerald-800 transition text-xl">
-                    <i class="fas fa-money-bill-wave"></i>
-                </button>
-                <button onclick="window.doStok(${id})" title="Kelola Stok"
-                    class="text-blue-600 hover:text-blue-800 transition text-xl">
-                    <i class="fas fa-boxes-stacked"></i>
-                </button>
-                <button onclick="window.doDelete(${id})" title="Hapus Menu"
-                    class="text-red-600 hover:text-red-800 transition text-xl">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        </tr>`;
-            }).join('');
+        // ============================================================
+        // FUNGSI BANTUAN
+        // ============================================================
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(s || ''));
+            return div.innerHTML;
         }
 
-        // ── FILTER ────────────────────────────────────────────────────────
-        function applyFilter() {
-            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const katId = document.getElementById('filterKategori').value;
+        function tampilkanModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            setTimeout(() => {
+                const konten = document.getElementById(id.replace('Modal', 'Content'));
+                konten.classList.remove('scale-95', 'opacity-0');
+                konten.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
 
-            const filtered = allMenu.filter(m => {
-                const matchSearch = !search || m.nama_makanan.toLowerCase().includes(search);
-                const matchKat = !katId || String(m.id_kategori) === katId;
-                return matchSearch && matchKat;
+        function tutupModal(id) {
+            const konten = document.getElementById(id.replace('Modal', 'Content'));
+            konten.classList.remove('scale-100', 'opacity-100');
+            konten.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => document.getElementById(id).classList.add('hidden'), 300);
+        }
+
+        function setLoading(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.original = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i> Proses...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.original;
+            }
+        }
+
+        function tampilkanError(id, pesan) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = pesan;
+                el.classList.remove('hidden');
+            }
+        }
+
+        function setBorderError(id, isError) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isError) {
+                el.classList.add('border-red-400', 'focus:ring-red-400');
+                el.classList.remove('border-gray-300');
+            } else {
+                el.classList.remove('border-red-400', 'focus:ring-red-400');
+                el.classList.add('border-gray-300');
+            }
+        }
+
+        function bersihkanError(prefix) {
+            const kapital = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+            document.querySelectorAll(`[id^="err${kapital}"]`).forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
             });
-            renderTable(filtered);
+        }
+
+        function resetBorderError(prefix) {
+            const daftarField = {
+                create: ['createKategoriInduk', 'createKategori', 'createNama', 'createHarga', 'createStok'],
+                harga: ['inputHargaBaru'],
+                stok: ['inputJumlahStok'],
+            };
+            (daftarField[prefix] || []).forEach(id => setBorderError(id, false));
+        }
+
+        // ============================================================
+        // FUNGSI FILTER
+        // ============================================================
+        function resetDropdownJenis() {
+            const selectJenis = document.getElementById('filterJenis');
+            selectJenis.innerHTML = '<option value="" selected disabled>pilih kategori dulu</option>';
+            selectJenis.disabled = true;
+            selectJenis.classList.add('bg-gray-100', 'cursor-not-allowed');
+        }
+
+        function filterKategoriChange() {
+            const kategori = document.getElementById('filterKategori').value;
+            const selectJenis = document.getElementById('filterJenis');
+
+            if (!kategori) {
+                resetDropdownJenis();
+                terapkanFilter();
+                return;
+            }
+
+            selectJenis.disabled = false;
+            selectJenis.classList.remove('bg-gray-100', 'cursor-not-allowed');
+
+            const daftarJenis = [...new Set(
+                semuaMenu.filter(m => m.kategori?.nama_kategori === kategori).map(m => m.kategori.jenis)
+            )];
+
+            selectJenis.innerHTML = '<option value="">-- Semua Jenis --</option>' +
+                daftarJenis.map(j => `<option value="${j}">${j}</option>`).join('');
+
+            terapkanFilter();
+        }
+
+        function terapkanFilter() {
+            const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
+            const induk = document.getElementById('filterKategori').value;
+            const jenis = document.getElementById('filterJenis').value;
+
+            menuTerfilter = semuaMenu.filter(m => {
+                const cocokKeyword = !keyword || m.nama_makanan.toLowerCase().includes(keyword);
+                const cocokInduk = !induk || (m.kategori?.nama_kategori === induk);
+                const cocokJenis = !jenis || (m.kategori?.jenis === jenis);
+                return cocokKeyword && cocokInduk && cocokJenis;
+            });
+
+            halamanAktif = 1;
+            renderHalaman();
         }
 
         function resetFilter() {
             document.getElementById('filterSearch').value = '';
             document.getElementById('filterKategori').value = '';
-            renderTable(allMenu);
+            resetDropdownJenis();
+            menuTerfilter = [...semuaMenu];
+            halamanAktif = 1;
+            renderHalaman();
         }
 
-        document.getElementById('filterSearch').addEventListener('input', applyFilter);
-        document.getElementById('filterKategori').addEventListener('change', applyFilter);
+        // ============================================================
+        // RENDER TABEL
+        // ============================================================
+        function renderHalaman() {
+            const tbody = document.getElementById('menuTableBody');
+            const empty = document.getElementById('emptyState');
+            const wrapperPag = document.getElementById('paginationWrapper');
+            const total = menuTerfilter.length;
 
-        // ── MODAL HELPERS ─────────────────────────────────────────────────
-        function showModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-            setTimeout(() => {
-                const c = document.getElementById(id.replace('Modal', 'Content'));
-                c.classList.remove('scale-95', 'opacity-0');
-                c.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
+            document.getElementById('totalMenuLabel').textContent = `Total: ${semuaMenu.length} Menu`;
 
-        function closeModal(id) {
-            const c = document.getElementById(id.replace('Modal', 'Content'));
-            c.classList.remove('scale-100', 'opacity-100');
-            c.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => document.getElementById(id).classList.add('hidden'), 300);
-        }
-
-        // ── PREVIEW GAMBAR ────────────────────────────────────────────────
-        document.getElementById('createGambar').addEventListener('change', function() {
-            previewImg(this, 'createGambarPreview');
-        });
-
-        function previewImg(input, previewId) {
-            const prev = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    prev.src = e.target.result;
-                    prev.classList.remove('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
+            if (!total) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                wrapperPag.classList.add('hidden');
+                return;
             }
+
+            empty.classList.add('hidden');
+            wrapperPag.classList.remove('hidden');
+
+            const totalHalaman = Math.ceil(total / PER_PAGE);
+            if (halamanAktif > totalHalaman) halamanAktif = totalHalaman;
+
+            const mulai = (halamanAktif - 1) * PER_PAGE;
+            const dataHalaman = menuTerfilter.slice(mulai, mulai + PER_PAGE);
+
+            tbody.innerHTML = dataHalaman.map((m, i) => {
+                const nomor = mulai + i + 1;
+                const induk = m.kategori?.nama_kategori || '';
+                const jenis = m.kategori?.jenis || '-';
+                const warnaBadge = induk === 'Makanan' ? 'bg-orange-100 text-orange-700' :
+                    induk === 'Minuman' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-600';
+
+                const gambar = m.gambar ?
+                    `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm"
+                           onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
+                    `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                        <i class="fas fa-image text-lg"></i>
+                    </div>`;
+
+                const warnaStok = m.stok <= 5 ? 'text-red-600 font-bold' :
+                    m.stok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700';
+
+                return `
+                    <tr class="hover:bg-gray-50 transition duration-150" id="row-${m.id}">
+                        <td class="px-6 py-4 text-sm text-gray-500">${nomor}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">${escapeHtml(m.nama_makanan)}</td>
+                        <td class="px-6 py-4"><span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span></td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-800" id="harga-${m.id}">${formatRupiah(m.harga)}</td>
+                        <td class="px-6 py-4 text-sm ${warnaStok}" id="stok-${m.id}">${m.stok}</td>
+                        <td class="px-6 py-4">${gambar}</td>
+                        <td class="px-6 py-4 text-sm font-medium">
+                            <div class="flex items-center gap-2">
+                                <button onclick="bukaModalHarga(${m.id})" title="Kelola Harga"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                                <button onclick="bukaModalStok(${m.id})" title="Kelola Stok"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                                    <i class="fas fa-boxes-stacked text-xs"></i>
+                                </button>
+                                <button onclick="hapusMenu(${m.id})" title="Hapus Menu"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination(total, totalHalaman);
         }
 
-        // ── OPEN MODALS ───────────────────────────────────────────────────
-        function openCreateModal() {
-            document.getElementById('createForm').reset();
-            document.getElementById('createGambarPreview').classList.add('hidden');
-            clearErrors('create');
-            // reset semua border input ke normal
-            ['createKategori', 'createNama', 'createHarga', 'createStok'].forEach(id => setBorder(id, false));
-            showModal('createModal');
+        function renderPagination(total, totalHalaman) {
+            const info = document.getElementById('paginationInfo');
+            const btns = document.getElementById('paginationButtons');
+            const mulai = (halamanAktif - 1) * PER_PAGE + 1;
+            const sampai = Math.min(halamanAktif * PER_PAGE, total);
+
+            info.textContent = `Menampilkan ${mulai}-${sampai} dari ${total} Menu`;
+
+            const base = 'min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium transition flex items-center justify-center';
+            const active = `${base} bg-teal-600 text-white shadow`;
+            const normal = `${base} bg-white border border-gray-200 text-gray-700 hover:bg-gray-50`;
+            const disabled = `${base} bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed`;
+
+            let html = '';
+
+            html += halamanAktif > 1 ?
+                `<button onclick="keHalaman(${halamanAktif-1})" class="${normal}"><i class="fas fa-chevron-left text-xs mr-1"></i> </button>` :
+                `<button class="${disabled}" disabled><i class="fas fa-chevron-left text-xs mr-1"></i> </button>`;
+
+            getRentangHalaman(halamanAktif, totalHalaman).forEach(p => {
+                html += p === '...' ?
+                    `<span class="${base} text-gray-400 border-0">…</span>` :
+                    `<button onclick="keHalaman(${p})" class="${p === halamanAktif ? active : normal}">${p}</button>`;
+            });
+
+            html += halamanAktif < totalHalaman ?
+                `<button onclick="keHalaman(${halamanAktif+1})" class="${normal}"> <i class="fas fa-chevron-right text-xs ml-1"></i></button>` :
+                `<button class="${disabled}" disabled> <i class="fas fa-chevron-right text-xs ml-1"></i></button>`;
+
+            btns.innerHTML = html;
         }
 
-
-
-        function openHargaModal(id) {
-            const m = allMenu.find(x => Number(x.id) === Number(id));
-            if (!m) return;
-            const kat = m.kategori ? `${m.kategori.nama_kategori} - ${m.kategori.jenis || ''}` : '-';
-            document.getElementById('hargaMenuId').value = m.id;
-            document.getElementById('hargaNama').textContent = m.nama_makanan;
-            document.getElementById('hargaKategori').textContent = kat;
-            document.getElementById('hargaSaatIni').textContent = rupiah(m.harga);
-            document.getElementById('inputHargaBaru').value = m.harga;
-            document.getElementById('errHarga').classList.add('hidden');
-            showModal('hargaModal');
+        function getRentangHalaman(current, total) {
+            if (total <= 4) return Array.from({
+                length: total
+            }, (_, i) => i + 1);
+            if (current <= 3) return [1, 2, 3, 4, 4, '...', total];
+            if (current >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+            return [1, '...', current - 1, current, current + 1, '...', total];
         }
 
-        function openStokModal(id) {
-            const m = allMenu.find(x => Number(x.id) === Number(id));
-            if (!m) return;
-            document.getElementById('stokMenuId').value = m.id;
-            document.getElementById('stokNama').textContent = m.nama_makanan;
-            document.getElementById('stokSaatIni').textContent = m.stok;
-            document.getElementById('stokTotal').textContent = m.stok;
-            document.getElementById('inputJumlahStok').value = '';
-            document.getElementById('errStok').classList.add('hidden');
-            window._currentStok = m.stok;
-            showModal('stokModal');
+        function keHalaman(halaman) {
+            halamanAktif = halaman;
+            renderHalaman();
         }
 
-        function hitungTotalStok() {
-            const jumlah = parseInt(document.getElementById('inputJumlahStok').value) || 0;
-            const total = window._currentStok + jumlah;
-            const el = document.getElementById('stokTotal');
-            el.textContent = total;
-            el.className = total < 0 ? 'text-3xl font-bold text-red-600' : total > window._currentStok ?
-                'text-3xl font-bold text-green-600' : 'text-3xl font-bold text-gray-800';
+        // ============================================================
+        // FUNGSI UNTUK MODAL TAMBAH
+        // ============================================================
+        function buatPetaKategori() {
+            const peta = {
+                Makanan: [],
+                Minuman: []
+            };
+            semuaKategori.forEach(k => {
+                const induk = k.nama_kategori;
+                if (peta[induk] && !peta[induk].find(x => x.id === k.id)) {
+                    peta[induk].push({
+                        id: k.id,
+                        jenis: k.jenis
+                    });
+                }
+            });
+            return peta;
         }
 
-        // ── VALIDASI ──────────────────────────────────────────────────────
-        function validateCreate() {
-            let ok = true;
-            clearErrors('create');
-            resetBorders('create');
+        function isiDropdownJenis(selectId, nilaiInduk) {
+            const select = document.getElementById(selectId);
 
-            const kategori = document.getElementById('createKategori').value;
+            if (!nilaiInduk) {
+                select.innerHTML = '<option value="" selected disabled>pilih kategori dulu</option>';
+                select.disabled = true;
+                select.classList.add('bg-gray-100', 'cursor-not-allowed');
+                select.classList.remove('bg-white');
+                return;
+            }
+
+            const peta = buatPetaKategori();
+            const daftar = (peta[nilaiInduk] || []).sort((a, b) => a.jenis.localeCompare(b.jenis));
+
+            select.innerHTML = `<option value="">-- Pilih Jenis --</option>`;
+            daftar.forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k.id;
+                opt.textContent = k.jenis;
+                select.appendChild(opt);
+            });
+
+            select.disabled = false;
+            select.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            select.classList.add('bg-white');
+        }
+
+        function onKategoriIndukBerubah() {
+            const nilai = document.getElementById('createKategoriInduk').value;
+            isiDropdownJenis('createKategori', nilai);
+            document.getElementById('errCreateKategoriInduk').classList.add('hidden');
+            document.getElementById('errCreateKategori').classList.add('hidden');
+            setBorderError('createKategori', false);
+        }
+
+        function validasiTambah() {
+            let valid = true;
+            bersihkanError('create');
+            resetBorderError('create');
+
+            const induk = document.getElementById('createKategoriInduk').value;
+            const katId = document.getElementById('createKategori').value;
             const nama = document.getElementById('createNama').value.trim();
             const harga = document.getElementById('createHarga').value;
             const stok = document.getElementById('createStok').value;
 
-            if (!kategori) {
-                showErr('errCreateKategori', 'Kategori wajib dipilih.');
-                setBorder('createKategori', true);
-                ok = false;
+            if (!induk) {
+                tampilkanError('errCreateKategoriInduk', 'Kategori wajib dipilih.');
+                setBorderError('createKategoriInduk', true);
+                valid = false;
+            }
+            if (!katId) {
+                tampilkanError('errCreateKategori', 'Jenis wajib dipilih.');
+                setBorderError('createKategori', true);
+                valid = false;
             }
             if (!nama) {
-                showErr('errCreateNama', 'Nama menu wajib diisi.');
-                setBorder('createNama', true);
-                ok = false;
+                tampilkanError('errCreateNama', 'Nama menu wajib diisi.');
+                setBorderError('createNama', true);
+                valid = false;
             }
-            if (harga === '' || harga === null || Number(harga) < 0) {
-                showErr('errCreateHarga', 'Harga wajib diisi dan tidak boleh negatif.');
-                setBorder('createHarga', true);
-                ok = false;
+            if (harga === '' || Number(harga) < 0) {
+                tampilkanError('errCreateHarga', 'Harga wajib diisi dan tidak boleh negatif.');
+                setBorderError('createHarga', true);
+                valid = false;
             }
-            if (stok === '' || stok === null || Number(stok) < 0) {
-                showErr('errCreateStok', 'Stok wajib diisi dan tidak boleh negatif.');
-                setBorder('createStok', true);
-                ok = false;
+            if (stok === '' || Number(stok) < 0) {
+                tampilkanError('errCreateStok', 'Stok wajib diisi dan tidak boleh negatif.');
+                setBorderError('createStok', true);
+                valid = false;
             }
-            return ok;
+            return valid;
         }
 
+        function bukaModalTambah() {
+            document.getElementById('createForm').reset();
+            document.getElementById('createGambarPreview').classList.add('hidden');
+            document.getElementById('createKategoriInduk').value = '';
+            isiDropdownJenis('createKategori', '');
+            bersihkanError('create');
+            resetBorderError('create');
+            tampilkanModal('createModal');
+        }
 
-        // ── SUBMIT CREATE ─────────────────────────────────────────────────
         async function submitCreate() {
-            if (!validateCreate()) return;
+            if (!validasiTambah()) return;
 
             const form = new FormData();
             form.append('id_kategori', document.getElementById('createKategori').value);
             form.append('nama_makanan', document.getElementById('createNama').value.trim());
             form.append('harga', document.getElementById('createHarga').value);
             form.append('stok', document.getElementById('createStok').value);
-            const gambarFile = document.getElementById('createGambar').files[0];
-            if (gambarFile) form.append('gambar', gambarFile);
+
+            const fileGambar = document.getElementById('createGambar').files[0];
+            if (fileGambar) form.append('gambar', fileGambar);
 
             const btn = document.querySelector('#createContent button[onclick="submitCreate()"]');
             setLoading(btn, true);
 
             try {
-                const res = await fetch(ROUTES.store, {
+                const res = await fetch(ROUTES.simpan, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': CSRF,
@@ -498,29 +742,74 @@
                 const data = await res.json();
 
                 if (!res.ok || !data.success) {
-                    if (res.status === 422 && data.errors) handleLaravelErrors(data.errors, 'create');
-                    else Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message || 'Terjadi kesalahan.'
-                    });
+                    if (res.status === 422 && data.errors) {
+                        const mapError = {
+                            id_kategori: 'errCreateKategori',
+                            nama_makanan: 'errCreateNama',
+                            harga: 'errCreateHarga',
+                            stok: 'errCreateStok'
+                        };
+                        Object.entries(data.errors).forEach(([field, msgs]) => {
+                            if (mapError[field]) tampilkanError(mapError[field], msgs[0]);
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: data.message || 'Terjadi kesalahan.'
+                        });
+                    }
                     return;
                 }
 
-                allMenu.push(data.data);
-                renderTable(allMenu);
-                closeModal('createModal');
+                // ==================== MENU BARU DITAMBAHKAN DI AKHIR ====================
+                const menuBaru = data.data;
+
+                semuaMenu.push(menuBaru); // Tambah di akhir array utama
+
+                // Cek apakah sesuai dengan filter yang sedang aktif
+                const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
+                const induk = document.getElementById('filterKategori').value;
+                const jenis = document.getElementById('filterJenis').value;
+
+                const cocokFilter =
+                    (!keyword || menuBaru.nama_makanan.toLowerCase().includes(keyword)) &&
+                    (!induk || (menuBaru.kategori?.nama_kategori === induk)) &&
+                    (!jenis || (menuBaru.kategori?.jenis === jenis));
+
+                if (cocokFilter) {
+                    menuTerfilter.push(menuBaru); // Tambah di akhir daftar yang difilter
+                }
+
+                // Otomatis pindah ke halaman terakhir agar menu baru langsung terlihat
+                halamanAktif = Math.ceil(menuTerfilter.length / PER_PAGE) || 1;
+
+                renderHalaman();
+
+                // Efek highlight pada baris baru
+                setTimeout(() => {
+                    const newRow = document.getElementById(`row-${menuBaru.id}`);
+                    if (newRow) {
+                        newRow.classList.add('bg-teal-50', 'ring-2', 'ring-teal-300');
+                        setTimeout(() => {
+                            newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300');
+                        }, 3000);
+                    }
+                }, 300);
+
+                tutupModal('createModal');
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Menu berhasil ditambahkan.',
+                    text: 'Menu baru berhasil ditambahkan.',
                     timer: 2000,
                     showConfirmButton: false,
                     toast: true,
                     position: 'top-end'
                 });
 
-            } catch {
+            } catch (e) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
@@ -531,30 +820,42 @@
             }
         }
 
+        // ============================================================
+        // FUNGSI UNTUK MODAL HARGA
+        // ============================================================
+        function bukaModalHarga(id) {
+            const m = semuaMenu.find(x => Number(x.id) === Number(id));
+            if (!m) return;
+            document.getElementById('hargaMenuId').value = m.id;
+            document.getElementById('hargaNama').textContent = m.nama_makanan;
+            document.getElementById('hargaKategori').textContent = m.kategori ?
+                `${m.kategori.nama_kategori} — ${m.kategori.jenis}` : '-';
+            document.getElementById('hargaSaatIni').textContent = formatRupiah(m.harga);
+            document.getElementById('inputHargaBaru').value = m.harga;
+            document.getElementById('errHarga').classList.add('hidden');
+            setBorderError('inputHargaBaru', false);
+            tampilkanModal('hargaModal');
+        }
 
-
-        // ── SUBMIT HARGA ──────────────────────────────────────────────────
         async function submitHarga() {
             const id = document.getElementById('hargaMenuId').value;
             const harga = document.getElementById('inputHargaBaru').value;
             document.getElementById('errHarga').classList.add('hidden');
 
             if (!harga || Number(harga) < 0) {
-                showErr('errHarga', 'Harga wajib diisi dan tidak boleh negatif.');
-                setBorder('inputHargaBaru', true);
+                tampilkanError('errHarga', 'Harga wajib diisi dan tidak boleh negatif.');
+                setBorderError('inputHargaBaru', true);
                 return;
             }
-            setBorder('inputHargaBaru', false);
+            setBorderError('inputHargaBaru', false);
 
             const btn = document.querySelector('#hargaContent button[onclick="submitHarga()"]');
             setLoading(btn, true);
-
             try {
+                const m = semuaMenu.find(x => Number(x.id) === Number(id));
                 const form = new FormData();
                 form.append('harga', harga);
                 form.append('_method', 'PUT');
-                // ambil data menu yg lain supaya update tidak hapus field lain
-                const m = allMenu.find(x => Number(x.id) === Number(id));
                 form.append('id_kategori', m.id_kategori);
                 form.append('nama_makanan', m.nama_makanan);
                 form.append('stok', m.stok);
@@ -578,12 +879,14 @@
                     return;
                 }
 
-                const idx = allMenu.findIndex(x => Number(x.id) === Number(id));
-                if (idx !== -1) allMenu[idx] = data.data;
-                // update cell harga langsung tanpa re-render seluruh tabel
+                const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
+                if (idx !== -1) semuaMenu[idx] = data.data;
+                const fidx = menuTerfilter.findIndex(x => Number(x.id) === Number(id));
+                if (fidx !== -1) menuTerfilter[fidx] = data.data;
+
                 const cell = document.getElementById(`harga-${id}`);
-                if (cell) cell.textContent = rupiah(data.data.harga);
-                closeModal('hargaModal');
+                if (cell) cell.textContent = formatRupiah(data.data.harga);
+                tutupModal('hargaModal');
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
@@ -593,7 +896,6 @@
                     toast: true,
                     position: 'top-end'
                 });
-
             } catch {
                 Swal.fire({
                     icon: 'error',
@@ -605,33 +907,57 @@
             }
         }
 
-        // ── SUBMIT STOK ───────────────────────────────────────────────────
+        // ============================================================
+        // FUNGSI UNTUK MODAL STOK
+        // ============================================================
+        let stokSaatIni = 0;
+
+        function bukaModalStok(id) {
+            const m = semuaMenu.find(x => Number(x.id) === Number(id));
+            if (!m) return;
+            stokSaatIni = m.stok;
+            document.getElementById('stokMenuId').value = m.id;
+            document.getElementById('stokNama').textContent = m.nama_makanan;
+            document.getElementById('stokSaatIni').textContent = m.stok;
+            document.getElementById('stokTotal').textContent = m.stok;
+            document.getElementById('inputJumlahStok').value = '';
+            document.getElementById('errStok').classList.add('hidden');
+            tampilkanModal('stokModal');
+        }
+
+        function hitungTotalStok() {
+            const jumlah = parseInt(document.getElementById('inputJumlahStok').value) || 0;
+            const total = stokSaatIni + jumlah;
+            const el = document.getElementById('stokTotal');
+            el.textContent = total;
+            el.className = total < 0 ? 'text-3xl font-bold text-red-600' :
+                total > stokSaatIni ? 'text-3xl font-bold text-green-600' :
+                'text-3xl font-bold text-gray-800';
+        }
+
         async function submitStok() {
             const id = document.getElementById('stokMenuId').value;
             const jumlah = parseInt(document.getElementById('inputJumlahStok').value);
             document.getElementById('errStok').classList.add('hidden');
 
             if (isNaN(jumlah) || jumlah === 0) {
-                showErr('errStok', 'Masukkan angka penambahan atau pengurangan (tidak boleh 0).');
-                setBorder('inputJumlahStok', true);
+                tampilkanError('errStok', 'Masukkan angka penambahan atau pengurangan (tidak boleh 0).');
+                setBorderError('inputJumlahStok', true);
                 return;
             }
-
-            const newStok = window._currentStok + jumlah;
+            const newStok = stokSaatIni + jumlah;
             if (newStok < 0) {
-                showErr('errStok',
-                    `Stok tidak cukup. Stok saat ini ${window._currentStok}, maksimal dikurangi ${window._currentStok}.`
-                    );
-                setBorder('inputJumlahStok', true);
+                tampilkanError('errStok',
+                    `Stok tidak cukup. Stok saat ini ${stokSaatIni}, maksimal dikurangi ${stokSaatIni}.`);
+                setBorderError('inputJumlahStok', true);
                 return;
             }
-            setBorder('inputJumlahStok', false);
+            setBorderError('inputJumlahStok', false);
 
             const btn = document.querySelector('#stokContent button[onclick="submitStok()"]');
             setLoading(btn, true);
-
             try {
-                const m = allMenu.find(x => Number(x.id) === Number(id));
+                const m = semuaMenu.find(x => Number(x.id) === Number(id));
                 const form = new FormData();
                 form.append('stok', newStok);
                 form.append('_method', 'PUT');
@@ -658,16 +984,19 @@
                     return;
                 }
 
-                const idx = allMenu.findIndex(x => Number(x.id) === Number(id));
-                if (idx !== -1) allMenu[idx] = data.data;
-                // update cell stok langsung
+                const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
+                if (idx !== -1) semuaMenu[idx] = data.data;
+                const fidx = menuTerfilter.findIndex(x => Number(x.id) === Number(id));
+                if (fidx !== -1) menuTerfilter[fidx] = data.data;
+
                 const cell = document.getElementById(`stok-${id}`);
                 if (cell) {
-                    cell.textContent = `${newStok} pcs`;
-                    cell.className = newStok <= 5 ? 'px-6 py-4 text-sm text-red-600 font-bold' : newStok <= 15 ?
-                        'px-6 py-4 text-sm text-amber-600 font-semibold' : 'px-6 py-4 text-sm text-gray-700';
+                    cell.textContent = `${newStok}`;
+                    cell.className = newStok <= 4 ? 'px-6 py-4 text-sm text-red-600 font-bold' :
+                        newStok <= 15 ? 'px-6 py-4 text-sm text-amber-600 font-semibold' :
+                        'px-6 py-4 text-sm text-gray-700';
                 }
-                closeModal('stokModal');
+                tutupModal('stokModal');
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
@@ -677,7 +1006,6 @@
                     toast: true,
                     position: 'top-end'
                 });
-
             } catch {
                 Swal.fire({
                     icon: 'error',
@@ -689,9 +1017,38 @@
             }
         }
 
-        // ── DELETE ────────────────────────────────────────────────────────
-        async function deleteMenu(id) {
-            const result = await Swal.fire({
+        // ============================================================
+        // FUNGSI HAPUS
+        // ============================================================
+        async function hapusMenu(id) {
+            try {
+                const cekRes = await fetch(ROUTES.cekPesanan(id), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF
+                    }
+                });
+                const cekData = await cekRes.json();
+
+                if (cekData.has_orders) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tidak Dapat Dihapus!',
+                        text: 'Menu ini sedang dipesan oleh pembeli dan tidak dapat dihapus.',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    return;
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal mengecek status pesanan menu.'
+                });
+                return;
+            }
+
+            const konfirmasi = await Swal.fire({
                 title: 'Hapus menu ini?',
                 text: 'Data tidak bisa dikembalikan!',
                 icon: 'warning',
@@ -701,10 +1058,11 @@
                 confirmButtonText: 'Ya, hapus!',
                 cancelButtonText: 'Batal',
             });
-            if (!result.isConfirmed) return;
+
+            if (!konfirmasi.isConfirmed) return;
 
             try {
-                const res = await fetch(ROUTES.destroy(id), {
+                const res = await fetch(ROUTES.hapus(id), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -713,9 +1071,10 @@
                     },
                     body: JSON.stringify({
                         _method: 'DELETE'
-                    }),
+                    })
                 });
                 const data = await res.json();
+
                 if (!res.ok || !data.success) {
                     Swal.fire({
                         icon: 'error',
@@ -725,8 +1084,9 @@
                     return;
                 }
 
-                allMenu = allMenu.filter(x => Number(x.id) !== Number(id));
-                applyFilter();
+                semuaMenu = semuaMenu.filter(x => Number(x.id) !== Number(id));
+                menuTerfilter = menuTerfilter.filter(x => Number(x.id) !== Number(id));
+                renderHalaman();
                 Swal.fire({
                     icon: 'success',
                     title: 'Dihapus!',
@@ -736,7 +1096,6 @@
                     toast: true,
                     position: 'top-end'
                 });
-
             } catch {
                 Swal.fire({
                     icon: 'error',
@@ -746,84 +1105,38 @@
             }
         }
 
-        // ── UTILS ─────────────────────────────────────────────────────────
-
-        window.doHarga = (id) => openHargaModal(id);
-        window.doStok = (id) => openStokModal(id);
-        window.doDelete = (id) => deleteMenu(id);
-
-        function escHtml(s) {
-            const d = document.createElement('div');
-            d.appendChild(document.createTextNode(s || ''));
-            return d.innerHTML;
-        }
-
-        function showErr(id, msg) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.textContent = msg;
-            el.classList.remove('hidden');
-        }
-
-        function clearErrors(prefix) {
-            const cap = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-            document.querySelectorAll(`[id^="err${cap}"]`).forEach(el => {
-                el.textContent = '';
-                el.classList.add('hidden');
+        // ============================================================
+        // EVENT LISTENERS & INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('filterSearch').addEventListener('input', terapkanFilter);
+            document.getElementById('filterKategori').addEventListener('change', filterKategoriChange);
+            document.getElementById('createGambar').addEventListener('change', function() {
+                const preview = document.getElementById('createGambarPreview');
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        preview.src = e.target.result;
+                        preview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
             });
-            resetBorders(prefix);
-        }
+            renderHalaman();
+        });
 
-        function setBorder(inputId, isError) {
-            const el = document.getElementById(inputId);
-            if (!el) return;
-            if (isError) {
-                el.classList.add('border-red-400', 'focus:ring-red-400');
-                el.classList.remove('border-gray-300');
-            } else {
-                el.classList.remove('border-red-400', 'focus:ring-red-400');
-                el.classList.add('border-gray-300');
-            }
-        }
-
-        function resetBorders(prefix) {
-            const map = {
-                create: ['createKategori', 'createNama', 'createHarga', 'createStok'],
-                harga: ['inputHargaBaru'],
-                stok: ['inputJumlahStok'],
-            };
-            (map[prefix] || []).forEach(id => setBorder(id, false));
-        }
-
-        function handleLaravelErrors(errors, prefix) {
-            const map = {
-                id_kategori: 'errCreateKategori',
-                nama_makanan: 'errCreateNama',
-                harga: 'errCreateHarga',
-                stok: 'errCreateStok'
-            };
-            if (prefix === 'edit') {
-                map.id_kategori = 'errEditKategori';
-                map.nama_makanan = 'errEditNama';
-            }
-            Object.entries(errors).forEach(([f, msgs]) => {
-                if (map[f]) showErr(map[f], msgs[0]);
-            });
-        }
-
-        function setLoading(btn, loading) {
-            if (!btn) return;
-            if (loading) {
-                btn.disabled = true;
-                btn.dataset.orig = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i> Proses...';
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = btn.dataset.orig;
-            }
-        }
-
-        // ── INIT ──────────────────────────────────────────────────────────
-        renderTable(allMenu);
+        // Expose fungsi ke global scope
+        window.bukaModalHarga = bukaModalHarga;
+        window.bukaModalStok = bukaModalStok;
+        window.hapusMenu = hapusMenu;
+        window.terapkanFilter = terapkanFilter;
+        window.resetFilter = resetFilter;
+        window.keHalaman = keHalaman;
+        window.hitungTotalStok = hitungTotalStok;
+        window.tutupModal = tutupModal;
+        window.submitCreate = submitCreate;
+        window.submitHarga = submitHarga;
+        window.submitStok = submitStok;
+        window.onKategoriIndukBerubah = onKategoriIndukBerubah;
     </script>
 @endsection

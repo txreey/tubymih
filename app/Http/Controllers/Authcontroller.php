@@ -64,7 +64,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('landing')->with('success', 'Anda berhasil logout.');
+        return redirect()->route('login')->with('success', 'Anda berhasil logout.');
     }
 
     /**
@@ -76,7 +76,7 @@ class AuthController extends Controller
             'admin' => route('admin.dashboard'),
             'kasir' => route('kasir.dashboard'),
             'owner' => route('owner.dashboard'),
-            default => route('landing'),
+             default => route('login'),
         };
     }
 }

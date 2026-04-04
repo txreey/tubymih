@@ -75,7 +75,7 @@
                             onclick="filterMeja(this,'lesehan')">🛖 Lesehan</button>
                         <button
                             class="tbl-filter-btn px-4 py-1.5 rounded-full border-2 border-gray-200 text-gray-400 text-xs font-semibold transition-all hover:border-gray-300"
-                            onclick="filterMeja(this,'kursi')">🪑 Kursi</button>
+                            onclick="filterMeja(this,'meja_kursi')">🪑 Meja Kursi</button>
                     </div>
                     <div class="flex items-center gap-4 text-xs text-gray-400">
                         <span class="flex items-center gap-1.5"><span
@@ -88,10 +88,6 @@
                 </div>
 
                 <div id="tableGrid" class="grid grid-cols-6 gap-3"></div>
-
-                <script>
-                    const ALL_MEJAS = @json($mejas);
-                </script>
             </div>
 
             {{-- ── SCR 3: Pilih Menu ── --}}
@@ -249,12 +245,15 @@
 
 @push('scripts')
     <script>
+        // Data dari server
+        const ALL_MEJAS = @json($mejas);
         const ALL_MENUS = @json($menus);
 
         let state = {
             type: null,
             tableIds: [],
             tableNomors: [],
+            tableDetails: [], // Menyimpan detail meja (termasuk deskripsi)
             cart: [],
             step: 1,
             noTransaksi: null,
@@ -269,7 +268,6 @@
             const stepBar = document.getElementById('stepBar');
 
             if (!state.type) {
-                // Default: 4 step (sebelum tipe dipilih)
                 stepBar.innerHTML = buildStepBarHTML([{
                         label: 'Tipe Order'
                     },
@@ -328,9 +326,9 @@
                 const lineCls = isDone ? 'bg-green-400' : 'bg-gray-300';
 
                 let html = `<div class="flex items-center gap-2 text-xs font-medium ${labelCls}">
-                    <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all ${numCls}">${isDone ? '✓' : num}</div>
-                    <span>${s.label}</span>
-                </div>`;
+                <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all ${numCls}">${isDone ? '✓' : num}</div>
+                <span>${s.label}</span>
+            </div>`;
                 if (i < steps.length - 1) {
                     html += `<div class="flex-1 h-px mx-3 transition-all ${lineCls}"></div>`;
                 }
@@ -341,9 +339,8 @@
         function scrToVisualStep(scr) {
             const isDine = state.type === 'dine_in';
             if (isDine) {
-                return scr; // scr1=step1, scr2=step2, scr3=step3, scr4=step4
+                return scr;
             } else {
-                // take-away: scr1=step1, scr3=step2, scr4=step3
                 if (scr === 1) return 1;
                 if (scr === 3) return 2;
                 if (scr === 4) return 3;
@@ -438,6 +435,7 @@
         function backToMeja() {
             state.tableIds = [];
             state.tableNomors = [];
+            state.tableDetails = [];
             document.getElementById('cartMeta').innerHTML =
                 '<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold">🍽️ Dine In</span>';
             goScreen(2);
@@ -481,27 +479,30 @@
         // MEJA (MULTI-SELECT)
         // ══════════════════════════════════════════════
         function renderMejaSummary() {
-            const lesehan = ALL_MEJAS.filter(m => m.tipe === 'lesehan');
-            const kursi = ALL_MEJAS.filter(m => m.tipe === 'kursi');
+            // Pastikan data meja memiliki properti yang sesuai
+            const lesehan = ALL_MEJAS.filter(m => m.tipe === 'lesehan' || m.tipe_meja === 'Lesehan');
+            const kursi = ALL_MEJAS.filter(m => m.tipe === 'kursi' || m.tipe_meja === 'Meja Kursi');
             const tersedia = ALL_MEJAS.filter(m => m.status === 'tersedia').length;
             const terisi = ALL_MEJAS.filter(m => m.status === 'terisi').length;
+
             document.getElementById('mejaSummary').innerHTML = `
-        <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-lg shrink-0">🛖</div>
-            <div><div class="text-lg font-bold text-gray-800 leading-none">${lesehan.length}</div><div class="text-xs text-gray-400 mt-0.5">Lesehan</div></div>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-lg shrink-0">🪑</div>
-            <div><div class="text-lg font-bold text-gray-800 leading-none">${kursi.length}</div><div class="text-xs text-gray-400 mt-0.5">Kursi</div></div>
-        </div>
-        <div class="bg-white border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-lg shrink-0">✅</div>
-            <div><div class="text-lg font-bold text-green-600 leading-none">${tersedia}</div><div class="text-xs text-gray-400 mt-0.5">Tersedia</div></div>
-        </div>
-        <div class="bg-white border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center text-lg shrink-0">🔴</div>
-            <div><div class="text-lg font-bold text-red-500 leading-none">${terisi}</div><div class="text-xs text-gray-400 mt-0.5">Terisi</div></div>
-        </div>`;
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-lg shrink-0">🛖</div>
+                <div><div class="text-lg font-bold text-gray-800 leading-none">${lesehan.length}</div><div class="text-xs text-gray-400 mt-0.5">Lesehan</div></div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-lg shrink-0">🪑</div>
+                <div><div class="text-lg font-bold text-gray-800 leading-none">${kursi.length}</div><div class="text-xs text-gray-400 mt-0.5">Meja Kursi</div></div>
+            </div>
+            <div class="bg-white border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center text-lg shrink-0">✅</div>
+                <div><div class="text-lg font-bold text-green-600 leading-none">${tersedia}</div><div class="text-xs text-gray-400 mt-0.5">Tersedia</div></div>
+            </div>
+            <div class="bg-white border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center text-lg shrink-0">🔴</div>
+                <div><div class="text-lg font-bold text-red-500 leading-none">${terisi}</div><div class="text-xs text-gray-400 mt-0.5">Terisi</div></div>
+            </div>
+        `;
         }
 
         let activeMejaFilter = 'semua';
@@ -517,12 +518,26 @@
             renderMejaGrid(tipe);
         }
 
+        function getMejaTipe(meja) {
+            // Mendukung kedua format data (tipe atau tipe_meja)
+            return meja.tipe || meja.tipe_meja;
+        }
+
         function renderMejaGrid(filter) {
-            const filtered = filter === 'semua' ? ALL_MEJAS : ALL_MEJAS.filter(m => m.tipe === filter);
+            const filtered = filter === 'semua' ? ALL_MEJAS : ALL_MEJAS.filter(m => {
+                const tipe = getMejaTipe(m);
+                if (filter === 'lesehan') return tipe === 'Lesehan' || tipe === 'lesehan';
+                if (filter === 'meja_kursi') return tipe === 'Meja Kursi' || tipe === 'kursi';
+                return false;
+            });
+
             document.getElementById('tableGrid').innerHTML = filtered.map(m => {
                 const terisi = m.status === 'terisi';
-                const isLesehan = m.tipe === 'lesehan';
+                const isLesehan = getMejaTipe(m) === 'Lesehan' || getMejaTipe(m) === 'lesehan';
                 const selected = state.tableIds.includes(m.id);
+                const nomorMeja = m.nomor_meja || m.no_meja;
+                const kapasitas = m.kapasitas;
+                const deskripsi = m.deskripsi || '-';
 
                 const icon = isLesehan ?
                     (terisi ?
@@ -545,28 +560,47 @@
                     `<div class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-amber-400 text-black text-xs font-bold flex items-center justify-center">✓</div>` :
                     '';
 
+                // Tooltip deskripsi
+                const hasDeskripsi = deskripsi && deskripsi !== '-';
+                const tooltipAttr = hasDeskripsi ? `title="${escHtml(deskripsi)}"` : '';
+
                 return `
-        <div id="tbl${m.id}" class="${cls}" onclick="${terisi ? '' : `toggleTable(${m.id}, '${m.nomor_meja}', '${m.tipe}')`}">
-            ${checkBadge}
-            ${icon}
-            <div class="text-sm font-bold text-gray-800">${m.nomor_meja}</div>
-            <div class="text-xs text-gray-400 mt-0.5">${isLesehan ? 'Lesehan' : 'Kursi'} ${m.kapasitas} org</div>
-            <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold
-                ${terisi ? 'bg-red-100 text-red-500' : selected ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}">
-                ${terisi ? 'Terisi' : selected ? 'Dipilih ✓' : 'Tersedia'}
-            </span>
-        </div>`;
+                <div id="tbl${m.id}" class="${cls}" ${tooltipAttr} onclick="${terisi ? '' : `toggleTable(${m.id}, '${nomorMeja}', '${getMejaTipe(m)}', '${escHtml(deskripsi)}')`}">
+                    ${checkBadge}
+                    ${icon}
+                    <div class="text-sm font-bold text-gray-800">${nomorMeja}</div>
+                    <div class="text-xs text-gray-400 mt-0.5">${isLesehan ? 'Lesehan' : 'Meja Kursi'} ${kapasitas} org</div>
+                    ${hasDeskripsi ? `<div class="text-xs text-gray-400 mt-0.5 truncate max-w-full">${escHtml(deskripsi).substring(0, 20)}${deskripsi.length > 20 ? '...' : ''}</div>` : ''}
+                    <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold
+                        ${terisi ? 'bg-red-100 text-red-500' : selected ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}">
+                        ${terisi ? 'Terisi' : selected ? 'Dipilih ✓' : 'Tersedia'}
+                    </span>
+                </div>`;
             }).join('');
         }
 
-        function toggleTable(id, nomor, tipe) {
+        function escHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function toggleTable(id, nomor, tipe, deskripsi) {
             const idx = state.tableIds.indexOf(id);
             if (idx === -1) {
                 state.tableIds.push(id);
                 state.tableNomors.push(nomor);
+                state.tableDetails.push({
+                    id: id,
+                    nomor: nomor,
+                    tipe: tipe,
+                    deskripsi: deskripsi
+                });
             } else {
                 state.tableIds.splice(idx, 1);
                 state.tableNomors.splice(idx, 1);
+                state.tableDetails.splice(idx, 1);
             }
             renderMejaGrid(activeMejaFilter);
             updateSelectedMejasBanner();
@@ -582,13 +616,19 @@
                 return;
             }
             banner.classList.remove('hidden');
-            tags.innerHTML = state.tableNomors.map(n =>
-                `<span class="px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold">${n}</span>`
-            ).join('');
+
+            // Tampilkan tag meja dengan tooltip deskripsi
+            tags.innerHTML = state.tableDetails.map(t => {
+                const hasDeskripsi = t.deskripsi && t.deskripsi !== '-';
+                return `<span class="px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold" ${hasDeskripsi ? `title="${escHtml(t.deskripsi)}"` : ''}>
+                ${t.nomor}
+            </span>`;
+            }).join('');
+
             count.textContent = `${state.tableNomors.length} meja`;
             document.getElementById('cartMeta').innerHTML =
                 `<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold">🍽️ Dine In</span>
-                 <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">🪑 ${state.tableNomors.join(', ')}</span>`;
+             <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold" title="${state.tableDetails.map(t => t.deskripsi).filter(d => d && d !== '-').join(', ')}">🪑 ${state.tableNomors.join(', ')}</span>`;
             document.getElementById('menuSub').textContent = `Order untuk Meja ${state.tableNomors.join(', ')}`;
         }
 
@@ -644,17 +684,17 @@
                     `onclick="addToCart(${m.id})"`);
 
                 return `
-        <div ${clickHandler}
-            class="relative border-2 ${qty > 0 ? 'border-amber-400' : 'border-gray-200'} rounded-xl overflow-hidden bg-white transition-all ${habis ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300 hover:-translate-y-0.5'} group">
-            <div class="h-16 bg-gray-50 flex items-center justify-center text-3xl">${m.emoji}</div>
-            <div class="p-2.5">
-                <div class="text-xs text-gray-400 capitalize mb-0.5 truncate">${m.kategori}</div>
-                <div class="text-xs font-semibold text-gray-800 mb-1 leading-tight line-clamp-2">${m.nama}</div>
-                <div class="text-xs font-bold text-amber-500 mb-1">${formatRp(m.harga)}</div>
-                ${stokBadge}
-            </div>
-            ${addEl}
-        </div>`;
+                <div ${clickHandler}
+                    class="relative border-2 ${qty > 0 ? 'border-amber-400' : 'border-gray-200'} rounded-xl overflow-hidden bg-white transition-all ${habis ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300 hover:-translate-y-0.5'} group">
+                    <div class="h-16 bg-gray-50 flex items-center justify-center text-3xl">${m.emoji}</div>
+                    <div class="p-2.5">
+                        <div class="text-xs text-gray-400 capitalize mb-0.5 truncate">${m.kategori}</div>
+                        <div class="text-xs font-semibold text-gray-800 mb-1 leading-tight line-clamp-2">${m.nama}</div>
+                        <div class="text-xs font-bold text-amber-500 mb-1">${formatRp(m.harga)}</div>
+                        ${stokBadge}
+                    </div>
+                    ${addEl}
+                </div>`;
             }).join('');
         }
 
@@ -704,18 +744,18 @@
                 return;
             }
             el.innerHTML = state.cart.map(item => `
-        <div class="flex items-center justify-between py-3 border-b border-gray-100 gap-3">
-            <div class="flex-1 min-w-0">
-                <div class="text-xs text-gray-400 capitalize">${item.kategori}</div>
-                <div class="text-sm font-medium text-gray-800 truncate">${item.nama}</div>
-                <div class="text-xs text-gray-400">${formatRp(item.harga)} × ${item.qty} = ${formatRp(item.harga * item.qty)}</div>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <button onclick="changeQty(${item.id},-1)" class="w-6 h-6 rounded-md bg-gray-100 border border-gray-200 text-gray-600 flex items-center justify-center text-sm hover:bg-gray-200">−</button>
-                <span class="text-sm font-bold text-gray-800 w-5 text-center">${item.qty}</span>
-                <button onclick="changeQty(${item.id},1)" class="w-6 h-6 rounded-md bg-gray-100 border border-gray-200 text-gray-600 flex items-center justify-center text-sm hover:bg-gray-200">+</button>
-            </div>
-        </div>`).join('');
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 gap-3">
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs text-gray-400 capitalize">${item.kategori}</div>
+                    <div class="text-sm font-medium text-gray-800 truncate">${item.nama}</div>
+                    <div class="text-xs text-gray-400">${formatRp(item.harga)} × ${item.qty} = ${formatRp(item.harga * item.qty)}</div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="changeQty(${item.id},-1)" class="w-6 h-6 rounded-md bg-gray-100 border border-gray-200 text-gray-600 flex items-center justify-center text-sm hover:bg-gray-200">−</button>
+                    <span class="text-sm font-bold text-gray-800 w-5 text-center">${item.qty}</span>
+                    <button onclick="changeQty(${item.id},1)" class="w-6 h-6 rounded-md bg-gray-100 border border-gray-200 text-gray-600 flex items-center justify-center text-sm hover:bg-gray-200">+</button>
+                </div>
+            </div>`).join('');
 
             const catMap = {};
             state.cart.forEach(i => {
@@ -723,10 +763,10 @@
             });
             document.getElementById('cartCatSummary').classList.remove('hidden');
             document.getElementById('catSummaryRows').innerHTML = Object.entries(catMap).map(([cat, tot]) => `
-        <div class="flex justify-between text-xs">
-            <span class="text-gray-500 capitalize">${cat}</span>
-            <span class="font-semibold text-gray-700">${formatRp(tot)}</span>
-        </div>`).join('');
+            <div class="flex justify-between text-xs">
+                <span class="text-gray-500 capitalize">${cat}</span>
+                <span class="font-semibold text-gray-700">${formatRp(tot)}</span>
+            </div>`).join('');
         }
 
         function changeQty(id, delta) {
@@ -744,54 +784,53 @@
         }
 
         // ══════════════════════════════════════════════
-        // KONFIRMASI ORDER (SCR 4) — sama untuk dine-in & take-away
+        // KONFIRMASI ORDER (SCR 4)
         // ══════════════════════════════════════════════
         function renderPayment() {
             const isDine = state.type === 'dine_in';
             const total = getTotal();
             const mejaLabel = state.tableNomors.join(', ') || '-';
+            const mejaDeskripsi = state.tableDetails.map(t => t.deskripsi).filter(d => d && d !== '-').join(', ');
 
             document.getElementById('paySub').innerHTML = isDine ?
-                `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">🍽️ Dine In · Meja ${mejaLabel}</span>` :
+                `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold" title="${mejaDeskripsi}">🍽️ Dine In · Meja ${mejaLabel}</span>` :
                 `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-teal-700 text-xs font-semibold">🥡 Take Away</span>`;
 
             const mejaBox = document.getElementById('payMejaInfo');
             if (isDine) {
                 mejaBox.classList.remove('hidden');
-                document.getElementById('payMejaVal').textContent = mejaLabel;
+                document.getElementById('payMejaVal').innerHTML =
+                    `${mejaLabel}${mejaDeskripsi ? `<span class="text-xs text-gray-400 block">${mejaDeskripsi.substring(0, 30)}${mejaDeskripsi.length > 30 ? '...' : ''}</span>` : ''}`;
             } else {
                 mejaBox.classList.add('hidden');
             }
 
             document.getElementById('payTotalVal').textContent = formatRp(total);
 
-            // Reset nama customer input
             document.getElementById('inputNamaCustomer').value = '';
             document.getElementById('namaCustomerError').classList.add('hidden');
 
             document.getElementById('payItemRows').innerHTML = state.cart.map(c => `
-        <div class="grid grid-cols-12 px-4 py-2.5 border-b border-gray-50 text-sm">
-            <span class="col-span-6 text-gray-700">${c.nama}<br><span class="text-xs text-gray-400">${formatRp(c.harga)}</span></span>
-            <span class="col-span-2 text-center text-gray-500">x${c.qty}</span>
-            <span class="col-span-2 text-right text-gray-500">${formatRp(c.harga)}</span>
-            <span class="col-span-2 text-right font-semibold text-gray-800">${formatRp(c.harga * c.qty)}</span>
-        </div>`).join('');
+            <div class="grid grid-cols-12 px-4 py-2.5 border-b border-gray-50 text-sm">
+                <span class="col-span-6 text-gray-700">${c.nama}<br><span class="text-xs text-gray-400">${formatRp(c.harga)}</span></span>
+                <span class="col-span-2 text-center text-gray-500">x${c.qty}</span>
+                <span class="col-span-2 text-right text-gray-500">${formatRp(c.harga)}</span>
+                <span class="col-span-2 text-right font-semibold text-gray-800">${formatRp(c.harga * c.qty)}</span>
+            </div>`).join('');
 
             document.getElementById('payTotals').innerHTML =
                 `
-        <div class="flex justify-between text-sm text-gray-500"><span>Subtotal (${state.cart.reduce((s, c) => s + c.qty, 0)} item)</span><span>${formatRp(total)}</span></div>
-        <div class="flex justify-between text-base font-bold text-gray-900 pt-1"><span>TOTAL</span><span>${formatRp(total)}</span></div>`;
+            <div class="flex justify-between text-sm text-gray-500"><span>Subtotal (${state.cart.reduce((s, c) => s + c.qty, 0)} item)</span><span>${formatRp(total)}</span></div>
+            <div class="flex justify-between text-base font-bold text-gray-900 pt-1"><span>TOTAL</span><span>${formatRp(total)}</span></div>`;
 
-            // Action buttons — sama untuk keduanya
             document.getElementById('payActionBtns').className = 'grid grid-cols-3 gap-3';
             document.getElementById('payActionBtns').innerHTML =
                 `
-        <button onclick="batalOrder()" class="py-3 rounded-xl border-2 border-red-200 text-red-500 font-semibold text-sm hover:bg-red-50 transition-all">✕ Batal</button>
-        <button onclick="tambahMenu()" class="py-3 rounded-xl border-2 border-amber-300 text-amber-600 font-semibold text-sm hover:bg-amber-50 transition-all">+ Tambah Menu</button>
-        <button id="btnKirimDapur" onclick="kirimDapur()" class="py-3 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition-all">🍳 Kirim Dapur</button>`;
+            <button onclick="batalOrder()" class="py-3 rounded-xl border-2 border-red-200 text-red-500 font-semibold text-sm hover:bg-red-50 transition-all">✕ Batal</button>
+            <button onclick="tambahMenu()" class="py-3 rounded-xl border-2 border-amber-300 text-amber-600 font-semibold text-sm hover:bg-amber-50 transition-all">+ Tambah Menu</button>
+            <button id="btnKirimDapur" onclick="kirimDapur()" class="py-3 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition-all">🍳 Kirim Dapur</button>`;
         }
 
-        // ── Validasi nama customer ──
         function validateNamaCustomer() {
             const val = document.getElementById('inputNamaCustomer').value.trim();
             const errEl = document.getElementById('namaCustomerError');
@@ -824,10 +863,9 @@
         }
 
         // ══════════════════════════════════════════════
-        // KIRIM DAPUR — berlaku untuk dine-in & take-away
+        // KIRIM DAPUR
         // ══════════════════════════════════════════════
         function kirimDapur() {
-            // Validasi nama customer
             const nama = document.getElementById('inputNamaCustomer').value.trim();
             if (!nama) {
                 document.getElementById('namaCustomerError').classList.remove('hidden');
@@ -847,7 +885,7 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     body: JSON.stringify({
-                        tipe_order: state.type, // 'dine_in' atau 'take 
+                        tipe_order: state.type,
                         id_mejas: state.tableIds,
                         nama_pelanggan: state.namaCustomer,
                         bayar_nanti: true,
@@ -893,7 +931,6 @@
                 `${isDine ? '🍽️ Dine In' : '🥡 Take Away'}${mejaInfo} · ${state.namaCustomer}`;
             document.getElementById('successNoTransaksi').textContent = state.noTransaksi || '-';
 
-            // Sembunyikan cart panel next btn
             document.getElementById('btnNext').style.display = 'none';
             document.getElementById('flowHint').textContent = '';
 
@@ -908,6 +945,7 @@
                 type: null,
                 tableIds: [],
                 tableNomors: [],
+                tableDetails: [],
                 cart: [],
                 step: 1,
                 noTransaksi: null,
