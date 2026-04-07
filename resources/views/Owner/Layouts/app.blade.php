@@ -68,6 +68,13 @@
                         <i class="fas fa-home w-5 text-center"></i>
                         Beranda
                     </a>
+
+                    <a href="{{ route('owner.users.index') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ request()->routeIs('owner.users.index') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
+                        <i class="fas fa-users w-5 text-center"></i>
+                        Kelola User
+                    </a>
                 </nav>
             </div>
 
@@ -75,11 +82,11 @@
             <div class="mb-8">
                 <div class="text-xs font-bold uppercase tracking-widest text-teal-300/70 mb-3">Manajemen</div>
                 <nav class="space-y-1">
-                    <a href="{{ route('owner.users.index') }}"
+                    <a href="{{ route('owner.meja') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                              {{ request()->routeIs('owner.users.index') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
-                        <i class="fas fa-users w-5 text-center"></i>
-                        User
+                              {{ request()->routeIs('owner.meja') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
+                        <i class="fas fa-chair w-5 text-center"></i>
+                        Meja
                     </a>
 
                     <a href="{{ route('owner.menu') }}"
@@ -87,13 +94,6 @@
                               {{ request()->routeIs('owner.menu') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
                         <i class="fas fa-utensils w-5 text-center"></i>
                         Menu
-                    </a>
-
-                    <a href="{{ route('owner.meja') }}"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                              {{ request()->routeIs('owner.meja') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
-                        <i class="fas fa-chair w-5 text-center"></i>
-                        Meja
                     </a>
                 </nav>
             </div>
@@ -113,7 +113,7 @@
                         class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
                               {{ request()->routeIs('owner.laporan') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
                         <i class="fas fa-chart-bar w-5 text-center"></i>
-                        Laporan Keuangan
+                        Laporan
                     </a>
 
                     <a href="{{ route('owner.log') }}"

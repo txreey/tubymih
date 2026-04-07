@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
             $table->string('aktivitas');
+            $table->text('detail')->nullable();
             $table->timestamp('waktu');
             $table->timestamps();
         });
@@ -22,3 +23,4 @@ return new class extends Migration
         Schema::dropIfExists('log');
     }
 };
+    

@@ -2,7 +2,7 @@
 @section('title', 'Kelola Menu')
 
 @section('content')
-    <div class="space-y-5 max-w-7xl mx-auto p-1">
+    <div class="space-y-8 max-w-7xl mx-auto p-6">
 
         {{-- Header --}}
         <div>
@@ -11,33 +11,23 @@
         </div>
 
         {{-- Filter --}}
-        <div class="bg-white rounded-xl shadow border border-gray-200">
+        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {{-- Cari --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari Nama Menu</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                                <i class="fas fa-search text-sm"></i>
-                            </span>
-                            <input type="text" id="filterSearch" placeholder="Ketik nama menu..."
-                                class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                        </div>
+                        <input type="text" id="filterSearch" placeholder="Ketik nama menu..."
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                     </div>
-
-                    {{-- Kategori --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Kategori</label>
                         <select id="filterKategori"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                             <option value="">-- Semua --</option>
                             <option value="Makanan">Makanan</option>
                             <option value="Minuman">Minuman</option>
                         </select>
                     </div>
-
-                    {{-- Jenis --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Jenis</label>
                         <select id="filterJenis"
@@ -46,16 +36,14 @@
                             <option value="">pilih kategori dulu</option>
                         </select>
                     </div>
-
-                    {{-- Tombol --}}
                     <div class="flex items-end gap-3">
                         <button onclick="terapkanFilter()"
-                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition text-sm flex items-center justify-center gap-2">
-                            <i class="fas fa-search text-sm"></i> Cari
+                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">
+                            Cari
                         </button>
                         <button onclick="resetFilter()"
-                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition text-sm flex items-center justify-center gap-2">
-                            <i class="fas fa-rotate-left text-sm"></i> Reset
+                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-sm">
+                            Reset
                         </button>
                     </div>
                 </div>
@@ -63,54 +51,58 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-utensils text-teal-600"></i>
+                    <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-utensils text-teal-600 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-900">Daftar Menu</h2>
-                        <p class="text-xs text-gray-500" id="totalMenuLabel">Total: 0 Menu</p>
+                        <p class="text-sm font-bold text-gray-800 leading-none">Daftar Menu</p>
+                        <p class="text-xs text-gray-400 mt-1" id="totalMenuLabel">Total: 0 Menu</p>
                     </div>
                 </div>
                 <button onclick="bukaModalTambah()"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 transition text-sm">
-                    <i class="fas fa-plus text-sm"></i> Tambah Menu
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-xl shadow-sm hover:bg-teal-700 transition text-sm">
+                    + Tambah Menu
                 </button>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-14">No
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama
-                            Menu</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Kategori</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Harga
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Stok
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Gambar
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi
-                        </th>
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/40">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">
+                                No</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Nama Menu</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Kategori</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Harga</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Stok</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Gambar</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Aksi</th>
+                        </tr>
                     </thead>
-                    <tbody id="menuTableBody" class="bg-white divide-y divide-gray-100"></tbody>
+                    <tbody id="menuTableBody"></tbody>
                 </table>
             </div>
 
-            <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-500">
-                <i class="fas fa-utensils text-5xl text-gray-300 mb-4 block"></i>
+            <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-400">
+                <i class="fas fa-utensils text-5xl text-gray-200 mb-4 block"></i>
                 Belum ada data menu
             </div>
 
             <div id="paginationWrapper"
-                class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p class="text-sm text-gray-600" id="paginationInfo">Menampilkan 0-0 dari 0 Menu</p>
-                <div class="flex items-center gap-1" id="paginationButtons"></div>
+                class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-400" id="paginationInfo"></p>
+                <div class="flex items-center gap-1.5" id="paginationButtons"></div>
             </div>
         </div>
     </div>
@@ -130,8 +122,8 @@
                     </div>
                 </div>
                 <button onclick="tutupModal('createModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
-                    <i class="fas fa-times"></i>
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
             <form id="createForm" enctype="multipart/form-data" class="p-6 bg-gray-50 space-y-4">
@@ -142,7 +134,7 @@
                             <i class="fas fa-tag text-teal-600 text-sm"></i> Kategori <span class="text-red-500">*</span>
                         </label>
                         <select id="createKategoriInduk"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm"
                             onchange="onKategoriIndukBerubah()">
                             <option value="">-- Pilih Kategori --</option>
                             <option value="Makanan">Makanan</option>
@@ -150,31 +142,27 @@
                         </select>
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateKategoriInduk"></p>
                     </div>
-
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-layer-group text-teal-600 text-sm"></i> Jenis <span
                                 class="text-red-500">*</span>
                         </label>
                         <select id="createKategori" name="id_kategori"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm bg-gray-100 cursor-not-allowed"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm bg-gray-100 cursor-not-allowed"
                             disabled>
                             <option value="" selected disabled>pilih kategori dulu</option>
                         </select>
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateKategori"></p>
                     </div>
-
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-utensils text-teal-600 text-sm"></i> Nama Menu <span
                                 class="text-red-500">*</span>
                         </label>
-                        <input type="text" id="createNama" name="nama_makanan"
-                            placeholder="Contoh: Nasi Goreng Spesial"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                        <input type="text" id="createNama" name="nama_makanan" placeholder="Contoh: Nasi Goreng Spesial"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateNama"></p>
                     </div>
-
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-money-bill text-teal-600 text-sm"></i> Harga <span
@@ -182,39 +170,38 @@
                         </label>
                         <input type="number" id="createHarga" name="harga" placeholder="Contoh: 25000"
                             min="0"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateHarga"></p>
                     </div>
-
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-boxes-stacked text-teal-600 text-sm"></i> Stok <span
                                 class="text-red-500">*</span>
                         </label>
                         <input type="number" id="createStok" name="stok" placeholder="Contoh: 50" min="0"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errCreateStok"></p>
                     </div>
-
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-image text-teal-600 text-sm"></i> Gambar Menu
                         </label>
                         <input type="file" id="createGambar" name="gambar" accept="image/*"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <img id="createGambarPreview" src="#" alt="Preview"
                             class="mt-2 w-24 h-24 object-cover rounded-lg hidden shadow">
                     </div>
                 </div>
-
-                <div class="bg-teal-50 border-l-4 border-teal-500 p-3 rounded-lg flex items-start gap-3 text-xs">
+                <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg flex items-start gap-3 text-xs">
                     <i class="fas fa-info-circle text-teal-600 text-base mt-0.5"></i>
                     <p class="text-teal-800">Field bertanda <span class="text-red-500 font-bold">*</span> wajib diisi.
                         Pilih <strong>Kategori</strong> terlebih dahulu sebelum memilih Jenis.</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="tutupModal('createModal')"
-                        class="px-6 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
+                        class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm flex items-center gap-2">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
                     <button type="button" onclick="submitCreate()"
                         class="px-8 py-2.5 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition shadow-md flex items-center gap-2 text-sm">
                         <i class="fas fa-save text-sm"></i> Simpan
@@ -240,8 +227,8 @@
                     </div>
                 </div>
                 <button onclick="tutupModal('hargaModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
-                    <i class="fas fa-times"></i>
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
             <div class="p-6 space-y-5">
@@ -260,15 +247,17 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Harga Baru <span
                             class="text-red-500">*</span></label>
                     <input type="number" id="inputHargaBaru" min="0" placeholder="Masukkan harga baru"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 text-lg outline-none">
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-lg outline-none">
                     <p class="text-red-500 text-xs mt-1 hidden" id="errHarga"></p>
                 </div>
             </div>
             <div class="px-6 pb-5 flex justify-end gap-3">
                 <button onclick="tutupModal('hargaModal')"
-                    class="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
+                    class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm flex items-center gap-2">
+                    <i class="fas fa-times"></i> Batal
+                </button>
                 <button onclick="submitHarga()"
-                    class="px-7 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-semibold">
+                    class="px-7 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition shadow-md flex items-center gap-2 text-sm">
                     <i class="fas fa-save"></i> Simpan Harga
                 </button>
             </div>
@@ -290,8 +279,8 @@
                     </div>
                 </div>
                 <button onclick="tutupModal('stokModal')"
-                    class="text-white/80 hover:text-white text-xl p-1.5 rounded-full hover:bg-white/10">
-                    <i class="fas fa-times"></i>
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
             <div class="p-6 space-y-5">
@@ -320,16 +309,18 @@
                             kurang)</span>
                     </label>
                     <input type="number" id="inputJumlahStok" placeholder="Contoh: 10 atau -5"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 text-lg outline-none"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg outline-none"
                         oninput="hitungTotalStok()">
                     <p class="text-red-500 text-xs mt-1 hidden" id="errStok"></p>
                 </div>
             </div>
             <div class="px-6 pb-5 flex justify-end gap-3">
                 <button onclick="tutupModal('stokModal')"
-                    class="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition text-sm">Batal</button>
+                    class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition text-sm flex items-center gap-2">
+                    <i class="fas fa-times"></i> Batal
+                </button>
                 <button onclick="submitStok()"
-                    class="px-7 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-semibold">
+                    class="px-7 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2 text-sm">
                     <i class="fas fa-save"></i> Update Stok
                 </button>
             </div>
@@ -406,10 +397,10 @@
             const el = document.getElementById(id);
             if (!el) return;
             if (isError) {
-                el.classList.add('border-red-400', 'focus:ring-red-400');
+                el.classList.add('border-red-400');
                 el.classList.remove('border-gray-300');
             } else {
-                el.classList.remove('border-red-400', 'focus:ring-red-400');
+                el.classList.remove('border-red-400');
                 el.classList.add('border-gray-300');
             }
         }
@@ -432,11 +423,11 @@
         }
 
         // ============================================================
-        // FUNGSI FILTER
+        // FILTER
         // ============================================================
         function resetDropdownJenis() {
             const selectJenis = document.getElementById('filterJenis');
-            selectJenis.innerHTML = '<option value="" selected disabled>pilih kategori dulu</option>';
+            selectJenis.innerHTML = '<option value="">pilih kategori dulu</option>';
             selectJenis.disabled = true;
             selectJenis.classList.add('bg-gray-100', 'cursor-not-allowed');
         }
@@ -528,25 +519,27 @@
                     `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm"
                            onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
                     `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                        <i class="fas fa-image text-lg"></i>
-                    </div>`;
+                           <i class="fas fa-image text-lg"></i>
+                       </div>`;
 
                 const warnaStok = m.stok <= 5 ? 'text-red-600 font-bold' :
                     m.stok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700';
 
                 return `
-                    <tr class="hover:bg-gray-50 transition duration-150" id="row-${m.id}">
-                        <td class="px-6 py-4 text-sm text-gray-500">${nomor}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">${escapeHtml(m.nama_makanan)}</td>
-                        <td class="px-6 py-4"><span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span></td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-800" id="harga-${m.id}">${formatRupiah(m.harga)}</td>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" id="row-${m.id}">
+                        <td class="px-6 py-4 text-sm text-gray-400 font-medium">${nomor}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escapeHtml(m.nama_makanan)}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-semibold text-gray-700" id="harga-${m.id}">${formatRupiah(m.harga)}</td>
                         <td class="px-6 py-4 text-sm ${warnaStok}" id="stok-${m.id}">${m.stok}</td>
                         <td class="px-6 py-4">${gambar}</td>
-                        <td class="px-6 py-4 text-sm font-medium">
+                        <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <button onclick="bukaModalHarga(${m.id})" title="Kelola Harga"
                                     class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">
-                                    <i class="fas fa-dollar-sign"></i>
+                                    <i class="fas fa-dollar-sign text-xs"></i>
                                 </button>
                                 <button onclick="bukaModalStok(${m.id})" title="Kelola Stok"
                                     class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
@@ -571,38 +564,44 @@
             const mulai = (halamanAktif - 1) * PER_PAGE + 1;
             const sampai = Math.min(halamanAktif * PER_PAGE, total);
 
-            info.textContent = `Menampilkan ${mulai}-${sampai} dari ${total} Menu`;
+            info.innerHTML = `Menampilkan <strong>${mulai}-${sampai}</strong> dari <strong>${total}</strong> menu`;
 
-            const base = 'min-w-[36px] h-9 px-2 rounded-lg text-sm font-medium transition flex items-center justify-center';
-            const active = `${base} bg-teal-600 text-white shadow`;
-            const normal = `${base} bg-white border border-gray-200 text-gray-700 hover:bg-gray-50`;
-            const disabled = `${base} bg-gray-50 border border-gray-200 text-gray-300 cursor-not-allowed`;
+            if (totalHalaman <= 1) {
+                btns.innerHTML = '';
+                return;
+            }
+
+            const base =
+                'min-w-[30px] h-[30px] px-2 rounded-lg border text-xs font-semibold transition flex items-center justify-center cursor-pointer';
+            const activeClass = `${base} bg-teal-600 border-teal-600 text-white`;
+            const normalClass = `${base} bg-white border-gray-200 text-gray-700 hover:border-teal-400 hover:text-teal-600`;
+            const disabledClass = `${base} bg-gray-50 border-gray-200 text-gray-300 cursor-not-allowed`;
 
             let html = '';
 
             html += halamanAktif > 1 ?
-                `<button onclick="keHalaman(${halamanAktif-1})" class="${normal}"><i class="fas fa-chevron-left text-xs mr-1"></i> </button>` :
-                `<button class="${disabled}" disabled><i class="fas fa-chevron-left text-xs mr-1"></i> </button>`;
+                `<button onclick="keHalaman(${halamanAktif - 1})" class="${normalClass}"><i class="fas fa-chevron-left text-xs"></i></button>` :
+                `<button class="${disabledClass}" disabled><i class="fas fa-chevron-left text-xs"></i></button>`;
 
             getRentangHalaman(halamanAktif, totalHalaman).forEach(p => {
                 html += p === '...' ?
-                    `<span class="${base} text-gray-400 border-0">…</span>` :
-                    `<button onclick="keHalaman(${p})" class="${p === halamanAktif ? active : normal}">${p}</button>`;
+                    `<span class="px-1 text-gray-400 text-xs">…</span>` :
+                    `<button onclick="keHalaman(${p})" class="${p === halamanAktif ? activeClass : normalClass}">${p}</button>`;
             });
 
             html += halamanAktif < totalHalaman ?
-                `<button onclick="keHalaman(${halamanAktif+1})" class="${normal}"> <i class="fas fa-chevron-right text-xs ml-1"></i></button>` :
-                `<button class="${disabled}" disabled> <i class="fas fa-chevron-right text-xs ml-1"></i></button>`;
+                `<button onclick="keHalaman(${halamanAktif + 1})" class="${normalClass}"><i class="fas fa-chevron-right text-xs"></i></button>` :
+                `<button class="${disabledClass}" disabled><i class="fas fa-chevron-right text-xs"></i></button>`;
 
             btns.innerHTML = html;
         }
 
         function getRentangHalaman(current, total) {
-            if (total <= 4) return Array.from({
+            if (total <= 5) return Array.from({
                 length: total
             }, (_, i) => i + 1);
-            if (current <= 3) return [1, 2, 3, 4, 4, '...', total];
-            if (current >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+            if (current <= 3) return [1, 2, 3, '...', total];
+            if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
             return [1, '...', current - 1, current, current + 1, '...', total];
         }
 
@@ -612,7 +611,7 @@
         }
 
         // ============================================================
-        // FUNGSI UNTUK MODAL TAMBAH
+        // MODAL TAMBAH
         // ============================================================
         function buatPetaKategori() {
             const peta = {
@@ -633,7 +632,6 @@
 
         function isiDropdownJenis(selectId, nilaiInduk) {
             const select = document.getElementById(selectId);
-
             if (!nilaiInduk) {
                 select.innerHTML = '<option value="" selected disabled>pilih kategori dulu</option>';
                 select.disabled = true;
@@ -641,18 +639,10 @@
                 select.classList.remove('bg-white');
                 return;
             }
-
             const peta = buatPetaKategori();
             const daftar = (peta[nilaiInduk] || []).sort((a, b) => a.jenis.localeCompare(b.jenis));
-
-            select.innerHTML = `<option value="">-- Pilih Jenis --</option>`;
-            daftar.forEach(k => {
-                const opt = document.createElement('option');
-                opt.value = k.id;
-                opt.textContent = k.jenis;
-                select.appendChild(opt);
-            });
-
+            select.innerHTML = '<option value="">-- Pilih Jenis --</option>' +
+                daftar.map(k => `<option value="${k.id}">${escapeHtml(k.jenis)}</option>`).join('');
             select.disabled = false;
             select.classList.remove('bg-gray-100', 'cursor-not-allowed');
             select.classList.add('bg-white');
@@ -729,7 +719,6 @@
 
             const btn = document.querySelector('#createContent button[onclick="submitCreate()"]');
             setLoading(btn, true);
-
             try {
                 const res = await fetch(ROUTES.simpan, {
                     method: 'POST',
@@ -762,12 +751,9 @@
                     return;
                 }
 
-                // ==================== MENU BARU DITAMBAHKAN DI AKHIR ====================
                 const menuBaru = data.data;
+                semuaMenu.push(menuBaru);
 
-                semuaMenu.push(menuBaru); // Tambah di akhir array utama
-
-                // Cek apakah sesuai dengan filter yang sedang aktif
                 const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
                 const induk = document.getElementById('filterKategori').value;
                 const jenis = document.getElementById('filterJenis').value;
@@ -777,28 +763,21 @@
                     (!induk || (menuBaru.kategori?.nama_kategori === induk)) &&
                     (!jenis || (menuBaru.kategori?.jenis === jenis));
 
-                if (cocokFilter) {
-                    menuTerfilter.push(menuBaru); // Tambah di akhir daftar yang difilter
-                }
+                if (cocokFilter) menuTerfilter.push(menuBaru);
 
-                // Otomatis pindah ke halaman terakhir agar menu baru langsung terlihat
                 halamanAktif = Math.ceil(menuTerfilter.length / PER_PAGE) || 1;
-
                 renderHalaman();
 
-                // Efek highlight pada baris baru
                 setTimeout(() => {
                     const newRow = document.getElementById(`row-${menuBaru.id}`);
                     if (newRow) {
                         newRow.classList.add('bg-teal-50', 'ring-2', 'ring-teal-300');
-                        setTimeout(() => {
-                            newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300');
-                        }, 3000);
+                        setTimeout(() => newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300'),
+                        3000);
                     }
                 }, 300);
 
                 tutupModal('createModal');
-
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
@@ -808,8 +787,7 @@
                     toast: true,
                     position: 'top-end'
                 });
-
-            } catch (e) {
+            } catch {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
@@ -821,7 +799,7 @@
         }
 
         // ============================================================
-        // FUNGSI UNTUK MODAL HARGA
+        // MODAL HARGA
         // ============================================================
         function bukaModalHarga(id) {
             const m = semuaMenu.find(x => Number(x.id) === Number(id));
@@ -908,7 +886,7 @@
         }
 
         // ============================================================
-        // FUNGSI UNTUK MODAL STOK
+        // MODAL STOK
         // ============================================================
         let stokSaatIni = 0;
 
@@ -922,6 +900,7 @@
             document.getElementById('stokTotal').textContent = m.stok;
             document.getElementById('inputJumlahStok').value = '';
             document.getElementById('errStok').classList.add('hidden');
+            setBorderError('inputJumlahStok', false);
             tampilkanModal('stokModal');
         }
 
@@ -991,10 +970,9 @@
 
                 const cell = document.getElementById(`stok-${id}`);
                 if (cell) {
-                    cell.textContent = `${newStok}`;
-                    cell.className = newStok <= 4 ? 'px-6 py-4 text-sm text-red-600 font-bold' :
-                        newStok <= 15 ? 'px-6 py-4 text-sm text-amber-600 font-semibold' :
-                        'px-6 py-4 text-sm text-gray-700';
+                    cell.textContent = newStok;
+                    cell.className =
+                        `px-6 py-4 text-sm ${newStok <= 5 ? 'text-red-600 font-bold' : newStok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700'}`;
                 }
                 tutupModal('stokModal');
                 Swal.fire({
@@ -1018,7 +996,7 @@
         }
 
         // ============================================================
-        // FUNGSI HAPUS
+        // HAPUS
         // ============================================================
         async function hapusMenu(id) {
             try {
@@ -1029,7 +1007,6 @@
                     }
                 });
                 const cekData = await cekRes.json();
-
                 if (cekData.has_orders) {
                     Swal.fire({
                         icon: 'warning',
@@ -1039,7 +1016,7 @@
                     });
                     return;
                 }
-            } catch (err) {
+            } catch {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
@@ -1058,7 +1035,6 @@
                 confirmButtonText: 'Ya, hapus!',
                 cancelButtonText: 'Batal',
             });
-
             if (!konfirmasi.isConfirmed) return;
 
             try {
@@ -1125,7 +1101,6 @@
             renderHalaman();
         });
 
-        // Expose fungsi ke global scope
         window.bukaModalHarga = bukaModalHarga;
         window.bukaModalStok = bukaModalStok;
         window.hapusMenu = hapusMenu;
@@ -1138,5 +1113,6 @@
         window.submitHarga = submitHarga;
         window.submitStok = submitStok;
         window.onKategoriIndukBerubah = onKategoriIndukBerubah;
+        window.bukaModalTambah = bukaModalTambah;
     </script>
 @endsection

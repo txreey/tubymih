@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     });
-    
+
 // ================================================================
 // KASIR
 // ================================================================
@@ -87,6 +87,9 @@ Route::middleware(['auth', 'role:kasir'])
         Route::patch('/order/{id}/tagih',    [KasirController::class, 'orderTagih'])->name('order.tagih');
     });
 
+// ================================================================
+// OWNER
+// ================================================================
 Route::middleware(['auth', 'role:owner'])
     ->prefix('owner')
     ->name('owner.')
@@ -105,5 +108,8 @@ Route::middleware(['auth', 'role:owner'])
 
         Route::get('/riwayat-transaksi', [OwnerController::class, 'riwayatTransaksi'])->name('riwayat');
         Route::get('/laporan', [OwnerController::class, 'laporan'])->name('laporan');
+
+        // LOG AKTIVITAS (yang diminta)
         Route::get('/log-aktivitas', [OwnerController::class, 'logAktivitas'])->name('log');
     });
+;

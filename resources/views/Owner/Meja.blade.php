@@ -3,121 +3,283 @@
 @section('title', 'Lihat Meja')
 
 @section('content')
-    <div class="space-y-5 max-w-7xl mx-auto p-6">
+    <div class="space-y-8 max-w-7xl mx-auto p-6">
+
+        {{-- Header --}}
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Daftar Meja</h1>
             <p class="text-gray-600 mt-1">Semua meja yang tersedia di restoran</p>
         </div>
 
-        <!-- 3 Kotak -->
+        {{-- Summary Cards — dihitung dinamis dari JS --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
                 <p class="text-sm font-medium text-gray-600">Total Meja</p>
-                <p class="text-4xl font-bold text-teal-700 mt-3">{{ $totalMeja }}</p>
+                <p class="text-4xl font-bold text-teal-700 mt-3" id="summaryTotal">0</p>
             </div>
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
                 <p class="text-sm font-medium text-gray-600">Meja Tersedia</p>
-                <p class="text-4xl font-bold text-green-600 mt-3">{{ $mejaTersedia }}</p>
+                <p class="text-4xl font-bold text-green-600 mt-3" id="summaryTersedia">0</p>
             </div>
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
-                <p class="text-sm font-medium text-gray-600">Meja Terisi/Reserved</p>
-                <p class="text-4xl font-bold text-red-600 mt-3">{{ $mejaTerisi }}</p>
+                <p class="text-sm font-medium text-gray-600">Meja Terisi / Reserved</p>
+                <p class="text-4xl font-bold text-red-600 mt-3" id="summaryTerisi">0</p>
             </div>
         </div>
 
-        <!-- Filter Box -->
+        {{-- Filter Box --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <form method="GET" action="{{ route('owner.meja') }}" class="p-6">
+            <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari No Meja</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik no meja..."
+                        <input type="text" id="filterSearch" placeholder="Ketik no meja..."
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Meja</label>
-                        <select name="tipe_meja"
+                        <select id="filterTipe"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                             <option value="">Semua Tipe</option>
-                            <option value="Lesehan" {{ request('tipe_meja') == 'Lesehan' ? 'selected' : '' }}>Lesehan
-                            </option>
-                            <option value="Meja Kursi" {{ request('tipe_meja') == 'Meja Kursi' ? 'selected' : '' }}>Meja
-                                Kursi</option>
+                            <option value="Lesehan">Lesehan</option>
+                            <option value="Meja Kursi">Meja Kursi</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-                        <select name="status"
+                        <select id="filterStatus"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                             <option value="">Semua Status</option>
-                            <option value="tersedia" {{ request('status') == 'tersedia' ? 'selected' : '' }}>Tersedia
-                            </option>
-                            <option value="terisi" {{ request('status') == 'terisi' ? 'selected' : '' }}>Terisi</option>
-                            <option value="reserved" {{ request('status') == 'reserved' ? 'selected' : '' }}>Reserved
-                            </option>
+                            <option value="tersedia">Tersedia</option>
+                            <option value="terisi">Terisi</option>
                         </select>
                     </div>
                     <div class="flex items-end gap-3">
-                        <button type="submit"
-                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">
-                            Cari
-                        </button>
-                        <a href="{{ route('owner.meja') }}"
-                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-center text-sm">
-                            Reset
-                        </a>
+                        <button onclick="applyFilter()"
+                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">Cari</button>
+                        <button onclick="resetFilter()"
+                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-sm">Reset</button>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
 
-        <!-- Tabel -->
-        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-bold text-gray-900">Daftar Meja</h2>
+        {{-- Card Tabel --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-chair text-teal-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 leading-none">Daftar Meja</p>
+                        <p class="text-xs text-gray-400 mt-1" id="mejaCountLabel">Memuat data...</p>
+                    </div>
+                </div>
             </div>
+
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/40">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-12">
+                                No</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">No
                                 Meja</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Tipe Meja</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Kapasitas</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Deskripsi</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Status</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($mejas as $index => $meja)
-                            <tr class="hover:bg-gray-50 transition duration-150">
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $meja->no_meja }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $meja->tipe_meja ?? '-' }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $meja->kapasitas }} orang</td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex px-2.5 py-0.5 text-xs font-medium rounded-full 
-                                        {{ $meja->status == 'tersedia' ? 'bg-green-100 text-green-800' : ($meja->status == 'terisi' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                        {{ ucfirst($meja->status) }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-16 text-center text-gray-500">
-                                    <i class="fas fa-chair text-5xl text-gray-300 mb-4 block"></i>
-                                    Belum ada meja
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
+                    <tbody id="mejaTableBody"></tbody>
                 </table>
             </div>
+
+            <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-400">
+                <i class="fas fa-chair text-5xl text-gray-200 mb-4 block"></i>
+                Belum ada data meja
+            </div>
+
+            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-400" id="paginationInfo"></p>
+                <div id="paginationBtns" class="flex items-center gap-1.5"></div>
+            </div>
         </div>
+
     </div>
+
+    <style>
+        .pg {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border-radius: 7px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pg:hover {
+            border-color: #0d9488;
+            color: #0d9488;
+        }
+
+        .pg.active {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+
+        .s-tersedia {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .s-terisi {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .s-reserved {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+
+    <script>
+        // ─── STATE ───────────────────────────────────────────────────────
+        let allMeja = @json($mejas);
+        let filteredMeja = [...allMeja];
+        const PER_PAGE = 5; // ← 5 baris per halaman
+        let currentPage = 1;
+
+        // ─── SUMMARY ─────────────────────────────────────────────────────
+        function updateSummary() {
+            document.getElementById('summaryTotal').textContent = allMeja.length;
+            document.getElementById('summaryTersedia').textContent = allMeja.filter(m => m.status === 'tersedia').length;
+            document.getElementById('summaryTerisi').textContent = allMeja.filter(m => m.status === 'terisi' || m.status ===
+                'reserved').length;
+        }
+
+        // ─── UTILS ───────────────────────────────────────────────────────
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function capitalize(str) {
+            return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+        }
+
+        function susunDataGrouped(data) {
+            const lesehan = data.filter(m => m.tipe_meja === 'Lesehan').sort((a, b) => a.no_meja.localeCompare(b.no_meja));
+            const kursi = data.filter(m => m.tipe_meja === 'Meja Kursi').sort((a, b) => a.no_meja.localeCompare(b.no_meja));
+            return [...lesehan, ...kursi];
+        }
+
+        // ─── RENDER TABLE ────────────────────────────────────────────────
+        function renderTable() {
+            const tbody = document.getElementById('mejaTableBody');
+            const empty = document.getElementById('emptyState');
+            const pgInfo = document.getElementById('paginationInfo');
+            const pgBtns = document.getElementById('paginationBtns');
+
+            if (!filteredMeja.length) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                pgInfo.textContent = '';
+                pgBtns.innerHTML = '';
+                document.getElementById('mejaCountLabel').textContent = 'Total: 0 meja';
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const sorted = susunDataGrouped(filteredMeja);
+            const total = sorted.length;
+            const totalPages = Math.ceil(total / PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const start = (currentPage - 1) * PER_PAGE;
+            const end = Math.min(start + PER_PAGE, total);
+            const pageData = sorted.slice(start, end);
+
+            tbody.innerHTML = pageData.map((meja, i) => {
+                const sBadge = meja.status === 'tersedia' ? 's-tersedia' : meja.status === 'terisi' ? 's-terisi' :
+                    's-reserved';
+                return `
+                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-400 font-medium">${start + i + 1}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escHtml(meja.no_meja)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${escHtml(meja.tipe_meja||'-')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${meja.kapasitas} orang</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${escHtml(meja.deskripsi||'-')}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${sBadge}">
+                            ${capitalize(meja.status)}
+                        </span>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            pgInfo.innerHTML = `Menampilkan <strong>${start + 1}–${end}</strong> dari <strong>${total}</strong> meja`;
+            document.getElementById('mejaCountLabel').textContent = `Total: ${allMeja.length} meja`;
+
+            let btns = '';
+            for (let p = 1; p <= totalPages; p++) {
+                btns += `<button class="pg ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+            }
+            pgBtns.innerHTML = btns;
+        }
+
+        function goPage(p) {
+            currentPage = p;
+            renderTable();
+        }
+
+        // ─── FILTER ──────────────────────────────────────────────────────
+        function applyFilter() {
+            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+            const tipe = document.getElementById('filterTipe').value;
+            const status = document.getElementById('filterStatus').value;
+            filteredMeja = allMeja.filter(m => {
+                const matchSearch = !search || (m.no_meja || '').toLowerCase().includes(search) || (m.deskripsi ||
+                    '').toLowerCase().includes(search);
+                return matchSearch && (!tipe || m.tipe_meja === tipe) && (!status || m.status === status);
+            });
+            currentPage = 1;
+            renderTable();
+        }
+
+        function resetFilter() {
+            document.getElementById('filterSearch').value = '';
+            document.getElementById('filterTipe').value = '';
+            document.getElementById('filterStatus').value = '';
+            filteredMeja = [...allMeja];
+            currentPage = 1;
+            renderTable();
+        }
+
+        // ─── INIT ────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('filterSearch').addEventListener('input', applyFilter);
+            document.getElementById('filterTipe').addEventListener('change', applyFilter);
+            document.getElementById('filterStatus').addEventListener('change', applyFilter);
+            updateSummary();
+            renderTable();
+        });
+    </script>
 @endsection

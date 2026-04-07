@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Menu;
+use App\Models\Log;
 use App\Models\User;
 use App\Models\Meja;
 use App\Models\Transaksi;
@@ -17,6 +18,14 @@ class OwnerController extends Controller
     // ==========================================
     public function dashboard()
     {
+        // LOG: Owner melihat dashboard
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat dashboard',
+            'detail' => 'Owner melihat dashboard',
+            'waktu' => now(),
+        ]);
+
         $data = [
             'total_menu'       => 48,
             'total_user_aktif' => 12,
@@ -45,24 +54,18 @@ class OwnerController extends Controller
     // ==========================================
     public function indexMenu(Request $request)
     {
-        $query = Menu::with('kategori')->orderBy('nama_makanan');
+        // LOG: Owner melihat daftar menu
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar menu',
+            'detail' => 'Owner melihat daftar menu',
+            'waktu' => now(),
+        ]);
 
-        if ($request->filled('search')) {
-            $query->where('nama_makanan', 'like', '%' . $request->search . '%');
-        }
+        // Kirim SEMUA data ke view — filter & pagination ditangani JS
+        $menus = Menu::with('kategori')->orderBy('nama_makanan')->get();
 
-        if ($request->filled('kategori')) {
-            $query->where('id_kategori', $request->kategori);
-        }
-
-        $menus = $query->get();
-
-        // Ringkasan tetap dari semua data (bukan hasil filter)
-        $totalMenu     = Menu::count();
-        $totalMakanan  = Menu::whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Makanan'))->count();
-        $totalMinuman  = Menu::whereHas('kategori', fn($q) => $q->where('nama_kategori', 'Minuman'))->count();
-
-        return view('owner.menu', compact('menus', 'totalMenu', 'totalMakanan', 'totalMinuman'));
+        return view('owner.menu', compact('menus'));
     }
 
     // ==========================================
@@ -70,53 +73,55 @@ class OwnerController extends Controller
     // ==========================================
     public function indexUser(Request $request)
     {
-        $query = User::wherein('role', ['admin', 'kasir'])->orderBy('nama');
+        // LOG: Owner melihat daftar user
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar user',
+            'detail' => 'Owner melihat daftar user',
+            'waktu' => now(),
+        ]);
 
-        if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%')
-                    ->orWhere('username', 'like', '%' . $request->search . '%');
-            });
-        }
+        // Kirim semua user non-owner — filter & pagination ditangani JS
+        $users = User::whereIn('role', ['admin', 'kasir'])
+            ->orderBy('nama')
+            ->get();
 
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $users = $query->orderBy('nama')->get();
-
-        $totalUser     = User::count();
-        $totalAktif    = User::where('status', 'aktif')->count();
-        $totalNonaktif = User::where('status', 'nonaktif')->count();
-
-        return view('owner.users', compact('users', 'totalUser', 'totalAktif', 'totalNonaktif'));
+        return view('owner.users', compact('users'));
     }
 
     public function storeUser(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama'     => 'required|string|max:255',
             'username' => 'required|string|unique:users,username|max:255',
             'password' => 'required|string|min:6',
-            'role'     => 'required|in:kasir,admin,owner',
+            'role'     => 'required|in:kasir,admin',
             'status'   => 'required|in:aktif,nonaktif',
             'no_hp'    => 'nullable|string|max:20',
             'alamat'   => 'nullable|string',
         ]);
 
-        User::create([
-            'nama'     => $request->nama,
-            'username' => $request->username,
-            'password' => bcrypt($request->password),
-            'role'     => $request->role,
-            'status'   => $request->status,
+        $user = User::create([
+            'nama'     => $validated['nama'],
+            'username' => $validated['username'],
+            'password' => bcrypt($validated['password']),
+            'role'     => $validated['role'],
+            'status'   => $validated['status'],
             'no_hp'    => $request->no_hp,
             'alamat'   => $request->alamat,
         ]);
+
+        // LOG: Owner menambah user baru
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menambah user baru',
+            'detail' => 'Menambah user: ' . $user->nama . ' (Role: ' . $user->role . ')',
+            'waktu' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'user' => $user]);
+        }
 
         return redirect()->route('owner.users.index')->with('success', 'User berhasil ditambahkan.');
     }
@@ -124,22 +129,24 @@ class OwnerController extends Controller
     public function updateUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $namaLama = $user->nama;
+        $roleLama = $user->role;
 
-        $request->validate([
+        $validated = $request->validate([
             'nama'     => 'required|string|max:255',
             'username' => 'required|string|unique:users,username,' . $id . '|max:255',
             'password' => 'nullable|string|min:6',
-            'role'     => 'required|in:kasir,admin,owner',
+            'role'     => 'required|in:kasir,admin',
             'status'   => 'required|in:aktif,nonaktif',
             'no_hp'    => 'nullable|string|max:20',
             'alamat'   => 'nullable|string',
         ]);
 
         $data = [
-            'nama'     => $request->nama,
-            'username' => $request->username,
-            'role'     => $request->role,
-            'status'   => $request->status,
+            'nama'     => $validated['nama'],
+            'username' => $validated['username'],
+            'role'     => $validated['role'],
+            'status'   => $validated['status'],
             'no_hp'    => $request->no_hp,
             'alamat'   => $request->alamat,
         ];
@@ -149,23 +156,72 @@ class OwnerController extends Controller
         }
 
         $user->update($data);
+        $user->refresh();
+
+        // LOG: Owner mengupdate user
+        $perubahan = [];
+        if ($namaLama != $user->nama) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $user->nama;
+        if ($roleLama != $user->role) $perubahan[] = 'Role: ' . $roleLama . ' → ' . $user->role;
+
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengupdate user',
+            'detail' => 'User: ' . $user->nama . ' - ' . implode(', ', $perubahan),
+            'waktu' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'user' => $user]);
+        }
 
         return redirect()->route('owner.users.index')->with('success', 'User berhasil diupdate.');
     }
 
-    public function destroyUser($id)
+    public function destroyUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $namaUser = $user->nama;
+        $roleUser = $user->role;
+
         $user->delete();
+
+        // LOG: Owner menghapus user
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menghapus user',
+            'detail' => 'Menghapus user: ' . $namaUser . ' (Role: ' . $roleUser . ')',
+            'waktu' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'User berhasil dihapus.']);
+        }
 
         return redirect()->route('owner.users.index')->with('success', 'User berhasil dihapus.');
     }
 
-    public function toggleStatusUser($id)
+    public function toggleStatusUser(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user         = User::findOrFail($id);
+        $statusLama = $user->status;
         $user->status = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
         $user->save();
+
+        // LOG: Owner mengubah status user
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengubah status user',
+            'detail' => 'User: ' . $user->nama . ' - Status: ' . $statusLama . ' → ' . $user->status,
+            'waktu' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status user berhasil diubah menjadi ' . $user->status . '.',
+                'status'  => $user->status,
+            ]);
+        }
 
         return redirect()->route('owner.users.index')->with('success', 'Status user berhasil diubah.');
     }
@@ -175,36 +231,34 @@ class OwnerController extends Controller
     // ==========================================
     public function indexMeja(Request $request)
     {
-        $query = Meja::orderBy('no_meja');
+        // LOG: Owner melihat daftar meja
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar meja',
+            'detail' => 'Owner melihat daftar meja',
+            'waktu' => now(),
+        ]);
 
-        if ($request->filled('search')) {
-            $query->where('no_meja', 'like', '%' . $request->search . '%');
-        }
+        // Kirim SEMUA data ke view — filter & pagination ditangani JS
+        $mejas = Meja::orderBy('no_meja')->get();
 
-        if ($request->filled('tipe_meja')) {
-            $query->where('tipe_meja', $request->tipe_meja);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $mejas = $query->get();
-
-        // Ringkasan tetap dari semua data (bukan hasil filter)
-        $totalMeja    = Meja::count();
-        $mejaTersedia = Meja::where('status', 'tersedia')->count();
-        $mejaTerisi   = Meja::whereIn('status', ['terisi', 'reserved'])->count();
-
-        return view('owner.meja', compact('mejas', 'totalMeja', 'mejaTersedia', 'mejaTerisi'));
+        return view('owner.meja', compact('mejas'));
     }
 
     // ==========================================
-    // RIWAYAT TRANSAKSI (sama seperti admin, tapi owner bisa lihat semua)
+    // RIWAYAT TRANSAKSI
     // ==========================================
     public function riwayatTransaksi(Request $request)
     {
-        $query = Transaksi::with(['kasir', 'meja'])->latest();
+        // LOG: Owner melihat riwayat transaksi
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat riwayat transaksi',
+            'detail' => 'Owner melihat riwayat transaksi',
+            'waktu' => now(),
+        ]);
+
+        $query = Transaksi::with(['kasir', 'meja', 'detailTransaksi'])->latest();
 
         if ($request->filled('tanggal')) {
             $query->whereDate('tanggal', $request->tanggal);
@@ -222,107 +276,129 @@ class OwnerController extends Controller
 
         $transaksis = $query->get();
 
-        // Ringkasan tetap dari semua data (bukan hasil filter)
+        // Data real untuk card (menggunakan status yang sama dengan Admin)
         $totalTransaksi = Transaksi::count();
-        $totalSelesai   = Transaksi::where('status', 'selesai')->count();
-        $totalPending   = Transaksi::whereIn('status', ['pending', 'proses'])->count();
+        $totalLunas     = Transaksi::where('status', 'lunas')->count();
+        $totalNunggak   = Transaksi::where('status', 'tunggak')->count();
 
-        return view('owner.riwayat', compact('transaksis', 'totalTransaksi', 'totalSelesai', 'totalPending'));
+        return view('owner.riwayat', compact('transaksis', 'totalTransaksi', 'totalLunas', 'totalNunggak'));
     }
 
     // ==========================================
-    // LAPORAN (pendapatan + statistik)
+    // LAPORAN
     // ==========================================
     public function laporan(Request $request)
     {
+        // LOG: Owner melihat laporan
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat laporan',
+            'detail' => 'Owner melihat laporan pendapatan',
+            'waktu' => now(),
+        ]);
+
         $kasirs = User::where('role', 'kasir')->orderBy('nama')->get();
 
         $query = Transaksi::with(['kasir', 'detailTransaksi'])
-            ->where('status', 'selesai');
+            ->where('status', 'lunas');
 
         if ($request->filled('dari')) {
             $query->whereDate('tanggal', '>=', $request->dari);
         }
-
         if ($request->filled('sampai')) {
             $query->whereDate('tanggal', '<=', $request->sampai);
         }
-
         if ($request->filled('id_kasir')) {
             $query->where('id_kasir', $request->id_kasir);
         }
 
         $transaksis = $query->latest()->get();
 
-        // Group per kasir per tanggal
+        // Ringkasan Card
+        $totalTransaksi = $transaksis->count();
+        $totalPenjualan = $transaksis->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0);
+        $totalPendapatan = $transaksis->sum('total_harga');
+
+        // Data Tabel
         $laporanData = $transaksis->groupBy(function ($trx) {
-            return $trx->tanggal->format('Y-m-d') . '|' . ($trx->id_kasir ?? 'unknown');
+            $tanggalStr = $trx->tanggal
+                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
+                : '0000-00-00';
+            return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
         })->map(function ($group) {
             $first = $group->first();
             return [
-                'tanggal'      => $first->tanggal->format('d-m-Y'),
-                'kasir'        => $first->kasir->nama ?? '-',
-                'transaksi'    => $group->count(),
-                'penjualan'    => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty')),
-                'pendapatan'   => $group->sum('total_harga'),
+                'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
+                'kasir'      => $first->kasir->nama ?? '-',
+                'transaksi'  => $group->count(),
+                'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
+                'pendapatan' => $group->sum('total_harga'),
             ];
         })->values();
 
-        $totalPendapatan = $transaksis->sum('total_harga');
+        // === DATA GRAFIK REAL (Per Tanggal) ===
+        $chartData = $transaksis->groupBy(function ($trx) {
+            return $trx->tanggal
+                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
+                : '0000-00-00';
+        })->map(function ($group) {
+            $first = $group->first();
+            return [
+                'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d M') : 'No Date',
+                'pendapatan' => $group->sum('total_harga')
+            ];
+        })->sortBy(function ($item) {
+            return \Carbon\Carbon::parse($item['tanggal']);
+        })->values();
 
-        return view('owner.laporan', compact('kasirs', 'laporanData', 'totalPendapatan'));
+        return view('owner.laporan', compact(
+            'kasirs',
+            'laporanData',
+            'totalTransaksi',
+            'totalPenjualan',
+            'totalPendapatan',
+            'chartData'
+        ));
     }
 
     // ==========================================
-    // LOG AKTIVITAS (dummy dulu, nanti bisa pakai spatie/laravel-activitylog)
+    // LOG AKTIVITAS
     // ==========================================
     public function logAktivitas(Request $request)
     {
-        // Dummy log aktivitas
-        $allLogs = [
-            ['waktu' => now()->subHours(2),  'user' => 'Admin',  'role' => 'admin',  'aksi' => 'Login berhasil',               'detail' => 'IP: 127.0.0.1'],
-            ['waktu' => now()->subHours(5),  'user' => 'Kasir1', 'role' => 'kasir',  'aksi' => 'Tambah transaksi #TRX-001',    'detail' => 'Total Rp 150.000'],
-            ['waktu' => now()->subDay(),     'user' => 'Owner',  'role' => 'owner',  'aksi' => 'Update menu Nasi Goreng',      'detail' => 'Harga dari 25.000 → 28.000'],
-            ['waktu' => now()->subDays(2),   'user' => 'Kasir1', 'role' => 'kasir',  'aksi' => 'Tambah transaksi #TRX-002',    'detail' => 'Total Rp 75.000'],
-            ['waktu' => now()->subDays(2),   'user' => 'Admin',  'role' => 'admin',  'aksi' => 'Hapus user Kasir2',            'detail' => 'User ID: 5'],
-        ];
+        $query = Log::with('user')->orderBy('waktu', 'desc');
 
-        // Filter search
         if ($request->filled('search')) {
-            $search = strtolower($request->search);
-            $allLogs = array_filter(
-                $allLogs,
-                fn($log) =>
-                str_contains(strtolower($log['user']), $search) ||
-                    str_contains(strtolower($log['aksi']), $search)
-            );
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('aktivitas', 'like', "%{$search}%")
+                    ->orWhere('detail', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQ) use ($search) {
+                        $userQ->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
-        // Filter tanggal
-        if ($request->filled('tanggal')) {
-            $allLogs = array_filter(
-                $allLogs,
-                fn($log) =>
-                $log['waktu']->format('Y-m-d') === $request->tanggal
-            );
+        if ($request->filled('dari_tanggal')) {
+            $query->whereDate('waktu', '>=', $request->dari_tanggal);
         }
 
-        // Filter role
+        if ($request->filled('sampai_tanggal')) {
+            $query->whereDate('waktu', '<=', $request->sampai_tanggal);
+        }
+
         if ($request->filled('role')) {
-            $allLogs = array_filter(
-                $allLogs,
-                fn($log) =>
-                $log['role'] === $request->role
-            );
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('role', $request->role);
+            });
         }
 
-        $logs = array_values($allLogs);
-
-        // Handle export CSV
+        // Export CSV (pakai get() khusus untuk export)
         if ($request->get('export') === 'csv') {
+            $logs = $query->get();
             $filename = 'log-aktivitas-' . now()->format('Ymd-His') . '.csv';
             $headers = [
-                'Content-Type'        => 'text/csv',
+                'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"$filename\"",
             ];
 
@@ -332,11 +408,11 @@ class OwnerController extends Controller
                 foreach ($logs as $i => $log) {
                     fputcsv($file, [
                         $i + 1,
-                        $log['waktu']->format('d-m-Y H:i'),
-                        $log['user'],
-                        $log['role'] ?? '-',
-                        $log['aksi'],
-                        $log['detail'],
+                        $log->waktu->format('d-m-Y H:i'),
+                        $log->user->name ?? 'Unknown',
+                        $log->user->role ?? '-',
+                        $log->aktivitas,
+                        $log->detail ?? '-',
                     ]);
                 }
                 fclose($file);
@@ -345,6 +421,9 @@ class OwnerController extends Controller
             return response()->stream($callback, 200, $headers);
         }
 
-        return view('owner.log', compact('logs'));
+        $total = $query->count(); // hitung total sebelum paginate
+        $logs = $query->paginate(15); // pakai paginate bukan get()
+
+        return view('owner.log', compact('logs', 'total'));
     }
 }

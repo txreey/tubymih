@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Menu;
+use App\Models\Log;
 use App\Models\Meja;
 use App\Models\Transaksi;
 use App\Models\DetailTransaksi;
@@ -45,6 +46,14 @@ class KasirController extends Controller
             ->take(5)
             ->get();
 
+        // LOG: Kasir melihat dashboard
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat dashboard',
+            'detail' => 'Kasir melihat dashboard',
+            'waktu' => now(),
+        ]);
+
         $data = compact('transaksiHariIni', 'pendapatanHari', 'mejaTersedia', 'totalMeja', 'transaksiTerakhir');
         return view('kasir.dashboard', compact('data'));
     }
@@ -81,6 +90,14 @@ class KasirController extends Controller
                 'stok'     => (int) $m->stok,
                 'tersedia' => $m->stok > 0,
             ]);
+
+        // LOG: Kasir membuka halaman order
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Membuka halaman order',
+            'detail' => 'Kasir membuka halaman pemesanan',
+            'waktu' => now(),
+        ]);
 
         return view('kasir.order', compact('mejas', 'menus'));
     }
@@ -154,6 +171,7 @@ class KasirController extends Controller
             ]);
 
             // Simpan detail transaksi
+            $detailItems = [];
             foreach ($request->items as $item) {
                 DetailTransaksi::create([
                     'id_transaksi' => $transaksi->id,
@@ -162,6 +180,9 @@ class KasirController extends Controller
                     'harga_satuan' => $item['harga'],
                     'subtotal'     => $item['harga'] * $item['qty'],
                 ]);
+
+                $menu = Menu::find($item['id']);
+                $detailItems[] = $menu->nama_makanan . ' x' . $item['qty'];
 
                 // Kurangi stok menu
                 Menu::where('id', $item['id'])->decrement('stok', $item['qty']);
@@ -175,6 +196,16 @@ class KasirController extends Controller
             DB::commit();
 
             $namaMejas = $isDineIn ? Meja::whereIn('id', $idMejas)->pluck('no_meja')->join(', ') : null;
+
+            // LOG: Kasir membuat transaksi baru
+            $tipeOrderText = $request->tipe_order === 'dine_in' ? 'Dine In' : 'Take Away';
+            $mejaText = $namaMejas ? ' - Meja: ' . $namaMejas : '';
+            Log::create([
+                'id_user' => Auth::id(),
+                'aktivitas' => 'Membuat transaksi baru',
+                'detail' => 'Transaksi #' . $noTransaksi . ' - ' . $tipeOrderText . $mejaText . ' - Total: Rp ' . number_format($total, 0, ',', '.') . ' - Items: ' . implode(', ', $detailItems),
+                'waktu' => now(),
+            ]);
 
             return response()->json([
                 'success'      => true,
@@ -195,6 +226,7 @@ class KasirController extends Controller
             ], 500);
         }
     }
+
     // ==========================================
     // RIWAYAT TRANSAKSI
     // ==========================================
@@ -236,6 +268,14 @@ class KasirController extends Controller
             ->sum('total_harga');
 
         $jumlahTransaksi = $transaksis->count();
+
+        // LOG: Kasir melihat riwayat transaksi
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat riwayat transaksi',
+            'detail' => 'Menampilkan ' . $jumlahTransaksi . ' transaksi hari ini',
+            'waktu' => now(),
+        ]);
 
         return view('kasir.riwayat', compact(
             'transaksis',
@@ -292,6 +332,17 @@ class KasirController extends Controller
 
             DB::commit();
 
+            // LOG: Kasir melakukan pembayaran
+            $tipeOrderText = $transaksi->jenis_pemesanan === 'dine_in' ? 'Dine In' : 'Take Away';
+            $mejaText = $transaksi->id_meja ? ' - Meja: ' . ($transaksi->meja->no_meja ?? '-') : '';
+
+            Log::create([
+                'id_user' => Auth::id(),
+                'aktivitas' => 'Melakukan pembayaran',
+                'detail' => 'Transaksi #' . ($transaksi->no_transaksi ?? 'TRX-' . $transaksi->id) . ' - ' . $tipeOrderText . $mejaText . ' - Total: Rp ' . number_format($transaksi->total_harga, 0, ',', '.') . ' - Bayar: Rp ' . number_format($request->jumlah_bayar, 0, ',', '.') . ' - Kembali: Rp ' . number_format($request->kembalian, 0, ',', '.'),
+                'waktu' => now(),
+            ]);
+
             return response()->json([
                 'success'      => true,
                 'message'      => 'Pembayaran berhasil.',
@@ -310,5 +361,105 @@ class KasirController extends Controller
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    // ==========================================
+    // CETAK STRUK
+    // ==========================================
+    public function cetakStruk($id)
+    {
+        $transaksi = Transaksi::with(['detailTransaksi.menu', 'meja', 'kasir'])->findOrFail($id);
+
+        // LOG: Kasir mencetak struk
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mencetak struk',
+            'detail' => 'Mencetak struk untuk transaksi #' . ($transaksi->no_transaksi ?? 'TRX-' . $transaksi->id),
+            'waktu' => now(),
+        ]);
+
+        return view('kasir.struk', compact('transaksi'));
+    }
+
+    // ==========================================
+    // BATALKAN TRANSAKSI
+    // ==========================================
+    public function batalTransaksi($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $transaksi = Transaksi::with('detailTransaksi')->findOrFail($id);
+
+            if ($transaksi->status === self::STATUS_LUNAS) {
+                return redirect()->back()->with('error', 'Transaksi sudah lunas, tidak bisa dibatalkan.');
+            }
+
+            // Kembalikan stok menu
+            foreach ($transaksi->detailTransaksi as $detail) {
+                Menu::where('id', $detail->id_menu)->increment('stok', $detail->qty);
+            }
+
+            // Update status meja menjadi tersedia
+            if ($transaksi->jenis_pemesanan === 'dine_in' && $transaksi->id_meja) {
+                Meja::where('id', $transaksi->id_meja)->update(['status' => 'tersedia']);
+            }
+
+            // LOG: Kasir membatalkan transaksi
+            Log::create([
+                'id_user' => Auth::id(),
+                'aktivitas' => 'Membatalkan transaksi',
+                'detail' => 'Membatalkan transaksi #' . ($transaksi->no_transaksi ?? 'TRX-' . $transaksi->id) . ' - Total: Rp ' . number_format($transaksi->total_harga, 0, ',', '.'),
+                'waktu' => now(),
+            ]);
+
+            $transaksi->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Transaksi berhasil dibatalkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
+        }
+    }
+
+    // ==========================================
+    // INDEX MENU (untuk kasir lihat saja)
+    // ==========================================
+    public function indexMenu()
+    {
+        $menus = Menu::with('kategori')->orderBy('nama_makanan')->get();
+
+        // LOG: Kasir melihat daftar menu
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar menu',
+            'detail' => 'Kasir melihat ' . $menus->count() . ' menu',
+            'waktu' => now(),
+        ]);
+
+        return view('kasir.menu', compact('menus'));
+    }
+
+    // ==========================================
+    // INDEX MEJA (untuk kasir lihat saja)
+    // ==========================================
+    public function indexMeja()
+    {
+        $mejas = Meja::orderBy('no_meja')->get();
+
+        $tersedia = $mejas->where('status', 'tersedia')->count();
+        $terisi = $mejas->where('status', 'terisi')->count();
+
+        // LOG: Kasir melihat daftar meja
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar meja',
+            'detail' => 'Kasir melihat ' . $mejas->count() . ' meja (Tersedia: ' . $tersedia . ', Terisi: ' . $terisi . ')',
+            'waktu' => now(),
+        ]);
+
+        return view('kasir.meja', compact('mejas', 'tersedia', 'terisi'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Models\Log;
 use App\Models\Transaksi;
 use App\Models\User;
 use App\Models\Meja;
@@ -11,12 +12,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
     // DASHBOARD (tetep sama)
     public function dashboard()
     {
+        // LOG: Admin melihat dashboard
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat dashboard',
+            'detail' => 'Admin melihat dashboard',
+            'waktu' => now(),
+        ]);
+
         $data = [
             'total_menu'            => 24,
             'total_kategori'        => 8,
@@ -63,6 +73,14 @@ class AdminController extends Controller
     // =============================================
     public function indexUser(Request $request)
     {
+        // LOG: Admin melihat daftar user
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar user',
+            'detail' => 'Admin melihat daftar kasir',
+            'waktu' => now(),
+        ]);
+
         $users = User::whereIn('role', ['kasir'])
             ->when($request->search, function ($q, $s) {
                 $q->where(function ($query) use ($s) {
@@ -96,6 +114,14 @@ class AdminController extends Controller
             'role'     => 'kasir',
         ]);
 
+        // LOG: Admin menambah kasir baru
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menambah kasir baru',
+            'detail' => 'Menambah kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
+            'waktu' => now(),
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Kasir berhasil ditambahkan!', 'user' => $user], 201);
     }
 
@@ -121,6 +147,14 @@ class AdminController extends Controller
             'password' => !empty($data['password']) ? Hash::make($data['password']) : null,
         ], fn($v) => $v !== null));
 
+        // LOG: Admin mengupdate kasir
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengupdate data kasir',
+            'detail' => 'Mengupdate kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
+            'waktu' => now(),
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Kasir berhasil diperbarui!', 'user' => $user->fresh()]);
     }
 
@@ -129,7 +163,16 @@ class AdminController extends Controller
         abort_if($user->role !== 'kasir', 403, 'Admin hanya bisa hapus kasir.');
         abort_if($user->id === auth()->id(), 403, 'Tidak bisa hapus akun sendiri.');
 
+        $namaUser = $user->nama;
         $user->delete();
+
+        // LOG: Admin menghapus kasir
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menghapus kasir',
+            'detail' => 'Menghapus kasir: ' . $namaUser,
+            'waktu' => now(),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Kasir berhasil dihapus!']);
     }
@@ -138,7 +181,17 @@ class AdminController extends Controller
     {
         abort_if($user->role !== 'kasir', 403, 'Admin hanya bisa toggle kasir.');
 
-        $user->update(['status' => $user->status === 'aktif' ? 'nonaktif' : 'aktif']);
+        $statusLama = $user->status;
+        $statusBaru = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
+        $user->update(['status' => $statusBaru]);
+
+        // LOG: Admin mengubah status kasir
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengubah status kasir',
+            'detail' => 'Kasir: ' . $user->nama . ' - Status: ' . $statusLama . ' → ' . $statusBaru,
+            'waktu' => now(),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Status: ' . ucfirst($user->status), 'status' => $user->status]);
     }
@@ -164,6 +217,14 @@ class AdminController extends Controller
 
     public function indexMeja(Request $request)
     {
+        // LOG: Admin melihat daftar meja
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar meja',
+            'detail' => 'Admin melihat daftar meja',
+            'waktu' => now(),
+        ]);
+
         $query = Meja::query();
 
         // FILTER KAPASITAS - OK, logika benar
@@ -184,7 +245,7 @@ class AdminController extends Controller
 
         $mejas = $query->orderBy('no_meja', 'asc')->get();
 
-        return view('admin.meja', compact('mejas')); // ← nama view sudah benar sesuai file lo
+        return view('admin.meja', compact('mejas'));
     }
 
     // STORE - OK, return JSON untuk AJAX modal
@@ -211,6 +272,14 @@ class AdminController extends Controller
             'kapasitas' => $kapasitas,
             'deskripsi' => $validated['deskripsi'] ?? null,
             'status'    => 'tersedia',
+        ]);
+
+        // LOG: Admin menambah meja baru
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menambah meja baru',
+            'detail' => 'Menambah meja: ' . $meja->no_meja . ' (Kapasitas: ' . $meja->kapasitas . ')',
+            'waktu' => now(),
         ]);
 
         return response()->json([
@@ -244,12 +313,21 @@ class AdminController extends Controller
             $kapasitas = (int) $kapasitasInput;
         }
 
+        $noMejaLama = $meja->no_meja;
         $meja->update([
             'no_meja'   => $validated['no_meja'],
             'tipe_meja' => $validated['tipe_meja'],
             'kapasitas' => $kapasitas,
             'deskripsi' => $validated['deskripsi'] ?? null,
             'status'    => $validated['status'],
+        ]);
+
+        // LOG: Admin mengupdate meja
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengupdate meja',
+            'detail' => 'Meja: ' . $noMejaLama . ' → ' . $meja->no_meja,
+            'waktu' => now(),
         ]);
 
         return response()->json([
@@ -262,7 +340,16 @@ class AdminController extends Controller
     // DESTROY - OK, return JSON
     public function destroyMeja(Meja $meja)
     {
+        $noMeja = $meja->no_meja;
         $meja->delete();
+
+        // LOG: Admin menghapus meja
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menghapus meja',
+            'detail' => 'Menghapus meja: ' . $noMeja,
+            'waktu' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -276,6 +363,14 @@ class AdminController extends Controller
     // ==========================================
     public function indexMenu(Request $request)
     {
+        // LOG: Admin melihat daftar menu
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar menu',
+            'detail' => 'Admin melihat daftar menu',
+            'waktu' => now(),
+        ]);
+
         $menus = Menu::with('kategori')
             ->when($request->search, fn($q, $s) => $q->where('nama_makanan', 'like', "%$s%"))
             ->when($request->kategori, fn($q, $k) => $q->where('id_kategori', $k))
@@ -287,7 +382,7 @@ class AdminController extends Controller
         return view('admin.menu', compact('menus', 'kategoris'));
     }
 
-    // STORE MENU - AJAX JSON (tetap sama, gak perlu ubah)
+    // STORE MENU - AJAX JSON
     public function storeMenu(Request $request)
     {
         $validated = $request->validate([
@@ -312,6 +407,14 @@ class AdminController extends Controller
 
         $menu = Menu::create($data);
 
+        // LOG: Admin menambah menu baru
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menambah menu baru',
+            'detail' => 'Menu: ' . $menu->nama_makanan . ' - Harga: Rp ' . number_format($menu->harga, 0, ',', '.') . ' - Stok: ' . $menu->stok,
+            'waktu' => now(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Menu berhasil ditambahkan!',
@@ -319,9 +422,13 @@ class AdminController extends Controller
         ]);
     }
 
-    // UPDATE MENU - AJAX JSON (tetap sama)
+    // UPDATE MENU - AJAX JSON
     public function updateMenu(Request $request, Menu $menu)
     {
+        $hargaLama = $menu->harga;
+        $stokLama = $menu->stok;
+        $namaLama = $menu->nama_makanan;
+
         $validated = $request->validate([
             'id_kategori'  => 'required|exists:kategori,id',
             'nama_makanan' => 'required|string|max:100',
@@ -338,6 +445,19 @@ class AdminController extends Controller
         }
 
         $menu->update($data);
+
+        // LOG: Admin mengupdate menu
+        $perubahan = [];
+        if ($namaLama != $menu->nama_makanan) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $menu->nama_makanan;
+        if ($hargaLama != $menu->harga) $perubahan[] = 'Harga: Rp ' . number_format($hargaLama, 0, ',', '.') . ' → Rp ' . number_format($menu->harga, 0, ',', '.');
+        if ($stokLama != $menu->stok) $perubahan[] = 'Stok: ' . $stokLama . ' → ' . $menu->stok;
+
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Update menu',
+            'detail' => 'Menu: ' . $menu->nama_makanan . ' - ' . implode(', ', $perubahan),
+            'waktu' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -359,14 +479,24 @@ class AdminController extends Controller
         ]);
     }
 
-    // DESTROY MENU - AJAX JSON (tetap sama)
+    // DESTROY MENU - AJAX JSON
     public function destroyMenu(Menu $menu)
     {
+        $namaMenu = $menu->nama_makanan;
+
         if ($menu->gambar) {
             Storage::disk('public')->delete($menu->gambar);
         }
 
         $menu->delete();
+
+        // LOG: Admin menghapus menu
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menghapus menu',
+            'detail' => 'Menghapus menu: ' . $namaMenu,
+            'waktu' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -379,6 +509,14 @@ class AdminController extends Controller
     // ======================
     public function indexKategori(Request $request)
     {
+        // LOG: Admin melihat daftar kategori
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat daftar kategori',
+            'detail' => 'Admin melihat daftar kategori',
+            'waktu' => now(),
+        ]);
+
         $kategoris = Kategori::withCount('menus')
             ->with('menus:id,id_kategori,nama_makanan')
             ->when($request->search, fn($q, $s) =>
@@ -420,6 +558,14 @@ class AdminController extends Controller
             'jumlah'        => 0,
         ]);
 
+        // LOG: Admin menambah kategori baru
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menambah kategori baru',
+            'detail' => 'Kategori: ' . $kategori->nama_kategori . ' (Jenis: ' . $kategori->jenis . ')',
+            'waktu' => now(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Kategori berhasil ditambahkan!',
@@ -429,6 +575,9 @@ class AdminController extends Controller
 
     public function updateKategori(Request $request, Kategori $kategori)
     {
+        $namaLama = $kategori->nama_kategori;
+        $jenisLama = $kategori->jenis;
+
         $request->validate([
             'nama_kategori' => 'required|string|max:100',
             'jenis'         => 'required|string|max:100',
@@ -456,6 +605,14 @@ class AdminController extends Controller
             'jenis'         => $request->jenis,
         ]);
 
+        // LOG: Admin mengupdate kategori
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Mengupdate kategori',
+            'detail' => 'Kategori: ' . $namaLama . ' (' . $jenisLama . ') → ' . $kategori->nama_kategori . ' (' . $kategori->jenis . ')',
+            'waktu' => now(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Kategori berhasil diperbarui!',
@@ -473,7 +630,16 @@ class AdminController extends Controller
             ], 422);
         }
 
+        $namaKategori = $kategori->nama_kategori;
         $kategori->delete();
+
+        // LOG: Admin menghapus kategori
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Menghapus kategori',
+            'detail' => 'Menghapus kategori: ' . $namaKategori,
+            'waktu' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -484,6 +650,14 @@ class AdminController extends Controller
     // RIWAYAT TRANSAKSI
     public function indexRiwayat()
     {
+        // LOG: Admin melihat riwayat transaksi
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat riwayat transaksi',
+            'detail' => 'Admin melihat riwayat transaksi',
+            'waktu' => now(),
+        ]);
+
         $transaksis = Transaksi::with([
             'kasir',
             'meja',
@@ -579,6 +753,14 @@ class AdminController extends Controller
         })->values();
 
         $totalPendapatan = $transaksis->sum('total_harga');
+
+        // LOG: Admin melihat laporan
+        Log::create([
+            'id_user' => Auth::id(),
+            'aktivitas' => 'Melihat laporan',
+            'detail' => 'Admin melihat laporan pendapatan',
+            'waktu' => now(),
+        ]);
 
         // Handle export CSV
         if ($request->get('export') === 'csv') {
