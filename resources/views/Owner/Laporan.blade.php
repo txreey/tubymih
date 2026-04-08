@@ -14,7 +14,7 @@
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div class="p-6">
                 <form method="GET" action="{{ route('owner.laporan') }}"
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Dari Tanggal</label>
                         <input type="date" name="dari" value="{{ request('dari') }}"
@@ -32,19 +32,17 @@
                             <option value="">Semua Kasir</option>
                             @foreach ($kasirs as $kasir)
                                 <option value="{{ $kasir->id }}"
-                                    {{ request('id_kasir') == $kasir->id ? 'selected' : '' }}>{{ $kasir->nama }}</option>
+                                    {{ request('id_kasir') == $kasir->id ? 'selected' : '' }}>
+                                    {{ $kasir->nama }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="flex items-end gap-3 lg:col-span-2">
+                    <div class="flex items-end gap-3">
                         <button type="submit"
                             class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">Cari</button>
                         <a href="{{ route('owner.laporan') }}"
                             class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-center text-sm">Reset</a>
-                        <button type="button" onclick="exportToExcel()"
-                            class="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm text-sm flex items-center gap-2">
-                            <i class="fas fa-file-excel"></i> Ekspor
-                        </button>
                     </div>
                 </form>
             </div>
@@ -67,7 +65,7 @@
             </div>
         </div>
 
-        <!-- Grafik (Ukuran sudah diperkecil) -->
+        <!-- Grafik -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Harian</h3>
             <div style="height: 280px;">
@@ -75,44 +73,74 @@
             </div>
         </div>
 
-        <!-- Tabel -->
+        <!-- Tabel Laporan -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b bg-gray-50">
-                <h2 class="text-lg font-bold text-gray-900">Data Laporan</h2>
+            <!-- Header Tabel -->
+            <div class="px-6 py-5 border-b flex items-center justify-between bg-gray-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-emerald-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Data Laporan</h2>
+                        <p class="text-xs text-gray-500">Total: {{ $laporanData->count() }} Laporan</p>
+                    </div>
+                </div>
+
+                <!-- Button Ekspor di dalam tabel -->
+                <button onclick="exportToExcel()"
+                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl flex items-center gap-2 transition shadow-sm">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Ekspor</span>
+                </button>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
-                        <tr class="border-b border-gray-100 bg-gray-50">
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">No</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Tanggal</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Kasir</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Transaksi</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Penjualan</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Pendapatan</th>
+                        <tr class="border-b bg-white">
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">NO</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">TANGGAL</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">KASIR</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">TRANSAKSI</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">PENJUALAN</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">PENDAPATAN</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($laporanData as $index => $row)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4 text-sm font-medium">{{ $row['tanggal'] }}</td>
-                                <td class="px-6 py-4 text-sm">{{ $row['kasir'] }}</td>
-                                <td class="px-6 py-4 text-sm text-teal-600 font-semibold">{{ $row['transaksi'] }} transaksi
+                                <td class="px-6 py-5 text-sm text-gray-600">{{ $index + 1 }}</td>
+                                <td class="px-6 py-5 text-sm font-medium">{{ $row['tanggal'] }}</td>
+                                <td class="px-6 py-5 text-sm">{{ $row['kasir'] }}</td>
+                                <td class="px-6 py-5 text-sm text-teal-600 font-semibold">{{ $row['transaksi'] }}x</td>
+                                <td class="px-6 py-5 text-sm text-blue-600">{{ $row['penjualan'] }}x</td>
+                                <td class="px-6 py-5 text-sm font-semibold text-emerald-600">
+                                    Rp {{ number_format($row['pendapatan'], 0, ',', '.') }}
                                 </td>
-                                <td class="px-6 py-4 text-sm text-blue-600">{{ $row['penjualan'] }} item</td>
-                                <td class="px-6 py-4 text-sm font-semibold text-emerald-600">Rp
-                                    {{ number_format($row['pendapatan'], 0, ',', '.') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-16 text-center text-gray-400">
+                                <td colspan="6" class="px-6 py-20 text-center text-gray-400">
                                     Belum ada data laporan
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-between text-sm">
+                <div class="text-gray-600">
+                    Menampilkan <strong>1-{{ $laporanData->count() }}</strong> dari
+                    <strong>{{ $laporanData->count() }}</strong> laporan
+                </div>
+                <div class="flex gap-1">
+                    <button class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium shadow-sm">1</button>
+                    <button
+                        class="px-4 py-2 bg-white border border-gray-300 rounded-xl font-medium hover:bg-gray-50">2</button>
+                </div>
             </div>
         </div>
     </div>
@@ -157,7 +185,12 @@
         });
 
         function exportToExcel() {
-            Swal.fire('Ekspor', 'Fitur sedang dikembangkan...', 'info');
+            Swal.fire({
+                icon: 'info',
+                title: 'Ekspor Excel',
+                text: 'Fitur sedang dikembangkan...',
+                confirmButtonColor: '#10b981'
+            });
         }
     </script>
 @endsection

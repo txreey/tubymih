@@ -2,6 +2,15 @@
 
 @section('title', 'Laporan Pendapatan')
 
+@php
+    $exportParams = array_filter([
+        'dari' => request('dari'),
+        'sampai' => request('sampai'),
+        'id_kasir' => request('id_kasir'),
+        'export' => 'csv',
+    ]);
+@endphp
+
 @section('content')
     <div class="space-y-8 max-w-7xl mx-auto p-6">
         <div>
@@ -45,9 +54,9 @@
                             class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-center text-sm">
                             Reset
                         </a>
-                        <a href="{{ route('admin.laporan') }}?{{ http_build_query(array_merge(request()->all(), ['export' => 'csv'])) }}"
-                            class="flex-1 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition shadow-sm text-center text-sm">
-                            Export
+                        <a href="{{ route('admin.laporan') . '?' . http_build_query($exportParams) }}"
+                            class="flex-1 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition shadow-sm text-center text-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-file-csv"></i> Export CSV
                         </a>
                     </div>
                 </div>
@@ -91,12 +100,19 @@
                 <table class="min-w-full">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50/40">
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">No</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Kasir</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Transaksi</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Penjualan</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Pendapatan</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">
+                                No</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Kasir</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Transaksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Penjualan</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Pendapatan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,4 +170,58 @@
             @endif
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[method="GET"]');
+            const dariInput = document.querySelector('input[name="dari"]');
+            const sampaiInput = document.querySelector('input[name="sampai"]');
+
+            // Validasi realtime: update min/max attribute
+            function syncDateRange() {
+                if (dariInput.value) {
+                    sampaiInput.min = dariInput.value;
+                }
+                if (sampaiInput.value) {
+                    dariInput.max = sampaiInput.value;
+                }
+            }
+
+            dariInput.addEventListener('change', syncDateRange);
+            sampaiInput.addEventListener('change', syncDateRange);
+            syncDateRange(); // Init
+
+            // Validasi sebelum submit
+            form.addEventListener('submit', function(e) {
+                const dari = dariInput.value;
+                const sampai = sampaiInput.value;
+
+                if (dari && sampai && dari > sampai) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tanggal Tidak Valid',
+                        text: 'Tanggal "Dari" tidak boleh melebihi tanggal "Sampai"',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return false;
+                }
+
+                // Validasi: maksimal range 1 tahun (opsional, bisa disesuaikan)
+                if (dari && sampai) {
+                    const diffDays = Math.ceil((new Date(sampai) - new Date(dari)) / (1000 * 60 * 60 * 24));
+                    if (diffDays > 365) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Range Terlalu Lebar',
+                            text: 'Maksimal rentang tanggal adalah 1 tahun (365 hari)',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

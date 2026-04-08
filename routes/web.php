@@ -71,20 +71,55 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 // ================================================================
-// KASIR
+// KASIR ROUTES
 // ================================================================
 Route::middleware(['auth', 'role:kasir'])
     ->prefix('kasir')
     ->name('kasir.')
     ->group(function () {
 
+        // Dashboard
         Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
 
-        // Order
+        // Order Baru
         Route::get('/order',                 [KasirController::class, 'orderIndex'])->name('order.index');
         Route::post('/order',                [KasirController::class, 'orderStore'])->name('order.store');
+
+        // Riwayat Transaksi
         Route::get('/riwayat',               [KasirController::class, 'riwayat'])->name('riwayat');
-        Route::patch('/order/{id}/tagih',    [KasirController::class, 'orderTagih'])->name('order.tagih');
+
+        // Reservasi
+        Route::get('/reservasi',             [KasirController::class, 'reservasiIndex'])->name('reservasi');
+        // Tambahkan route ini di dalam route group kasir
+        Route::get('/reservasi/aktif', [KasirController::class, 'getReservasiAktif'])->name('kasir.reservasi.aktif');
+
+        // Aktifkan Reservasi (dipanggil dari modal di reservasi.blade.php)
+        Route::post(
+            '/reservasi/{id}/aktifkan',
+            [KasirController::class, 'aktifkanReservasi']
+        )
+            ->name('reservasi.aktifkan');
+
+        // Tagih Pembayaran
+        Route::patch(
+            '/order/{id}/tagih',
+            [KasirController::class, 'orderTagih']
+        )
+            ->name('order.tagih');
+
+        // Cetak Struk (opsional, jika kamu pakai)
+        Route::get(
+            '/order/{id}/struk',
+            [KasirController::class, 'cetakStruk']
+        )
+            ->name('order.struk');
+
+        // Batalkan Transaksi (opsional)
+        Route::delete(
+            '/order/{id}/batal',
+            [KasirController::class, 'batalTransaksi']
+        )
+            ->name('order.batal');
     });
 
 // ================================================================
@@ -111,5 +146,4 @@ Route::middleware(['auth', 'role:owner'])
 
         // LOG AKTIVITAS (yang diminta)
         Route::get('/log-aktivitas', [OwnerController::class, 'logAktivitas'])->name('log');
-    });
-;
+    });;

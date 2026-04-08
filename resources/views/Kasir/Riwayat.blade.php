@@ -8,7 +8,7 @@
         {{-- Header --}}
         <div>
             <h1 class="text-xl font-bold text-gray-900">Riwayat Transaksi</h1>
-            <p class="text-xs text-gray-500 mt-0.5">Kelola dan lihat semua transaksi hari ini</p>
+            <p class="text-xs text-gray-500 mt-0.5">Semua transaksi — data bersama seluruh kasir</p>
         </div>
 
         {{-- Statistik Cards --}}
@@ -17,7 +17,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Total Transaksi</p>
-                        <p class="text-lg font-bold text-gray-800">{{ $jumlahTransaksi ?? count($transaksis) }}</p>
+                        <p class="text-lg font-bold text-gray-800" id="statTotal">0</p>
                     </div>
                     <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-receipt text-blue-600 text-sm"></i>
@@ -29,7 +29,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Total Pendapatan</p>
-                        <p class="text-lg font-bold text-green-600">{{ formatRupiah($totalHariIni ?? 0) }}</p>
+                        <p class="text-lg font-bold text-green-600" id="statPendapatan">Rp 0</p>
                     </div>
                     <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-money-bill-wave text-green-600 text-sm"></i>
@@ -41,8 +41,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Lunas</p>
-                        <p class="text-lg font-bold text-emerald-600">{{ $transaksis->where('status', 'lunas')->count() }}
-                        </p>
+                        <p class="text-lg font-bold text-emerald-600" id="statLunas">0</p>
                     </div>
                     <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-check-circle text-emerald-600 text-sm"></i>
@@ -54,8 +53,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Belum Bayar</p>
-                        <p class="text-lg font-bold text-orange-600">{{ $transaksis->where('status', 'tunggak')->count() }}
-                        </p>
+                        <p class="text-lg font-bold text-orange-600" id="statBelumBayar">0</p>
                     </div>
                     <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-clock text-orange-600 text-sm"></i>
@@ -64,13 +62,21 @@
             </div>
         </div>
 
+        {{-- Legenda Warna --}}
+        <div
+            class="bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 flex items-center gap-3 text-xs text-orange-700">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Baris <strong>berwarna oranye</strong> = order belum dibayar lebih dari <strong>3 jam</strong> — segera
+                tagih!</span>
+        </div>
+
         {{-- Filter Box --}}
         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="p-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Cari Transaksi</label>
-                        <input type="text" id="filterSearch" placeholder="Ketik no transaksi..."
+                        <input type="text" id="filterSearch" placeholder="Ketik no transaksi / nama..."
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
@@ -89,6 +95,7 @@
                             <option value="">Semua Status</option>
                             <option value="lunas">Lunas</option>
                             <option value="tunggak">Belum Bayar</option>
+                            <option value="terlambat">⚠️ Terlambat (&gt;3 jam)</option>
                         </select>
                     </div>
                     <div class="flex items-end gap-2">
@@ -113,7 +120,7 @@
                         <p class="text-xs text-gray-500" id="totalTransaksiLabel">Total: 0 Transaksi</p>
                     </div>
                 </div>
-                <button onclick="window.location.reload()"
+                <button onclick="loadData()"
                     class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition text-xs">
                     <i class="fas fa-sync-alt text-xs"></i> Refresh
                 </button>
@@ -215,17 +222,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Data dari server
         let allTransaksi = @json($transaksis);
         let filteredTransaksi = [...allTransaksi];
         let currentPage = 1;
-        const PER_PAGE = 5;
-        let selectedTransaksiId = null;
+        const PER_PAGE = 5; // Pagination 5 item per halaman
 
         const CSRF = '{{ csrf_token() }}';
         const BASE_URL = '{{ url('') }}';
+        const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 
         function formatRp(angka) {
-            return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+            return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka || 0);
         }
 
         function formatTanggal(tanggal) {
@@ -240,18 +248,41 @@
             });
         }
 
-        function getTipeBadge(tipe) {
-            if (tipe === 'dine_in') {
-                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium whitespace-nowrap">🍽️ Dine In</span>';
-            }
-            return '<span class="inline-flex px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-xs font-medium whitespace-nowrap">🥡 Take Away</span>';
+        function isTerlambat(trx) {
+            if (trx.status !== 'tunggak') return false;
+            const created = new Date(trx.created_at || trx.tanggal);
+            return (Date.now() - created.getTime()) > THREE_HOURS_MS;
         }
 
-        function getStatusBadge(status) {
-            if (status === 'lunas') {
-                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium whitespace-nowrap">✅ Lunas</span>';
+        function getTipeBadge(tipe) {
+            if (tipe === 'dine_in')
+                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">🍽️ Dine In</span>';
+            if (tipe === 'takeaway')
+                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-xs font-medium">🥡 Take Away</span>';
+            return '<span class="inline-flex px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">-</span>';
+        }
+
+        function getStatusBadge(trx) {
+            if (trx.status === 'lunas') {
+                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">✅ Lunas</span>';
             }
-            return '<span class="inline-flex px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-medium whitespace-nowrap">⏰ Belum Bayar</span>';
+            if (isTerlambat(trx)) {
+                return '<span class="inline-flex px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">⚠️ Terlambat</span>';
+            }
+            return '<span class="inline-flex px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">⏰ Belum Bayar</span>';
+        }
+
+        function updateStats() {
+            const lunasCount = allTransaksi.filter(t => t.status === 'lunas').length;
+            const belumBayarCount = allTransaksi.filter(t => t.status === 'tunggak').length;
+            const totalPendapatan = allTransaksi
+                .filter(t => t.status === 'lunas')
+                .reduce((sum, t) => sum + (parseFloat(t.total_harga) || 0), 0);
+
+            document.getElementById('statTotal').textContent = allTransaksi.length;
+            document.getElementById('statPendapatan').textContent = formatRp(totalPendapatan);
+            document.getElementById('statLunas').textContent = lunasCount;
+            document.getElementById('statBelumBayar').textContent = belumBayarCount;
         }
 
         function renderTable() {
@@ -265,6 +296,7 @@
                 document.getElementById('paginationButtons').innerHTML = '';
                 return;
             }
+
             empty.classList.add('hidden');
 
             const total = filteredTransaksi.length;
@@ -272,49 +304,50 @@
             if (currentPage > totalPages) currentPage = totalPages;
 
             const start = (currentPage - 1) * PER_PAGE;
-            const end = Math.min(start + PER_PAGE, total);
-            const pageData = filteredTransaksi.slice(start, end);
+            const pageData = filteredTransaksi.slice(start, start + PER_PAGE);
 
             let html = '';
             pageData.forEach((trx, i) => {
                 const itemCount = trx.items ? trx.items.length : 0;
-                const totalQty = trx.items ? trx.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+                const totalQty = trx.items ? trx.items.reduce((sum, item) => sum + (item.qty || 0), 0) : 0;
+                const terlambat = isTerlambat(trx);
+
+                const rowClass = terlambat ?
+                    'bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-400' :
+                    'hover:bg-gray-50';
 
                 html += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-3 py-2 text-xs text-gray-500">${start + i + 1}</td>
-                        <td class="px-3 py-2 font-mono text-xs font-semibold text-gray-900">${trx.no_transaksi || '-'}</td>
-                        <td class="px-3 py-2 text-xs text-gray-600">${formatTanggal(trx.created_at || trx.tanggal)}</td>
-                        <td class="px-3 py-2 text-xs text-gray-700">${trx.nama_kasir || '-'}</td>
-                        <td class="px-3 py-2 text-xs font-medium text-gray-700">${trx.nama_pelanggan || '-'}</td>
-                        <td class="px-3 py-2">${getTipeBadge(trx.tipe_order)}</td>
-                        <td class="px-3 py-2 text-xs font-medium text-gray-700">${trx.nama_meja || '-'}</td>
-                        <td class="px-3 py-2 text-xs text-gray-500">${itemCount} item / ${totalQty} porsi</td>
-                        <td class="px-3 py-2 text-xs font-semibold text-gray-900">${formatRp(trx.total_harga)}</td>
-                        <td class="px-3 py-2">${getStatusBadge(trx.status)}</td>
-                        <td class="px-3 py-2">
-                            ${trx.status === 'lunas' ? 
-                                `<button onclick="showStruk(${trx.id})" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 transition text-xs">
-                                        <i class="fas fa-receipt"></i> <span>Struk</span>
-                                    </button>` :
-                                `<button onclick="openTagihModal(${trx.id})" class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 transition text-xs">
-                                        <i class="fas fa-money-bill-wave"></i> <span>Tagih</span>
-                                    </button>`
+                    <tr class="${rowClass}">
+                        <td class="px-3 py-3 text-xs text-gray-500">${start + i + 1}</td>
+                        <td class="px-3 py-3 font-mono text-xs font-semibold text-gray-900">${trx.no_transaksi || '-'}</td>
+                        <td class="px-3 py-3 text-xs text-gray-600">${formatTanggal(trx.created_at || trx.tanggal)}</td>
+                        <td class="px-3 py-3 text-xs text-gray-700">${trx.nama_kasir || '-'}</td>
+                        <td class="px-3 py-3 text-xs font-medium text-gray-700">${trx.nama_pelanggan || '-'}</td>
+                        <td class="px-3 py-3">${getTipeBadge(trx.tipe_order)}</td>
+                        <td class="px-3 py-3 text-xs text-gray-700">${trx.nama_meja || '-'}</td>
+                        <td class="px-3 py-3 text-xs text-gray-500">${itemCount} item / ${totalQty} porsi</td>
+                        <td class="px-3 py-3 text-xs font-semibold text-gray-900">${formatRp(trx.total_harga)}</td>
+                        <td class="px-3 py-3">${getStatusBadge(trx)}</td>
+                        <td class="px-3 py-3">
+                            ${trx.status === 'lunas' 
+                                ? `<button onclick="showStruk(${trx.id})" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs"><i class="fas fa-receipt"></i> Struk</button>`
+                                : `<button onclick="openTagihModal(${trx.id})" class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 text-xs font-medium ${terlambat ? 'animate-pulse' : ''}"><i class="fas fa-money-bill-wave"></i> Tagih</button>`
                             }
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
 
             tbody.innerHTML = html;
             document.getElementById('totalTransaksiLabel').textContent = `Total: ${total} Transaksi`;
 
-            // Pagination hanya nomor halaman
             let btnHTML = '';
             if (totalPages > 1) {
                 for (let p = 1; p <= totalPages; p++) {
-                    btnHTML +=
-                        `<button onclick="goPage(${p})" class="w-7 h-7 text-xs rounded ${p === currentPage ? 'bg-teal-600 text-white' : 'border border-gray-300 bg-white hover:bg-gray-50'} transition">${p}</button>`;
+                    btnHTML += `
+                        <button onclick="goPage(${p})" 
+                            class="w-7 h-7 text-xs rounded transition ${p === currentPage ? 'bg-teal-600 text-white' : 'border border-gray-300 bg-white hover:bg-gray-50'}">
+                            ${p}
+                        </button>`;
                 }
             }
             document.getElementById('paginationButtons').innerHTML = btnHTML;
@@ -331,9 +364,17 @@
             const status = document.getElementById('filterStatus').value;
 
             filteredTransaksi = allTransaksi.filter(t => {
-                const matchSearch = !search || (t.no_transaksi || '').toLowerCase().includes(search);
+                const matchSearch = !search ||
+                    (t.no_transaksi || '').toLowerCase().includes(search) ||
+                    (t.nama_pelanggan || '').toLowerCase().includes(search);
+
                 const matchTipe = !tipe || t.tipe_order === tipe;
-                const matchStatus = !status || t.status === status;
+
+                let matchStatus = true;
+                if (status === 'lunas') matchStatus = t.status === 'lunas';
+                else if (status === 'tunggak') matchStatus = t.status === 'tunggak';
+                else if (status === 'terlambat') matchStatus = isTerlambat(t);
+
                 return matchSearch && matchTipe && matchStatus;
             });
 
@@ -350,31 +391,14 @@
             renderTable();
         }
 
-        function hitungKembalian() {
-            const jumlahBayar = document.getElementById('jumlahBayar').value;
-            const totalTagihan = parseFloat(document.getElementById('totalTagihanValue').value);
-
-            if (jumlahBayar && totalTagihan) {
-                const bayar = parseFloat(jumlahBayar);
-                const kembalian = bayar - totalTagihan;
-                const kembalianElement = document.getElementById('kembalianValue');
-
-                if (kembalian >= 0) {
-                    kembalianElement.textContent = formatRp(kembalian);
-                    kembalianElement.classList.remove('text-red-600');
-                    kembalianElement.classList.add('text-green-600');
-                } else {
-                    kembalianElement.textContent = formatRp(Math.abs(kembalian)) + ' (Kurang)';
-                    kembalianElement.classList.remove('text-green-600');
-                    kembalianElement.classList.add('text-red-600');
-                }
-            }
+        function loadData() {
+            window.location.reload();
         }
 
+        // ================== MODAL TAGIH ==================
         function openTagihModal(id) {
             const trx = allTransaksi.find(t => t.id === id);
             if (!trx) return;
-
             selectedTransaksiId = id;
 
             const itemsHtml = (trx.items || []).map(item => `
@@ -383,31 +407,33 @@
                         <span class="text-sm font-medium text-gray-800">${item.nama}</span>
                         <span class="text-xs text-gray-500 ml-2">x${item.qty}</span>
                     </div>
-                    <div>
-                        <span class="text-sm text-gray-600">${formatRp(item.harga_satuan * item.qty)}</span>
-                    </div>
+                    <span class="text-sm text-gray-600">${formatRp(item.harga_satuan * item.qty)}</span>
                 </div>
             `).join('');
 
+            const terlambatWarning = isTerlambat(trx) ?
+                `<div class="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-xs text-orange-700 flex items-center gap-2 mb-3">
+                    <i class="fas fa-exclamation-triangle"></i> Order ini sudah lebih dari 3 jam belum dibayar!
+                   </div>` :
+                '';
+
             document.getElementById('tagihContent').innerHTML = `
+                ${terlambatWarning}
                 <div class="max-h-64 overflow-y-auto">
                     ${itemsHtml || '<p class="text-sm text-gray-400 text-center">Tidak ada item</p>'}
                 </div>
                 <div class="border-t border-gray-200 pt-3 space-y-2">
                     <div class="flex justify-between text-base font-bold">
                         <span>Total Tagihan</span>
-                        <span class="text-green-600 text-lg">${formatRp(trx.total_harga)}</span>
+                        <span class="text-green-600">${formatRp(trx.total_harga)}</span>
                     </div>
                     <input type="hidden" id="totalTagihanValue" value="${trx.total_harga}">
-                    
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Jumlah Bayar</label>
                         <input type="number" id="jumlahBayar" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none text-sm" 
-                            placeholder="Masukkan nominal"
-                            oninput="hitungKembalian()">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none text-sm"
+                            placeholder="Masukkan nominal" oninput="hitungKembalian()">
                     </div>
-                    
                     <div class="flex justify-between text-sm pt-1">
                         <span class="text-gray-500">Kembalian</span>
                         <span id="kembalianValue" class="font-semibold text-green-600">Rp 0</span>
@@ -416,6 +442,21 @@
             `;
 
             document.getElementById('tagihModal').classList.remove('hidden');
+        }
+
+        function hitungKembalian() {
+            const jumlahBayar = parseFloat(document.getElementById('jumlahBayar').value) || 0;
+            const totalTagihan = parseFloat(document.getElementById('totalTagihanValue').value) || 0;
+            const kembalianEl = document.getElementById('kembalianValue');
+
+            const kembalian = jumlahBayar - totalTagihan;
+            if (kembalian >= 0) {
+                kembalianEl.textContent = formatRp(kembalian);
+                kembalianEl.className = 'font-semibold text-green-600';
+            } else {
+                kembalianEl.textContent = formatRp(Math.abs(kembalian)) + ' (Kurang)';
+                kembalianEl.className = 'font-semibold text-red-600';
+            }
         }
 
         async function prosesTagih() {
@@ -434,14 +475,11 @@
 
             const kembalian = parseInt(jumlahBayar) - trx.total_harga;
             const btn = document.getElementById('btnProsesTagih');
-            const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const url = `${BASE_URL}/kasir/order/${selectedTransaksiId}/tagih`;
-
-                const res = await fetch(url, {
+                const res = await fetch(`${BASE_URL}/kasir/order/${selectedTransaksiId}/tagih`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -454,35 +492,29 @@
                     })
                 });
 
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.message || 'Terjadi kesalahan');
-                }
-
                 const data = await res.json();
 
                 if (data.success) {
-                    const index = allTransaksi.findIndex(t => t.id === selectedTransaksiId);
-                    if (index !== -1) {
-                        allTransaksi[index].status = 'lunas';
-                        allTransaksi[index].jumlah_bayar = parseInt(jumlahBayar);
-                        allTransaksi[index].kembalian = kembalian;
+                    const idx = allTransaksi.findIndex(t => t.id === selectedTransaksiId);
+                    if (idx !== -1) {
+                        allTransaksi[idx].status = 'lunas';
+                        allTransaksi[idx].jumlah_bayar = parseInt(jumlahBayar);
+                        allTransaksi[idx].kembalian = kembalian;
                     }
                     filteredTransaksi = [...allTransaksi];
+                    updateStats();
                     renderTable();
                     closeModal('tagihModal');
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Pembayaran Berhasil!',
-                        html: `
-                            <div class="text-left">
-                                <p class="text-sm">No. Transaksi: <strong>${data.no_transaksi}</strong></p>
-                                <p class="text-sm">Total: ${formatRp(data.total)}</p>
-                                <p class="text-sm">Bayar: ${formatRp(data.jumlah_bayar)}</p>
-                                <p class="text-sm text-green-600 font-semibold">Kembalian: ${formatRp(data.kembalian)}</p>
-                            </div>
-                        `,
+                        html: `<div class="text-left text-sm">
+                            <p>No. Transaksi: <strong>${data.no_transaksi}</strong></p>
+                            <p>Total: ${formatRp(data.total)}</p>
+                            <p>Bayar: ${formatRp(data.jumlah_bayar)}</p>
+                            <p class="text-green-600 font-semibold">Kembalian: ${formatRp(data.kembalian)}</p>
+                        </div>`,
                         confirmButtonColor: '#10b981'
                     });
                 } else {
@@ -494,16 +526,15 @@
                     });
                 }
             } catch (error) {
-                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message || 'Gagal terhubung ke server. Periksa koneksi internet Anda.',
+                    text: error.message || 'Gagal terhubung ke server.',
                     confirmButtonColor: '#ef4444'
                 });
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalText;
+                btn.innerHTML = 'Bayar';
             }
         }
 
@@ -541,7 +572,6 @@
                 </div>
                 <div class="text-center text-xs text-gray-400 mt-3">Terima kasih telah berkunjung!</div>
             `;
-
             document.getElementById('strukModal').classList.remove('hidden');
         }
 
@@ -549,56 +579,36 @@
             const printContent = document.getElementById('strukContent').innerHTML;
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Struk Pembayaran</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; padding: 15px; max-width: 300px; margin: 0 auto; }
-                        .text-center { text-align: center; }
-                        .flex { display: flex; }
-                        .justify-between { justify-content: space-between; }
-                        .border-t { border-top: 1px dashed #ccc; }
-                        .border-b { border-bottom: 1px dashed #ccc; }
-                        .py-1 { padding: 2px 0; }
-                        .py-2 { padding: 8px 0; }
-                        .pt-2 { padding-top: 8px; }
-                        .mb-1 { margin-bottom: 4px; }
-                        .mb-2 { margin-bottom: 8px; }
-                        .mb-3 { margin-bottom: 12px; }
-                        .mt-3 { margin-top: 12px; }
-                        .text-xs { font-size: 10px; }
-                        .text-sm { font-size: 11px; }
-                        .font-bold { font-weight: bold; }
-                        .font-semibold { font-weight: 600; }
-                        .text-gray-400 { color: #9ca3af; }
-                        .text-gray-500 { color: #6b7280; }
-                        .text-gray-800 { color: #1f2937; }
-                        .text-green-600 { color: #16a34a; }
-                    </style>
-                </head>
-                <body>${printContent}</body>
-                </html>
-            `);
+                <html><head><title>Struk Pembayaran</title>
+                <style>
+                    body{font-family:'Courier New',monospace;padding:15px;max-width:300px;margin:0 auto;}
+                    .text-center{text-align:center;}
+                    .flex{display:flex;justify-content:space-between;}
+                    .border-t,.border-b{border:1px dashed #ccc;}
+                    .py-1{padding:2px 0;}
+                    .text-xs{font-size:10px;}
+                    .font-bold{font-weight:bold;}
+                </style>
+                </head><body>${printContent}</body></html>`);
             printWindow.document.close();
             printWindow.print();
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
+
+        // Auto refresh setiap 60 detik
+        setInterval(() => {
+            renderTable();
+        }, 60000);
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('filterSearch').addEventListener('input', applyFilter);
             document.getElementById('filterTipe').addEventListener('change', applyFilter);
             document.getElementById('filterStatus').addEventListener('change', applyFilter);
+            updateStats();
             renderTable();
         });
     </script>
 @endsection
-
-@php
-    function formatRupiah($angka)
-    {
-        return 'Rp ' . number_format($angka, 0, ',', '.');
-    }
-@endphp

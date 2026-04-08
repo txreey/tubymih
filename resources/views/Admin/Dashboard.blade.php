@@ -13,10 +13,6 @@
                 <p class="page-sub">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }} &mdash; selamat datang kembali
                 </p>
             </div>
-            <div class="topbar-right">
-                <span class="badge-role">{{ ucfirst(auth()->user()->role ?? 'Admin') }}</span>
-                <div class="avatar">{{ strtoupper(substr(auth()->user()->nama ?? 'A', 0, 2)) }}</div>
-            </div>
         </div>
 
         {{-- STAT CARDS --}}

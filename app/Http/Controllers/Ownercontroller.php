@@ -289,11 +289,49 @@ class OwnerController extends Controller
     // ==========================================
     public function laporan(Request $request)
     {
+        // ✅ VALIDASI INPUT
+        $validated = $request->validate([
+            'dari' => [
+                'nullable',
+                'date',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('sampai') && $value > $request->sampai) {
+                        $fail('Tanggal "Dari" tidak boleh melebihi tanggal "Sampai".');
+                    }
+                    // Opsional: batasi maksimal 1 tahun ke belakang
+                    if ($value && \Carbon\Carbon::parse($value)->lt(\Carbon\Carbon::now()->subYears(2))) {
+                        $fail('Tanggal "Dari" tidak boleh lebih dari 2 tahun ke belakang.');
+                    }
+                },
+            ],
+            'sampai' => [
+                'nullable',
+                'date',
+                'date_format:Y-m-d',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('dari') && $value < $request->dari) {
+                        $fail('Tanggal "Sampai" tidak boleh sebelum tanggal "Dari".');
+                    }
+                    // Opsional: tidak boleh tanggal masa depan
+                    if ($value && \Carbon\Carbon::parse($value)->gt(\Carbon\Carbon::now())) {
+                        $fail('Tanggal "Sampai" tidak boleh melebihi hari ini.');
+                    }
+                },
+            ],
+            'id_kasir' => 'nullable|exists:users,id',
+            'export' => 'nullable|in:csv',
+        ], [
+            'dari.date' => 'Format tanggal "Dari" tidak valid.',
+            'sampai.date' => 'Format tanggal "Sampai" tidak valid.',
+        ]);
+
         // LOG: Owner melihat laporan
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat laporan',
-            'detail' => 'Owner melihat laporan pendapatan',
+            'detail' => 'Owner melihat laporan pendapatan' .
+                ($request->filled('dari') ? " ({$validated['dari']} s/d {$validated['sampai']})" : ''),
             'waktu' => now(),
         ]);
 
@@ -303,13 +341,18 @@ class OwnerController extends Controller
             ->where('status', 'lunas');
 
         if ($request->filled('dari')) {
-            $query->whereDate('tanggal', '>=', $request->dari);
+            $query->whereDate('tanggal', '>=', $validated['dari']);
         }
         if ($request->filled('sampai')) {
-            $query->whereDate('tanggal', '<=', $request->sampai);
+            $query->whereDate('tanggal', '<=', $validated['sampai']);
         }
         if ($request->filled('id_kasir')) {
-            $query->where('id_kasir', $request->id_kasir);
+            $query->where('id_kasir', $validated['id_kasir']);
+        }
+
+        // ✅ HANDLE EXPORT CSV
+        if ($request->filled('export') && $request->export === 'csv') {
+            return $this->exportLaporanCsv($query, $request->all());
         }
 
         $transaksis = $query->latest()->get();
@@ -336,7 +379,7 @@ class OwnerController extends Controller
             ];
         })->values();
 
-        // === DATA GRAFIK REAL (Per Tanggal) ===
+        // Data Grafik
         $chartData = $transaksis->groupBy(function ($trx) {
             return $trx->tanggal
                 ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
@@ -360,6 +403,91 @@ class OwnerController extends Controller
             'chartData'
         ));
     }
+
+    /**
+     * Export laporan ke format CSV
+     */
+    private function exportLaporanCsv($query, array $filters)
+    {
+        // Ambil data dengan filter yang sama
+        $transaksis = $query->latest()->get();
+
+        // Grouping sama seperti view
+        $laporanData = $transaksis->groupBy(function ($trx) {
+            $tanggalStr = $trx->tanggal
+                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
+                : '0000-00-00';
+            return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
+        })->map(function ($group) {
+            $first = $group->first();
+            return [
+                'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
+                'kasir'      => $first->kasir->nama ?? '-',
+                'transaksi'  => $group->count(),
+                'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
+                'pendapatan' => $group->sum('total_harga'),
+            ];
+        })->values();
+
+        // Headers CSV
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="laporan_pendapatan_' . date('Y-m-d_His') . '.csv"',
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        // Buka output stream
+        $callback = function () use ($laporanData, $filters) {
+            $file = fopen('php://output', 'w');
+
+            // BOM untuk Excel support UTF-8
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Header kolom
+            fputcsv($file, [
+                'LAPORAN PENDAPATAN',
+                'Periode: ' . ($filters['dari'] ?? '-') . ' s/d ' . ($filters['sampai'] ?? '-'),
+                'Kasir: ' . ($filters['id_kasir'] ? User::find($filters['id_kasir'])?->nama ?? '-' : 'Semua Kasir'),
+                '',
+            ]);
+
+            fputcsv($file, [
+                'No',
+                'Tanggal',
+                'Kasir',
+                'Jumlah Transaksi',
+                'Total Item Terjual',
+                'Pendapatan (Rp)',
+            ]);
+
+            // Data rows
+            foreach ($laporanData as $index => $row) {
+                fputcsv($file, [
+                    $index + 1,
+                    $row['tanggal'],
+                    $row['kasir'],
+                    $row['transaksi'],
+                    $row['penjualan'],
+                    number_format($row['pendapatan'], 0, ',', '.'),
+                ]);
+            }
+
+            // Total baris
+            fputcsv($file, []);
+            fputcsv($file, [
+                'TOTAL',
+                '',
+                '',
+                $laporanData->sum('transaksi') . ' transaksi',
+                $laporanData->sum('penjualan') . ' item',
+                'Rp ' . number_format($laporanData->sum('pendapatan'), 0, ',', '.'),
+            ]);
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }   
 
     // ==========================================
     // LOG AKTIVITAS

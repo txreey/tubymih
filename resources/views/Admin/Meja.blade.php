@@ -158,15 +158,11 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                            <i class="fas fa-toggle-on text-teal-600 text-sm"></i> Status <span
-                                class="text-red-500">*</span>
+                            <i class="fas fa-toggle-on text-teal-600 text-sm"></i> Status Awal
                         </label>
-                        <select id="createStatus"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
-                            <option value="tersedia">Tersedia</option>
-                            <option value="terisi">Terisi</option>
-                            <option value="reserved">Reserved</option>
-                        </select>
+                        <input type="text" value="Tersedia" readonly
+                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm">
+                        {{-- <p class="text-xs text-gray-400 mt-1">Status otomatis. Perubahan via Kasir Dine-in / Reservasi.</p> --}}
                     </div>
                 </div>
 
@@ -235,11 +231,16 @@
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-chair text-teal-600 text-sm"></i> Tipe Meja
                         </label>
-                        <select id="editTipeMeja"
+                        <!-- Edit: Tipe Meja - tambahkan onchange -->
+                        <select id="editTipeMeja" onchange="handleEditTipeChange()"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                             <option value="Lesehan">Lesehan</option>
                             <option value="Meja Kursi">Meja Kursi</option>
                         </select>
+
+                        <!-- Edit: No Meja - pastikan id dan readonly -->
+                        {{-- <input type="text" id="editNoMeja" readonly
+                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm"> --}}
                     </div>
 
                     <div>
@@ -376,6 +377,8 @@
         let filteredMeja = [...allMeja];
         const PER_PAGE = 5;
         let currentPage = 1;
+        let editOriginalTipe = '';
+        let editOriginalNoMeja = '';
 
         const CSRF = '{{ csrf_token() }}';
         const ROUTES = {
@@ -397,13 +400,14 @@
         function generateNoMeja() {
             const tipe = document.getElementById('createTipeMeja').value;
             const noMejaInput = document.getElementById('createNoMeja');
+
             if (!tipe) {
                 noMejaInput.value = '';
                 return;
             }
+
             const prefix = tipe === 'Lesehan' ? 'L' : 'K';
-            const existing = allMeja.filter(m => m.no_meja && m.no_meja.startsWith(prefix)).length;
-            noMejaInput.value = prefix + String(existing + 1).padStart(2, '0');
+            noMejaInput.value = getNextNoMeja(prefix, null);
         }
 
         function isNoMejaExist(noMeja) {
@@ -507,7 +511,7 @@
             document.getElementById('createTipeMeja').value = '';
             document.getElementById('createKapasitas').value = '';
             document.getElementById('createDeskripsi').value = '';
-            document.getElementById('createStatus').value = 'tersedia';
+            // document.getElementById('createStatus').value = 'tersedia';
             document.getElementById('errCreateNoMeja').classList.add('hidden');
             document.getElementById('errCreateKapasitas').classList.add('hidden');
             showModal('createModal');
@@ -518,7 +522,7 @@
             const tipeMeja = document.getElementById('createTipeMeja').value;
             const kapasitas = document.getElementById('createKapasitas').value.trim();
             const deskripsi = document.getElementById('createDeskripsi').value.trim();
-            const status = document.getElementById('createStatus').value;
+            // const status = document.getElementById('createStatus').value;
 
             document.getElementById('errCreateNoMeja').classList.add('hidden');
             document.getElementById('errCreateKapasitas').classList.add('hidden');
@@ -693,16 +697,73 @@
             }
         }
 
+        function getNextNoMeja(prefix, excludeId = null) {
+            // Ambil semua nomor yang sudah dipakai untuk prefix ini
+            const usedNumbers = allMeja
+                .filter(m =>
+                    m.no_meja &&
+                    m.no_meja.startsWith(prefix) &&
+                    (excludeId === null || Number(m.id) !== Number(excludeId))
+                )
+                .map(m => {
+                    // Ekstrak angka: "L06" → 6, "K01" → 1
+                    const numStr = m.no_meja.replace(prefix, '').trim();
+                    return parseInt(numStr, 10);
+                })
+                .filter(n => !isNaN(n)) // Hapus yang bukan angka valid
+                .sort((a, b) => a - b); // Urutkan ascending: [1, 2, 3, 6]
+
+            // Kalau belum ada sama sekali, mulai dari 1
+            if (usedNumbers.length === 0) {
+                return prefix + String(1).padStart(2, '0');
+            }
+
+            // 🔍 Cari "celah" pertama dalam urutan
+            // Contoh: [1, 2, 4, 5] → celah di 3 → return 3
+            for (let i = 1; i <= usedNumbers[usedNumbers.length - 1]; i++) {
+                if (!usedNumbers.includes(i)) {
+                    return prefix + String(i).padStart(2, '0');
+                }
+            }
+
+            // Kalau nggak ada celah, pakai max + 1
+            // Contoh: [1, 2, 3, 4] → return 5
+            const maxNum = usedNumbers[usedNumbers.length - 1];
+            return prefix + String(maxNum + 1).padStart(2, '0');
+        }
+
         function openEditModal(id) {
             const meja = allMeja.find(m => Number(m.id) === Number(id));
             if (!meja) return;
+
+            // ✅ Simpan nilai original sebelum edit
+            editOriginalTipe = meja.tipe_meja || '';
+            editOriginalNoMeja = meja.no_meja || '';
+
             document.getElementById('editMejaId').value = meja.id;
-            document.getElementById('editNoMeja').value = meja.no_meja || '';
-            document.getElementById('editTipeMeja').value = meja.tipe_meja || '';
+            document.getElementById('editNoMeja').value = editOriginalNoMeja;
+            document.getElementById('editTipeMeja').value = editOriginalTipe;
             document.getElementById('editKapasitas').value = meja.kapasitas || '';
             document.getElementById('editDeskripsi').value = meja.deskripsi || '';
             document.getElementById('editStatus').value = meja.status || 'tersedia';
+
             showModal('editModal');
+        }
+
+        function handleEditTipeChange() {
+            const selectedTipe = document.getElementById('editTipeMeja').value;
+            const noMejaInput = document.getElementById('editNoMeja');
+            const currentId = document.getElementById('editMejaId').value;
+
+            // Jika tipe belum dipilih atau sama dengan original, kembalikan ke no_meja asli
+            if (!selectedTipe || selectedTipe === editOriginalTipe) {
+                noMejaInput.value = editOriginalNoMeja;
+                return;
+            }
+
+            const prefix = selectedTipe === 'Lesehan' ? 'L' : 'K';
+            // ✅ Langsung pakai getNextNoMeja yang sudah smart cari slot kosong
+            noMejaInput.value = getNextNoMeja(prefix, currentId);
         }
 
         function showModal(modalId) {

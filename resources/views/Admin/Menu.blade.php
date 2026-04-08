@@ -302,6 +302,16 @@
                         <p class="text-xs text-gray-400">pcs</p>
                     </div>
                 </div>
+                <!-- ✅ Stok Sebelumnya - hanya muncul jika sudah 2x edit -->
+                <div id="stokSebelumnyaWrapper"
+                    class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-history text-amber-500 text-sm"></i>
+                        <p class="text-xs text-amber-700 font-medium">Stok Sebelum Edit Terakhir</p>
+                    </div>
+                    <p class="text-xl font-bold text-amber-800" id="stokSebelumnya">-</p>
+                    <p class="text-xs text-amber-600">Nilai stok sebelum perubahan terakhir dilakukan</p>
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Stok Baru
@@ -773,7 +783,7 @@
                     if (newRow) {
                         newRow.classList.add('bg-teal-50', 'ring-2', 'ring-teal-300');
                         setTimeout(() => newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300'),
-                        3000);
+                            3000);
                     }
                 }, 300);
 
@@ -893,6 +903,7 @@
         function bukaModalStok(id) {
             const m = semuaMenu.find(x => Number(x.id) === Number(id));
             if (!m) return;
+
             stokSaatIni = m.stok;
             document.getElementById('stokMenuId').value = m.id;
             document.getElementById('stokNama').textContent = m.nama_makanan;
@@ -901,6 +912,18 @@
             document.getElementById('inputJumlahStok').value = '';
             document.getElementById('errStok').classList.add('hidden');
             setBorderError('inputJumlahStok', false);
+
+            // ✅ Cek history: tampilkan "Stok Sebelumnya" jika sudah 2x edit
+            const history = getStokHistory(id);
+            const wrapper = document.getElementById('stokSebelumnyaWrapper');
+
+            if (history.editCount >= 2 && history.lastStock !== null) {
+                document.getElementById('stokSebelumnya').textContent = history.lastStock;
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+
             tampilkanModal('stokModal');
         }
 
@@ -912,6 +935,29 @@
             el.className = total < 0 ? 'text-3xl font-bold text-red-600' :
                 total > stokSaatIni ? 'text-3xl font-bold text-green-600' :
                 'text-3xl font-bold text-gray-800';
+        }
+
+        // ✅ Helper: Kelola history stok per menu (pakai localStorage)
+        function getStokHistory(menuId) {
+            const key = `stok_history_${menuId}`;
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : {
+                editCount: 0,
+                lastStock: null
+            };
+        }
+
+        function saveStokHistory(menuId, editCount, lastStock) {
+            const key = `stok_history_${menuId}`;
+            localStorage.setItem(key, JSON.stringify({
+                editCount,
+                lastStock
+            }));
+        }
+
+        function clearStokHistory(menuId) {
+            const key = `stok_history_${menuId}`;
+            localStorage.removeItem(key);
         }
 
         async function submitStok() {
@@ -967,6 +1013,9 @@
                 if (idx !== -1) semuaMenu[idx] = data.data;
                 const fidx = menuTerfilter.findIndex(x => Number(x.id) === Number(id));
                 if (fidx !== -1) menuTerfilter[fidx] = data.data;
+
+                const history = getStokHistory(id);
+                saveStokHistory(id, history.editCount + 1, stokSaatIni);
 
                 const cell = document.getElementById(`stok-${id}`);
                 if (cell) {
