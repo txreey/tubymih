@@ -2,6 +2,15 @@
 
 @section('title', 'Laporan')
 
+@php
+    $exportParams = array_filter([
+        'dari' => request('dari'),
+        'sampai' => request('sampai'),
+        'id_kasir' => request('id_kasir'),
+        'export' => 'csv',
+    ]);
+@endphp
+
 @section('content')
     <div class="space-y-8 max-w-7xl mx-auto p-6">
 
@@ -88,11 +97,12 @@
                 </div>
 
                 <!-- Button Ekspor di dalam tabel -->
-                <button onclick="exportToExcel()"
-                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl flex items-center gap-2 transition shadow-sm">
-                    <i class="fas fa-file-excel"></i>
-                    <span>Ekspor</span>
-                </button>
+                <a href="{{ route('owner.laporan') . '?' . http_build_query($exportParams) }}"
+                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl flex items-center gap-2 transition shadow-sm"
+                    title="Export ke CSV">
+                    <i class="fas fa-file-csv"></i>
+                    <span>Export CSV</span>
+                </a>
             </div>
 
             <div class="overflow-x-auto">
@@ -147,8 +157,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        // ============================================================
+        // 📊 CHART.JS - Grafik Pendapatan
+        // ============================================================
         const rawData = @json($chartData);
-
         const labels = rawData.map(item => item.tanggal);
         const values = rawData.map(item => item.pendapatan);
 
@@ -184,13 +196,80 @@
             }
         });
 
-        function exportToExcel() {
-            Swal.fire({
-                icon: 'info',
-                title: 'Ekspor Excel',
-                text: 'Fitur sedang dikembangkan...',
-                confirmButtonColor: '#10b981'
+        // ============================================================
+        // ✅ VALIDASI TANGGAL (Frontend)
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[method="GET"]');
+            const dariInput = document.querySelector('input[name="dari"]');
+            const sampaiInput = document.querySelector('input[name="sampai"]');
+
+            // Sync min/max attribute realtime
+            function syncDateRange() {
+                if (dariInput?.value) sampaiInput.min = dariInput.value;
+                if (sampaiInput?.value) dariInput.max = sampaiInput.value;
+            }
+
+            dariInput?.addEventListener('change', syncDateRange);
+            sampaiInput?.addEventListener('change', syncDateRange);
+            syncDateRange(); // Init
+
+            // Validasi sebelum submit
+            form?.addEventListener('submit', function(e) {
+                const dari = dariInput?.value;
+                const sampai = sampaiInput?.value;
+
+                if (dari && sampai && dari > sampai) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tanggal Tidak Valid',
+                        text: 'Tanggal "Dari" tidak boleh melebihi tanggal "Sampai"',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return false;
+                }
+
+                // Opsional: Batasi maksimal range 1 tahun
+                if (dari && sampai) {
+                    const diffDays = Math.ceil((new Date(sampai) - new Date(dari)) / (1000 * 60 * 60 * 24));
+                    if (diffDays > 365) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Range Terlalu Lebar',
+                            text: 'Maksimal rentang tanggal adalah 1 tahun (365 hari)',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        return false;
+                    }
+                }
             });
+
+            // ============================================================
+            // 📤 EXPORT CSV - Toast Notification (Opsional)
+            // ============================================================
+            document.querySelector('a[href*="export=csv"]')?.addEventListener('click', function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Export dimulai...',
+                    text: 'File CSV sedang disiapkan',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            });
+        });
+
+        // ============================================================
+        // 🔄 Fallback: Jika tombol masih pakai onclick
+        // ============================================================
+        function exportToExcel() {
+            // Redirect ke endpoint CSV export dengan parameter saat ini
+            const params = new URLSearchParams(window.location.search);
+            params.set('export', 'csv');
+            window.location.href = window.location.pathname + '?' + params.toString();
         }
     </script>
 @endsection

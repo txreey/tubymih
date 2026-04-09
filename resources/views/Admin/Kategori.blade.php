@@ -90,9 +90,26 @@
                 Belum ada data kategori
             </div>
 
-            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
-                <p class="text-xs text-gray-400" id="paginationInfo"></p>
-                <div class="flex gap-1.5" id="paginationButtons"></div>
+            {{-- Pagination dengan Arrow + Satu Kotak Angka --}}
+            <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-500" id="paginationInfo"></p>
+                <div class="flex items-center gap-1.5">
+                    <!-- Tombol Previous -->
+                    <button onclick="prevPage()" id="btnPrev"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <!-- Kotak Angka Saat Ini -->
+                    <div id="currentPageBox"
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        1
+                    </div>
+                    <!-- Tombol Next -->
+                    <button onclick="nextPage()" id="btnNext"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -234,34 +251,6 @@
             background: #dc2626;
             color: #fff;
         }
-
-        .pg {
-            min-width: 30px;
-            height: 30px;
-            padding: 0 8px;
-            border-radius: 7px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            transition: all .15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pg:hover {
-            border-color: #0d9488;
-            color: #0d9488;
-        }
-
-        .pg.active {
-            background: #0d9488;
-            border-color: #0d9488;
-            color: #fff;
-        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -269,6 +258,7 @@
         let semuaKategori = @json($kategoris);
         let dataTerfilter = [...semuaKategori];
         let halamanAktif = 1;
+        let totalHalamanGlobal = 1;
         const PER_PAGE = 5;
 
         const CSRF = '{{ csrf_token() }}';
@@ -401,6 +391,7 @@
 
             const flatList = susunFlatList(data);
             const semuaHalaman = hitungHalaman(flatList);
+            totalHalamanGlobal = semuaHalaman.length;
             if (halamanAktif > semuaHalaman.length) halamanAktif = semuaHalaman.length;
             if (halamanAktif < 1) halamanAktif = 1;
 
@@ -449,26 +440,37 @@
 
         function renderPagination(semuaHalaman, itemMulai, itemDiHalaman, totalItem) {
             const totalHalaman = semuaHalaman.length;
-            const container = document.getElementById('paginationButtons');
             const info = document.getElementById('paginationInfo');
-            container.innerHTML = '';
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const currentPageBox = document.getElementById('currentPageBox');
+
             if (totalHalaman === 0) {
                 info.textContent = '';
+                currentPageBox.textContent = '1';
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
                 return;
             }
+
             info.innerHTML =
                 `Menampilkan <strong>${itemMulai + 1}-${itemMulai + itemDiHalaman}</strong> dari <strong>${totalItem}</strong> jenis`;
-            if (totalHalaman <= 1) return;
+            currentPageBox.textContent = halamanAktif;
+            btnPrev.disabled = halamanAktif <= 1;
+            btnNext.disabled = halamanAktif >= totalHalaman;
+        }
 
-            for (let i = Math.max(1, halamanAktif - 2); i <= Math.min(totalHalaman, halamanAktif + 2); i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i;
-                btn.className = `pg${i === halamanAktif ? ' active' : ''}`;
-                btn.onclick = () => {
-                    halamanAktif = i;
-                    renderTabel(dataTerfilter);
-                };
-                container.appendChild(btn);
+        function prevPage() {
+            if (halamanAktif > 1) {
+                halamanAktif--;
+                renderTabel(dataTerfilter);
+            }
+        }
+
+        function nextPage() {
+            if (halamanAktif < totalHalamanGlobal) {
+                halamanAktif++;
+                renderTabel(dataTerfilter);
             }
         }
 
@@ -715,5 +717,7 @@
         window.tutupModal = tutupModal;
         window.handleKategoriChange = handleKategoriChange;
         window.submitCreate = submitCreate;
+        window.prevPage = prevPage;
+        window.nextPage = nextPage;
     </script>
 @endsection

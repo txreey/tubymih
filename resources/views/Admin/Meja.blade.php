@@ -97,9 +97,26 @@
                 Belum ada data meja
             </div>
 
-            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
-                <p class="text-xs text-gray-400" id="paginationInfo"></p>
-                <div id="paginationBtns" class="flex items-center gap-1.5"></div>
+            {{-- Pagination Compact dengan Arrow --}}
+            <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-500" id="paginationInfo"></p>
+
+                <div class="flex items-center gap-1.5">
+                    <button onclick="prevPage()" id="btnPrev"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+
+                    <div id="currentPageBox"
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center shadow-sm">
+                        1
+                    </div>
+
+                    <button onclick="nextPage()" id="btnNext"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -149,7 +166,8 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span class="text-red-500">*</span>
+                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span
+                                class="text-red-500">*</span>
                         </label>
                         <input type="number" id="createKapasitas" placeholder="Contoh: 4"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
@@ -162,7 +180,6 @@
                         </label>
                         <input type="text" value="Tersedia" readonly
                             class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm">
-                        {{-- <p class="text-xs text-gray-400 mt-1">Status otomatis. Perubahan via Kasir Dine-in / Reservasi.</p> --}}
                     </div>
                 </div>
 
@@ -195,7 +212,7 @@
         </div>
     </div>
 
-    {{-- MODAL EDIT MEJA --}}
+    {{-- MODAL EDIT MEJA (Status fix Tersedia) --}}
     <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="editContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
@@ -221,6 +238,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
+                            <i class="fas fa-chair text-teal-600 text-sm"></i> Tipe Meja <span
+                                class="text-red-500">*</span>
+                        </label>
+                        <select id="editTipeMeja" onchange="handleEditTipeChange()"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
+                            <option value="Lesehan">Lesehan</option>
+                            <option value="Meja Kursi">Meja Kursi</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-hashtag text-teal-600 text-sm"></i> No Meja
                         </label>
                         <input type="text" id="editNoMeja" readonly
@@ -229,39 +258,22 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                            <i class="fas fa-chair text-teal-600 text-sm"></i> Tipe Meja
-                        </label>
-                        <!-- Edit: Tipe Meja - tambahkan onchange -->
-                        <select id="editTipeMeja" onchange="handleEditTipeChange()"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
-                            <option value="Lesehan">Lesehan</option>
-                            <option value="Meja Kursi">Meja Kursi</option>
-                        </select>
-
-                        <!-- Edit: No Meja - pastikan id dan readonly -->
-                        {{-- <input type="text" id="editNoMeja" readonly
-                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm"> --}}
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas
+                            <i class="fas fa-users text-teal-600 text-sm"></i> Kapasitas <span
+                                class="text-red-500">*</span>
                         </label>
                         <input type="text" id="editKapasitas"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                         <p class="text-red-500 text-xs mt-1 hidden" id="errEditKapasitas"></p>
                     </div>
 
+                    <!-- Status Fix Tersedia -->
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">
                             <i class="fas fa-toggle-on text-teal-600 text-sm"></i> Status
                         </label>
-                        <select id="editStatus"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
-                            <option value="tersedia">Tersedia</option>
-                            <option value="terisi">Terisi</option>
-                            <option value="reserved">Reserved</option>
-                        </select>
+                        <input type="text" id="editStatus" value="Tersedia" readonly
+                            class="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed outline-none text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Status otomatis diatur oleh sistem kasir</p>
                     </div>
                 </div>
 
@@ -275,7 +287,8 @@
 
                 <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg flex items-start gap-3 text-xs">
                     <i class="fas fa-info-circle text-teal-600 text-base mt-0.5"></i>
-                    <p class="text-teal-800">Perbarui data meja sesuai kebutuhan.</p>
+                    <p class="text-teal-800">No Meja akan otomatis menyesuaikan jika tipe diubah. Status meja dikelola oleh
+                        kasir saat ada pesanan.</p>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
@@ -328,34 +341,6 @@
             color: #fff;
         }
 
-        .pg {
-            min-width: 30px;
-            height: 30px;
-            padding: 0 8px;
-            border-radius: 7px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            transition: all .15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pg:hover {
-            border-color: #0d9488;
-            color: #0d9488;
-        }
-
-        .pg.active {
-            background: #0d9488;
-            border-color: #0d9488;
-            color: #fff;
-        }
-
         .s-tersedia {
             background: #d1fae5;
             color: #065f46;
@@ -400,18 +385,35 @@
         function generateNoMeja() {
             const tipe = document.getElementById('createTipeMeja').value;
             const noMejaInput = document.getElementById('createNoMeja');
-
             if (!tipe) {
                 noMejaInput.value = '';
                 return;
             }
-
             const prefix = tipe === 'Lesehan' ? 'L' : 'K';
             noMejaInput.value = getNextNoMeja(prefix, null);
         }
 
         function isNoMejaExist(noMeja) {
-            return allMeja.some(m => m.no_meja.toLowerCase() === noMeja.toLowerCase());
+            return allMeja.some(m => m.no_meja && m.no_meja.toLowerCase() === noMeja.toLowerCase());
+        }
+
+        function getNextNoMeja(prefix, excludeId = null) {
+            const usedNumbers = allMeja
+                .filter(m => m.no_meja && m.no_meja.startsWith(prefix) &&
+                    (excludeId === null || Number(m.id) !== Number(excludeId)))
+                .map(m => parseInt(m.no_meja.replace(prefix, '').trim(), 10))
+                .filter(n => !isNaN(n))
+                .sort((a, b) => a - b);
+
+            if (usedNumbers.length === 0) return prefix + '01';
+
+            for (let i = 1; i <= usedNumbers[usedNumbers.length - 1]; i++) {
+                if (!usedNumbers.includes(i)) {
+                    return prefix + String(i).padStart(2, '0');
+                }
+            }
+            const maxNum = usedNumbers[usedNumbers.length - 1];
+            return prefix + String(maxNum + 1).padStart(2, '0');
         }
 
         function susunDataGrouped(data) {
@@ -423,20 +425,27 @@
         function renderTable() {
             const tbody = document.getElementById('mejaTableBody');
             const empty = document.getElementById('emptyState');
+            const pgInfo = document.getElementById('paginationInfo');
+            const currentBox = document.getElementById('currentPageBox');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
 
             if (!filteredMeja.length) {
                 tbody.innerHTML = '';
                 empty.classList.remove('hidden');
-                document.getElementById('paginationInfo').textContent = '';
-                document.getElementById('paginationBtns').innerHTML = '';
+                pgInfo.textContent = '';
+                currentBox.textContent = '1';
+                if (btnPrev) btnPrev.disabled = true;
+                if (btnNext) btnNext.disabled = true;
                 return;
             }
+
             empty.classList.add('hidden');
 
             const sortedData = susunDataGrouped(filteredMeja);
             const total = sortedData.length;
             const totalPages = Math.ceil(total / PER_PAGE);
-            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage > totalPages) currentPage = totalPages || 1;
 
             const start = (currentPage - 1) * PER_PAGE;
             const end = Math.min(start + PER_PAGE, total);
@@ -444,8 +453,11 @@
 
             let html = '';
             pageData.forEach((meja, i) => {
-                const sBadge = meja.status === 'tersedia' ? 's-tersedia' : meja.status === 'terisi' ? 's-terisi' :
-                    's-reserved';
+                const sBadge = meja.status === 'tersedia' ? 's-tersedia' :
+                    meja.status === 'terisi' ? 's-terisi' : 's-reserved';
+
+                const canEditOrDelete = meja.status === 'tersedia';
+
                 html += `
                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                     <td class="px-6 py-4 text-sm text-gray-400 font-medium">${start + i + 1}</td>
@@ -460,39 +472,57 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
-                            <button class="ab ab-edit" onclick="window.doEdit(${meja.id})" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                            <button class="ab ab-del"  onclick="window.doDelete(${meja.id})" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                            ${canEditOrDelete ? `
+                                    <button class="ab ab-edit" onclick="window.doEdit(${meja.id})" title="Edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button class="ab ab-del" onclick="window.doDelete(${meja.id})" title="Hapus">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                ` : `
+                                    <span class="text-xs text-gray-400">Tidak dapat diubah</span>
+                                `}
                         </div>
                     </td>
                 </tr>`;
             });
 
             tbody.innerHTML = html;
-            document.getElementById('paginationInfo').innerHTML =
-                `Menampilkan <strong>${start + 1}-${end}</strong> dari <strong>${total}</strong> meja`;
+            pgInfo.innerHTML = `Menampilkan <strong>${start + 1}-${end}</strong> dari <strong>${total}</strong> meja`;
             document.getElementById('totalMeja').textContent = `Total: ${total} Meja`;
 
-            let btns = '';
-            for (let p = 1; p <= totalPages; p++) {
-                btns += `<button class="pg ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
-            }
-            document.getElementById('paginationBtns').innerHTML = btns;
+            currentBox.textContent = currentPage;
+            if (btnPrev) btnPrev.disabled = (currentPage === 1);
+            if (btnNext) btnNext.disabled = (currentPage === totalPages);
         }
 
-        function goPage(page) {
-            currentPage = page;
-            renderTable();
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredMeja.length / PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
         }
 
         function applyFilter() {
             const search = document.getElementById('filterSearch').value.toLowerCase().trim();
             const tipe = document.getElementById('filterTipe').value;
             const status = document.getElementById('filterStatus').value;
+
             filteredMeja = allMeja.filter(m => {
-                const matchSearch = !search || (m.no_meja || '').toLowerCase().includes(search) || (m.deskripsi ||
-                    '').toLowerCase().includes(search);
+                const matchSearch = !search ||
+                    (m.no_meja || '').toLowerCase().includes(search) ||
+                    (m.deskripsi || '').toLowerCase().includes(search);
                 return matchSearch && (!tipe || m.tipe_meja === tipe) && (!status || m.status === status);
             });
+
             currentPage = 1;
             renderTable();
         }
@@ -511,23 +541,42 @@
             document.getElementById('createTipeMeja').value = '';
             document.getElementById('createKapasitas').value = '';
             document.getElementById('createDeskripsi').value = '';
-            // document.getElementById('createStatus').value = 'tersedia';
             document.getElementById('errCreateNoMeja').classList.add('hidden');
             document.getElementById('errCreateKapasitas').classList.add('hidden');
             showModal('createModal');
         }
 
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(modalId.replace('Modal', 'Content'));
+            if (!modal || !content) return;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const content = document.getElementById(modalId.replace('Modal', 'Content'));
+            if (!content) return;
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.add('hidden');
+            }, 300);
+        }
+
         async function submitCreate() {
+            // ... (kode submitCreate tetap sama seperti sebelumnya)
             const noMeja = document.getElementById('createNoMeja').value.trim();
             const tipeMeja = document.getElementById('createTipeMeja').value;
             const kapasitas = document.getElementById('createKapasitas').value.trim();
             const deskripsi = document.getElementById('createDeskripsi').value.trim();
-            // const status = document.getElementById('createStatus').value;
-
-            document.getElementById('errCreateNoMeja').classList.add('hidden');
-            document.getElementById('errCreateKapasitas').classList.add('hidden');
 
             let valid = true;
+
             if (!tipeMeja) {
                 Swal.fire('Peringatan', 'Tipe Meja wajib dipilih!', 'warning');
                 valid = false;
@@ -540,7 +589,7 @@
             } else if (isNoMejaExist(noMeja)) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Duplikasi No Meja',
+                    title: 'Duplikasi',
                     text: `Nomor "${noMeja}" sudah terdaftar.`
                 });
                 valid = false;
@@ -567,19 +616,19 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify({
                         no_meja: noMeja,
                         tipe_meja: tipeMeja,
-                        kapasitas,
-                        deskripsi,
+                        kapasitas: kapasitas,
+                        deskripsi: deskripsi,
                         _token: CSRF
                     })
                 });
                 const data = await res.json();
-                if (res.ok && data.success) {
+
+                if (data.success) {
                     allMeja.push(data.data);
                     filteredMeja = [...allMeja];
                     renderTable();
@@ -589,7 +638,6 @@
                         title: 'Berhasil!',
                         text: 'Meja berhasil ditambahkan.',
                         timer: 2000,
-                        showConfirmButton: false,
                         toast: true,
                         position: 'top-end'
                     });
@@ -612,17 +660,59 @@
             }
         }
 
+        function openEditModal(id) {
+            const meja = allMeja.find(m => Number(m.id) === Number(id));
+            if (!meja) return;
+
+            // Cegah edit jika status bukan tersedia
+            if (meja.status !== 'tersedia') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Dapat Diedit',
+                    text: 'Meja hanya dapat diedit jika statusnya "Tersedia".'
+                });
+                return;
+            }
+
+            editOriginalTipe = meja.tipe_meja || '';
+            editOriginalNoMeja = meja.no_meja || '';
+
+            document.getElementById('editMejaId').value = meja.id;
+            document.getElementById('editNoMeja').value = editOriginalNoMeja;
+            document.getElementById('editTipeMeja').value = editOriginalTipe;
+            document.getElementById('editKapasitas').value = meja.kapasitas || '';
+            document.getElementById('editDeskripsi').value = meja.deskripsi || '';
+            document.getElementById('editStatus').value = 'Tersedia';
+
+            showModal('editModal');
+        }
+
+        function handleEditTipeChange() {
+            const selectedTipe = document.getElementById('editTipeMeja').value;
+            const noMejaInput = document.getElementById('editNoMeja');
+            const currentId = document.getElementById('editMejaId').value;
+
+            if (!selectedTipe || selectedTipe === editOriginalTipe) {
+                noMejaInput.value = editOriginalNoMeja;
+                return;
+            }
+
+            const prefix = selectedTipe === 'Lesehan' ? 'L' : 'K';
+            noMejaInput.value = getNextNoMeja(prefix, currentId);
+        }
+
         async function submitEdit() {
             const id = document.getElementById('editMejaId').value;
             const payload = {
                 no_meja: document.getElementById('editNoMeja').value.trim(),
-                tipe_meja: document.getElementById('editTipeMeja').value.trim(),
+                tipe_meja: document.getElementById('editTipeMeja').value,
                 kapasitas: document.getElementById('editKapasitas').value.trim(),
                 deskripsi: document.getElementById('editDeskripsi').value.trim(),
-                status: document.getElementById('editStatus').value,
+                status: 'tersedia',
                 _token: CSRF,
                 _method: 'PUT'
             };
+
             try {
                 const res = await fetch(ROUTES.update(id), {
                     method: 'POST',
@@ -633,6 +723,7 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
+
                 if (data.success) {
                     const idx = allMeja.findIndex(m => Number(m.id) === Number(id));
                     if (idx !== -1) allMeja[idx] = data.data;
@@ -644,17 +735,30 @@
                         title: 'Berhasil!',
                         text: 'Meja berhasil diperbarui.',
                         timer: 2000,
-                        showConfirmButton: false,
                         toast: true,
                         position: 'top-end'
                     });
                 }
             } catch {
-                Swal.fire('Error!', 'Gagal memperbarui meja.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal memperbarui meja.'
+                });
             }
         }
 
         async function deleteMeja(id) {
+            const meja = allMeja.find(m => Number(m.id) === Number(id));
+            if (meja && meja.status !== 'tersedia') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Dapat Dihapus',
+                    text: 'Meja hanya dapat dihapus jika statusnya "Tersedia".'
+                });
+                return;
+            }
+
             const result = await Swal.fire({
                 title: 'Hapus meja ini?',
                 text: 'Data yang dihapus tidak bisa dikembalikan!',
@@ -663,9 +767,11 @@
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal',
+                cancelButtonText: 'Batal'
             });
+
             if (!result.isConfirmed) return;
+
             try {
                 const res = await fetch(ROUTES.destroy(id), {
                     method: 'POST',
@@ -674,10 +780,12 @@
                         'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify({
-                        _method: 'DELETE'
+                        _method: 'DELETE',
+                        _token: CSRF
                     })
                 });
                 const data = await res.json();
+
                 if (data.success) {
                     allMeja = allMeja.filter(m => Number(m.id) !== Number(id));
                     filteredMeja = [...allMeja];
@@ -687,104 +795,24 @@
                         title: 'Dihapus!',
                         text: 'Meja berhasil dihapus.',
                         timer: 2000,
-                        showConfirmButton: false,
                         toast: true,
                         position: 'top-end'
                     });
                 }
             } catch {
-                Swal.fire('Error!', 'Gagal menghapus meja.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Gagal menghapus meja.'
+                });
             }
         }
 
-        function getNextNoMeja(prefix, excludeId = null) {
-            // Ambil semua nomor yang sudah dipakai untuk prefix ini
-            const usedNumbers = allMeja
-                .filter(m =>
-                    m.no_meja &&
-                    m.no_meja.startsWith(prefix) &&
-                    (excludeId === null || Number(m.id) !== Number(excludeId))
-                )
-                .map(m => {
-                    // Ekstrak angka: "L06" → 6, "K01" → 1
-                    const numStr = m.no_meja.replace(prefix, '').trim();
-                    return parseInt(numStr, 10);
-                })
-                .filter(n => !isNaN(n)) // Hapus yang bukan angka valid
-                .sort((a, b) => a - b); // Urutkan ascending: [1, 2, 3, 6]
-
-            // Kalau belum ada sama sekali, mulai dari 1
-            if (usedNumbers.length === 0) {
-                return prefix + String(1).padStart(2, '0');
-            }
-
-            // 🔍 Cari "celah" pertama dalam urutan
-            // Contoh: [1, 2, 4, 5] → celah di 3 → return 3
-            for (let i = 1; i <= usedNumbers[usedNumbers.length - 1]; i++) {
-                if (!usedNumbers.includes(i)) {
-                    return prefix + String(i).padStart(2, '0');
-                }
-            }
-
-            // Kalau nggak ada celah, pakai max + 1
-            // Contoh: [1, 2, 3, 4] → return 5
-            const maxNum = usedNumbers[usedNumbers.length - 1];
-            return prefix + String(maxNum + 1).padStart(2, '0');
-        }
-
-        function openEditModal(id) {
-            const meja = allMeja.find(m => Number(m.id) === Number(id));
-            if (!meja) return;
-
-            // ✅ Simpan nilai original sebelum edit
-            editOriginalTipe = meja.tipe_meja || '';
-            editOriginalNoMeja = meja.no_meja || '';
-
-            document.getElementById('editMejaId').value = meja.id;
-            document.getElementById('editNoMeja').value = editOriginalNoMeja;
-            document.getElementById('editTipeMeja').value = editOriginalTipe;
-            document.getElementById('editKapasitas').value = meja.kapasitas || '';
-            document.getElementById('editDeskripsi').value = meja.deskripsi || '';
-            document.getElementById('editStatus').value = meja.status || 'tersedia';
-
-            showModal('editModal');
-        }
-
-        function handleEditTipeChange() {
-            const selectedTipe = document.getElementById('editTipeMeja').value;
-            const noMejaInput = document.getElementById('editNoMeja');
-            const currentId = document.getElementById('editMejaId').value;
-
-            // Jika tipe belum dipilih atau sama dengan original, kembalikan ke no_meja asli
-            if (!selectedTipe || selectedTipe === editOriginalTipe) {
-                noMejaInput.value = editOriginalNoMeja;
-                return;
-            }
-
-            const prefix = selectedTipe === 'Lesehan' ? 'L' : 'K';
-            // ✅ Langsung pakai getNextNoMeja yang sudah smart cari slot kosong
-            noMejaInput.value = getNextNoMeja(prefix, currentId);
-        }
-
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(modalId.replace('Modal', 'Content'));
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeModal(modalId) {
-            const content = document.getElementById(modalId.replace('Modal', 'Content'));
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => document.getElementById(modalId).classList.add('hidden'), 300);
-        }
-
+        // Global Functions
         window.doEdit = (id) => openEditModal(id);
         window.doDelete = (id) => deleteMeja(id);
+        window.prevPage = prevPage;
+        window.nextPage = nextPage;
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('filterSearch').addEventListener('input', applyFilter);

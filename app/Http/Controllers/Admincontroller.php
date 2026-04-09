@@ -75,21 +75,22 @@ class AdminController extends Controller
     {
         // LOG: Admin melihat daftar user
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat daftar user',
-            'detail' => 'Admin melihat daftar kasir',
-            'waktu' => now(),
+            'detail'    => 'Admin melihat daftar kasir',
+            'waktu'     => now(),
         ]);
 
         $users = User::whereIn('role', ['kasir'])
             ->when($request->search, function ($q, $s) {
                 $q->where(function ($query) use ($s) {
-                    $query->where('nama', 'like', "%$s%")
-                        ->orWhere('username', 'like', "%$s%");
+                    $query->where('nama', 'like', "%{$s}%")
+                        ->orWhere('username', 'like', "%{$s}%");
                 });
             })
-            ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->role, fn($q, $r) => $q->where('role', $r))
+            ->when($request->status, function ($q, $s) {
+                $q->where('status', $s);
+            })
             ->orderByRaw("FIELD(role, 'owner', 'admin', 'kasir')")
             ->orderBy('nama')
             ->get();
@@ -100,29 +101,37 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $data = $request->validate([
-            'nama'     => 'required|string|max:100',
-            'username' => 'required|string|max:100|unique:users|regex:/^[a-zA-Z0-9._-]+$/',
-            'password' => 'required|string|min:6',
-            'no_hp'    => ['required', 'regex:/^08[0-9]{15}$/'],
-            'alamat'   => 'required|string',
-            'status'   => 'required|in:aktif,nonaktif',
+            'nama'      => 'required|string|max:100',
+            'username'  => 'required|string|max:100|unique:users|regex:/^[a-zA-Z0-9._-]+$/',
+            'password'  => 'required|string|min:6',
+            'no_hp'     => ['required', 'regex:/^08[0-9]{10}$/'],   // 08 + 10 digit = 12 digit
+            'alamat'    => 'required|string',
+            'status'    => 'required|in:aktif,nonaktif',
         ], $this->userMessages());
 
         $user = User::create([
-            ...$data,
-            'password' => Hash::make($data['password']),
-            'role'     => 'kasir',
+            'nama'      => $data['nama'],
+            'username'  => $data['username'],
+            'password'  => Hash::make($data['password']),
+            'no_hp'     => $data['no_hp'],
+            'alamat'    => $data['alamat'],
+            'status'    => $data['status'],
+            'role'      => 'kasir',
         ]);
 
         // LOG: Admin menambah kasir baru
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Menambah kasir baru',
-            'detail' => 'Menambah kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
-            'waktu' => now(),
+            'detail'    => 'Menambah kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
+            'waktu'     => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Kasir berhasil ditambahkan!', 'user' => $user], 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Kasir berhasil ditambahkan!',
+            'user'    => $user
+        ], 201);
     }
 
     public function updateUser(Request $request, User $user)
@@ -130,32 +139,36 @@ class AdminController extends Controller
         abort_if($user->role !== 'kasir', 403, 'Admin hanya bisa edit kasir.');
 
         $data = $request->validate([
-            'nama'     => 'required|string|max:100',
-            'username' => ['required', 'string', 'max:100', Rule::unique('users')->ignore($user->id), 'regex:/^[a-zA-Z0-9._-]+$/'],
-            'password' => 'nullable|string|min:6',
-            'no_hp'    => ['required', 'regex:/^08[0-9]{15}$/'],
-            'alamat'   => 'required|string',
-            'status'   => 'required|in:aktif,nonaktif',
+            'nama'      => 'required|string|max:100',
+            'username'  => ['required', 'string', 'max:100', Rule::unique('users')->ignore($user->id), 'regex:/^[a-zA-Z0-9._-]+$/'],
+            'password'  => 'nullable|string|min:6',
+            'no_hp'     => ['required', 'regex:/^08[0-9]{10}$/'],   // Diperbaiki jadi 10 digit setelah 08
+            'alamat'    => 'required|string',
+            'status'    => 'required|in:aktif,nonaktif',
         ], $this->userMessages());
 
         $user->update(array_filter([
             'nama'     => $data['nama'],
             'username' => $data['username'],
-            'no_hp'    => $data['no_hp'] ?? null,
-            'alamat'   => $data['alamat'] ?? null,
+            'no_hp'    => $data['no_hp'],
+            'alamat'   => $data['alamat'],
             'status'   => $data['status'],
             'password' => !empty($data['password']) ? Hash::make($data['password']) : null,
         ], fn($v) => $v !== null));
 
         // LOG: Admin mengupdate kasir
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Mengupdate data kasir',
-            'detail' => 'Mengupdate kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
-            'waktu' => now(),
+            'detail'    => 'Mengupdate kasir: ' . $user->nama . ' (Username: ' . $user->username . ')',
+            'waktu'     => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Kasir berhasil diperbarui!', 'user' => $user->fresh()]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Kasir berhasil diperbarui!',
+            'user'    => $user->fresh()
+        ]);
     }
 
     public function destroyUser(User $user)
@@ -168,13 +181,16 @@ class AdminController extends Controller
 
         // LOG: Admin menghapus kasir
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Menghapus kasir',
-            'detail' => 'Menghapus kasir: ' . $namaUser,
-            'waktu' => now(),
+            'detail'    => 'Menghapus kasir: ' . $namaUser,
+            'waktu'     => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Kasir berhasil dihapus!']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Kasir berhasil dihapus!'
+        ]);
     }
 
     public function toggleStatus(User $user)
@@ -183,31 +199,38 @@ class AdminController extends Controller
 
         $statusLama = $user->status;
         $statusBaru = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
+
         $user->update(['status' => $statusBaru]);
 
         // LOG: Admin mengubah status kasir
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Mengubah status kasir',
-            'detail' => 'Kasir: ' . $user->nama . ' - Status: ' . $statusLama . ' → ' . $statusBaru,
-            'waktu' => now(),
+            'detail'    => 'Kasir: ' . $user->nama . ' - Status: ' . $statusLama . ' → ' . $statusBaru,
+            'waktu'     => now(),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Status: ' . ucfirst($user->status), 'status' => $user->status]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Status: ' . ucfirst($user->status),
+            'status'  => $user->status
+        ]);
     }
 
     private function userMessages(): array
     {
         return [
-            'nama.required'     => 'Nama lengkap wajib diisi.',
-            'nama.max'          => 'Nama maksimal 100 karakter.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique'   => 'Username sudah dipakai.',
-            'username.regex'    => 'Username hanya boleh huruf, angka, titik, underscore, strip.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min'      => 'Password minimal 6 karakter.',
-            'no_hp.regex'       => 'Format nomor HP tidak valid.',
-            'status.in'         => 'Status tidak valid.',
+            'nama.required'      => 'Nama lengkap wajib diisi.',
+            'nama.max'           => 'Nama maksimal 100 karakter.',
+            'username.required'  => 'Username wajib diisi.',
+            'username.unique'    => 'Username sudah dipakai.',
+            'username.regex'     => 'Username hanya boleh huruf, angka, titik, underscore, strip.',
+            'password.required'  => 'Password wajib diisi.',
+            'password.min'       => 'Password minimal 6 karakter.',
+            'no_hp.required'     => 'Nomor HP wajib diisi.',
+            'no_hp.regex'        => 'Nomor HP harus diawali 08 dan terdiri dari tepat 12 digit angka (contoh: 081234567890).',
+            'status.in'          => 'Status tidak valid.',
+            'alamat.required'    => 'Alamat wajib diisi.',
         ];
     }
 

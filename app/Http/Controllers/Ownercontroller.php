@@ -22,28 +22,102 @@ class OwnerController extends Controller
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat dashboard',
-            'detail' => 'Owner melihat dashboard',
-            'waktu' => now(),
+            'detail'   => 'Owner melihat dashboard',
+            'waktu'    => now(),
         ]);
 
+        // ==================== DATA REAL ====================
+
+        // 1. Total Menu 
+        $total_menu = Menu::count();
+
+        // 2. Total Kasir Aktif (tetap dihitung untuk cadangan)
+        $total_kasir = User::where('role', 'kasir')
+            ->where('status', 'aktif')
+            ->count();
+
+        // 3. Total Meja
+        $total_meja = Meja::count();
+
+        // 4. Total User (Hanya Admin + Kasir, Owner TIDAK DIHITUNG)
+        $total_user = User::whereIn('role', ['admin', 'kasir'])
+            ->count();
+
+        // 5. Pendapatan Hari Ini (hanya lunas)
+        $pendapatan_hari = Transaksi::where('status', 'lunas')
+            ->whereDate('tanggal', Carbon::today())
+            ->sum('total_harga');
+
+        // 6. Pendapatan Bulan Ini
+        $pendapatan_bulan = Transaksi::where('status', 'lunas')
+            ->whereMonth('tanggal', Carbon::now()->month)
+            ->whereYear('tanggal', Carbon::now()->year)
+            ->sum('total_harga');
+
+        // 7. Pendapatan Tahun Ini
+        $pendapatan_tahun = Transaksi::where('status', 'lunas')
+            ->whereYear('tanggal', Carbon::now()->year)
+            ->sum('total_harga');
+
+        // 8. Jumlah Transaksi Hari Ini (semua status)
+        $transaksi_hari_ini = Transaksi::whereDate('tanggal', Carbon::today())
+            ->count();
+
+        // 9. Pendapatan 7 Hari Terakhir
+        $transaksi_7hari = collect();
+        for ($i = 6; $i >= 0; $i--) {
+            $tanggal = Carbon::today()->subDays($i);
+
+            $total = Transaksi::where('status', 'lunas')
+                ->whereDate('tanggal', $tanggal)
+                ->sum('total_harga');
+
+            $transaksi_7hari->push([
+                'tanggal' => $tanggal,
+                'total'   => $total ?? 0,
+            ]);
+        }
+
+        // 10. MENU TERLARIS 7 HARI TERAKHIR (REAL) - Maksimal 5
+        $menu_terlaris = \App\Models\DetailTransaksi::select('id_menu')
+            ->with('menu')                    // pastikan relasi 'menu' ada di model DetailTransaksi
+            ->whereHas('transaksi', function ($query) {
+                $query->where('status', 'lunas')
+                    ->where('tanggal', '>=', Carbon::today()->subDays(7));
+            })
+            ->groupBy('id_menu')
+            ->selectRaw('id_menu, SUM(qty) as total_terjual')
+            ->orderByDesc('total_terjual')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->menu->nama_makanan ?? 'Menu Tidak Diketahui',
+                    'qty'  => $item->total_terjual ?? 0,
+                ];
+            });
+
+        // Jika tidak ada data transaksi
+        if ($menu_terlaris->isEmpty()) {
+            $menu_terlaris = collect([
+                ['name' => 'Belum ada transaksi', 'qty' => 0],
+            ]);
+        }
+
+        // ==================== KIRIM KE VIEW ====================
         $data = [
-            'total_menu'       => 48,
-            'total_user_aktif' => 12,
-            'total_meja'       => 20,
-            'total_kasir'      => 5,
+            'total_menu'         => $total_menu,
+            'total_user'         => $total_user,           // ← Total User (tanpa owner)
+            'total_meja'         => $total_meja,
+            'total_kasir'        => $total_kasir,
 
-            'pendapatan_hari'  => 2450000,
-            'pendapatan_bulan' => 48750000,
+            'pendapatan_hari'    => $pendapatan_hari,
+            'pendapatan_bulan'   => $pendapatan_bulan,
+            'pendapatan_tahun'   => $pendapatan_tahun,
 
-            'transaksi_7hari'  => collect([
-                ['tanggal' => Carbon::today()->subDays(6), 'total' => 1800000],
-                ['tanggal' => Carbon::today()->subDays(5), 'total' => 2200000],
-                ['tanggal' => Carbon::today()->subDays(4), 'total' => 1950000],
-                ['tanggal' => Carbon::today()->subDays(3), 'total' => 2800000],
-                ['tanggal' => Carbon::today()->subDays(2), 'total' => 3200000],
-                ['tanggal' => Carbon::today()->subDays(1), 'total' => 4500000],
-                ['tanggal' => Carbon::today(),             'total' => 3800000],
-            ]),
+            'transaksi_hari_ini' => $transaksi_hari_ini,   // untuk card Transaksi Hari Ini
+            'transaksi_7hari'    => $transaksi_7hari,
+            'menu_terlaris'      => $menu_terlaris,
         ];
 
         return view('owner.dashboard', compact('data'));
@@ -409,60 +483,67 @@ class OwnerController extends Controller
      */
     private function exportLaporanCsv($query, array $filters)
     {
-        // Ambil data dengan filter yang sama
-        $transaksis = $query->latest()->get();
+        try {
+            // Ambil data dengan filter yang sama
+            $transaksis = $query->latest()->get();
 
-        // Grouping sama seperti view
-        $laporanData = $transaksis->groupBy(function ($trx) {
-            $tanggalStr = $trx->tanggal
-                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
-                : '0000-00-00';
-            return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
-        })->map(function ($group) {
-            $first = $group->first();
-            return [
-                'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
-                'kasir'      => $first->kasir->nama ?? '-',
-                'transaksi'  => $group->count(),
-                'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
-                'pendapatan' => $group->sum('total_harga'),
+            // Grouping sama seperti view
+            $laporanData = $transaksis->groupBy(function ($trx) {
+                $tanggalStr = $trx->tanggal
+                    ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
+                    : '0000-00-00';
+                return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
+            })->map(function ($group) {
+                $first = $group->first();
+                return [
+                    'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
+                    'kasir'      => $first->kasir?->nama ?? '-',
+                    'transaksi'  => $group->count(),
+                    'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
+                    'pendapatan' => $group->sum('total_harga'),
+                ];
+            })->values();
+
+            // Siapkan nama file
+            $filename = 'laporan_pendapatan_' . date('Y-m-d_His') . '.csv';
+
+            // Headers yang benar untuk CSV download
+            $headers = [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control'       => 'no-store, no-cache, must-revalidate',
+                'Pragma'              => 'no-cache',
+                'Expires'             => '0',
             ];
-        })->values();
 
-        // Headers CSV
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="laporan_pendapatan_' . date('Y-m-d_His') . '.csv"',
-            'Cache-Control' => 'no-store, no-cache',
-        ];
+            // Buffer output untuk mencegah whitespace/error keluar duluan
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
 
-        // Buka output stream
-        $callback = function () use ($laporanData, $filters) {
-            $file = fopen('php://output', 'w');
+            // Generate CSV content di memory (lebih aman daripada stream langsung)
+            $output = fopen('php://temp', 'r+');
 
             // BOM untuk Excel support UTF-8
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Header kolom
-            fputcsv($file, [
-                'LAPORAN PENDAPATAN',
-                'Periode: ' . ($filters['dari'] ?? '-') . ' s/d ' . ($filters['sampai'] ?? '-'),
-                'Kasir: ' . ($filters['id_kasir'] ? User::find($filters['id_kasir'])?->nama ?? '-' : 'Semua Kasir'),
-                '',
+            // Header info
+            fputcsv($output, ['LAPORAN PENDAPATAN']);
+            fputcsv($output, ['Periode: ' . ($filters['dari'] ?? '-') . ' s/d ' . ($filters['sampai'] ?? '-')]);
+            fputcsv($output, [
+                'Kasir: ' .
+                    (!empty($filters['id_kasir'])
+                        ? (\App\Models\User::find($filters['id_kasir'])?->nama ?? '-')
+                        : 'Semua Kasir')
             ]);
+            fputcsv($output, ['']); // Empty row
 
-            fputcsv($file, [
-                'No',
-                'Tanggal',
-                'Kasir',
-                'Jumlah Transaksi',
-                'Total Item Terjual',
-                'Pendapatan (Rp)',
-            ]);
+            // Column headers
+            fputcsv($output, ['No', 'Tanggal', 'Kasir', 'Jumlah Transaksi', 'Total Item Terjual', 'Pendapatan (Rp)']);
 
             // Data rows
             foreach ($laporanData as $index => $row) {
-                fputcsv($file, [
+                fputcsv($output, [
                     $index + 1,
                     $row['tanggal'],
                     $row['kasir'],
@@ -472,9 +553,9 @@ class OwnerController extends Controller
                 ]);
             }
 
-            // Total baris
-            fputcsv($file, []);
-            fputcsv($file, [
+            // Total row
+            fputcsv($output, ['']);
+            fputcsv($output, [
                 'TOTAL',
                 '',
                 '',
@@ -483,11 +564,19 @@ class OwnerController extends Controller
                 'Rp ' . number_format($laporanData->sum('pendapatan'), 0, ',', '.'),
             ]);
 
-            fclose($file);
-        };
+            // Rewind dan ambil content
+            rewind($output);
+            $csvContent = stream_get_contents($output);
+            fclose($output);
 
-        return response()->stream($callback, 200, $headers);
-    }   
+            // Return response dengan content yang sudah jadi
+            return response($csvContent, 200, $headers);
+        } catch (\Exception $e) {
+            // Kalau error, redirect back dengan pesan error
+            \Log::error('Export CSV Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export: ' . $e->getMessage());
+        }
+    }
 
     // ==========================================
     // LOG AKTIVITAS
