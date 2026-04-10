@@ -15,6 +15,7 @@ return new class extends Migration
             $table->enum('jenis_pemesanan', ['dine-in', 'takeaway'])->default('dine-in'); 
             $table->string('nama_pelanggan')->nullable();
             $table->date('tanggal');
+            $table->datetime('waktu_pemesanan')->nullable();
             $table->decimal('total_harga', 12, 2)->default(0);
             $table->decimal('jumlah_bayar', 12, 2)->default(0);
             $table->decimal('kembalian', 12, 2)->default(0);

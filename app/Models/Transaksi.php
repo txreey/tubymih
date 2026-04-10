@@ -14,6 +14,7 @@ class Transaksi extends Model
         'jenis_pemesanan',
         'nama_pelanggan',
         'tanggal',
+        'waktu_pemesanan',
         'total_harga',
         'jumlah_bayar',
         'kembalian',
