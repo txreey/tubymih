@@ -11,7 +11,7 @@
             <div class="order-screen" id="scr1">
                 <h2 class="text-2xl font-bold text-gray-800 mb-1">Mulai Order Baru</h2>
                 <p class="text-sm text-gray-400 mb-6">Pilih tipe order untuk menentukan alur transaksi</p>
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-2 gap-4"> {{-- Changed from grid-cols-3 to grid-cols-2 --}}
                     {{-- Dine In --}}
                     <div id="cardDine" onclick="selectType('dine')"
                         class="relative border-2 border-gray-200 rounded-2xl p-7 cursor-pointer transition-all hover:border-gray-300 bg-white">
@@ -40,89 +40,10 @@
                             class="inline-block mt-3 px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-600">Bayar
                             setelah pesanan siap</span>
                     </div>
-                    {{-- Reservasi --}}
-                    <div id="cardReserv" onclick="selectType('reservasi')"
-                        class="relative border-2 border-gray-200 rounded-2xl p-7 cursor-pointer transition-all hover:border-gray-300 bg-white">
-                        <div id="chkReserv"
-                            class="absolute top-4 right-4 w-6 h-6 rounded-full bg-purple-400 text-white text-xs font-bold items-center justify-center hidden">
-                            ✓</div>
-                        <div class="text-4xl mb-4">📅</div>
-                        <div class="text-lg font-bold text-gray-800 mb-2">Reservasi</div>
-                        <div class="text-xs text-gray-400 leading-relaxed">Customer pesan meja di hari mendatang. Bisa pilih
-                            menu pre-order. Meja dikunci, diaktifkan saat customer datang.</div>
-                        <span
-                            class="inline-block mt-3 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-600">Bayar
-                            saat datang</span>
-                    </div>
                 </div>
             </div>
 
-            {{-- ── SCR 1R: Info Customer Reservasi (step 2 reservasi) ── --}}
-            <div class="order-screen hidden" id="scr1r">
-                <h2 class="text-2xl font-bold text-gray-800 mb-1">Info Customer Reservasi</h2>
-                <p class="text-sm text-gray-400 mb-5">Isi data customer dan waktu reservasi</p>
-                <div class="flex gap-6">
-                    <div class="flex-1">
-                        <div class="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
-                            <div>
-                                <label class="text-xs font-semibold text-gray-500 mb-1 block">Nama Customer <span
-                                        class="text-red-400">*</span></label>
-                                <input type="text" id="reservNama" placeholder="Masukkan nama customer"
-                                    class="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 focus:outline-none focus:border-purple-400 transition-all">
-                                <p class="text-xs text-red-400 mt-1 hidden" id="reservNamaError">Nama customer wajib diisi
-                                </p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-xs font-semibold text-gray-500 mb-1 block">Tanggal Reservasi <span
-                                            class="text-red-400">*</span></label>
-                                    <input type="date" id="reservTanggal" min="{{ now()->format('Y-m-d') }}"
-                                        class="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 focus:outline-none focus:border-purple-400 transition-all">
-                                    <p class="text-xs text-red-400 mt-1 hidden" id="reservTanggalError">Tanggal wajib diisi
-                                    </p>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-semibold text-gray-500 mb-1 block">Jam <span
-                                            class="text-red-400">*</span></label>
-                                    <input type="time" id="reservJam"
-                                        class="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 focus:outline-none focus:border-purple-400 transition-all">
-                                    <p class="text-xs text-red-400 mt-1 hidden" id="reservJamError">Jam wajib diisi</p>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold text-gray-500 mb-1 block">Catatan (opsional)</label>
-                                <textarea id="reservCatatan" rows="2" placeholder="Contoh: ada yang ulang tahun, dll."
-                                    class="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 focus:outline-none focus:border-purple-400 transition-all resize-none"></textarea>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mt-4">
-                            <button onclick="goScreen(1)"
-                                class="py-3 rounded-xl border-2 border-gray-300 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">←
-                                Kembali</button>
-                            <button onclick="lanjutDariInfoCustomer()"
-                                class="py-3 rounded-xl bg-purple-500 text-white font-bold text-sm hover:bg-purple-600 transition-all">Pilih
-                                Meja →</button>
-                        </div>
-                    </div>
-                    <div class="w-64 shrink-0">
-                        <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 sticky top-0">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Info Reservasi</p>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="text-xs text-gray-400 mb-1 block">Kasir</label>
-                                    <div class="text-sm font-semibold text-gray-800">{{ auth()->user()->nama ?? '-' }}</div>
-                                </div>
-                            </div>
-                            <div
-                                class="mt-4 rounded-xl p-3 bg-purple-50 border border-purple-200 text-xs text-purple-700 leading-relaxed">
-                                📝 Isi informasi customer terlebih dahulu, lalu pilih meja dan pre-order menu.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ── SCR 2: Pilih Meja ── --}}
+            {{-- ── SCR 2: Pilih Meja (hanya untuk Dine In) ── --}}
             <div class="order-screen hidden" id="scr2">
                 <h2 class="text-2xl font-bold text-gray-800 mb-1">Pilih Meja</h2>
                 <p class="text-sm text-gray-400 mb-1">Tap meja yang tersedia — bisa pilih <strong
@@ -155,8 +76,6 @@
                                 class="w-3 h-3 rounded-sm border-2 border-green-400 bg-green-50 inline-block"></span>Tersedia</span>
                         <span class="flex items-center gap-1.5"><span
                                 class="w-3 h-3 rounded-sm border-2 border-red-300 bg-red-50 inline-block"></span>Terisi</span>
-                        <span class="flex items-center gap-1.5"><span
-                                class="w-3 h-3 rounded-sm border-2 border-purple-400 bg-purple-50 inline-block"></span>Direservasi</span>
                     </div>
                 </div>
                 <div id="tableGrid" class="grid grid-cols-6 gap-3"></div>
@@ -174,22 +93,6 @@
                         ← Ganti Meja
                     </button>
                 </div>
-                {{-- Info reservasi jika mode reservasi --}}
-                <div id="reservasiMenuInfoBar" class="hidden mb-3">
-                    <div
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-xs font-semibold text-purple-700">
-                        📅 Mode Reservasi — Menu ini bersifat <strong>pre-order opsional</strong>
-                    </div>
-                </div>
-                {{-- Info stok reservasi --}}
-                <div id="reservasiStokInfoBar" class="hidden mb-3">
-                    <div
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-xs font-semibold text-orange-700">
-                        ⚠️ Beberapa menu stoknya disisain untuk reservasi lain — ditandai dengan badge <span
-                            class="px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 text-xs font-bold ml-1">📅 Reservasi
-                            N</span>
-                    </div>
-                </div>
                 <div id="selectedMejaInfoBar" class="hidden mb-4">
                     <span
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-700">
@@ -198,93 +101,6 @@
                 </div>
                 <div class="flex gap-2 mb-5 flex-wrap" id="menuFilterBar"></div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4" id="menuGrid"></div>
-            </div>
-
-            {{-- ── SCR 4: Konfirmasi Reservasi ── --}}
-            <div class="order-screen hidden" id="scr4">
-                <h2 class="text-2xl font-bold text-gray-800 mb-1">Konfirmasi Reservasi</h2>
-                <p class="text-sm text-gray-400 mb-5">Periksa detail reservasi sebelum disimpan</p>
-                <div class="flex gap-6">
-                    <div class="flex-1 space-y-4">
-                        {{-- Ringkasan data customer --}}
-                        <div class="bg-white border border-gray-200 rounded-2xl p-5">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">📋 Data Customer</p>
-                            <div class="grid grid-cols-2 gap-3 text-sm">
-                                <div>
-                                    <span class="text-xs text-gray-400 block mb-0.5">Nama Customer</span>
-                                    <span class="font-semibold text-gray-800" id="konfirmNama">-</span>
-                                </div>
-                                <div>
-                                    <span class="text-xs text-gray-400 block mb-0.5">Tanggal Reservasi</span>
-                                    <span class="font-semibold text-gray-800" id="konfirmTanggal">-</span>
-                                </div>
-                                <div>
-                                    <span class="text-xs text-gray-400 block mb-0.5">Jam</span>
-                                    <span class="font-semibold text-gray-800" id="konfirmJam">-</span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span class="text-xs text-gray-400 block mb-0.5">Meja</span>
-                                    <span class="font-semibold text-gray-800" id="konfirmMeja">-</span>
-                                </div>
-                                <div class="col-span-2" id="konfirmCatatanRow">
-                                    <span class="text-xs text-gray-400 block mb-0.5">Catatan</span>
-                                    <span class="font-semibold text-gray-800" id="konfirmCatatan">-</span>
-                                </div>
-                            </div>
-                            <button onclick="goScreen('1r')"
-                                class="mt-3 text-xs text-purple-600 hover:text-purple-800 underline">✏️ Edit Info
-                                Customer</button>
-                        </div>
-                        {{-- Pre-order summary --}}
-                        <div id="preOrderSummaryBox" class="bg-purple-50 border border-purple-200 rounded-2xl p-4">
-                            <p class="text-xs font-bold text-purple-700 mb-2">🍽️ Pre-Order Menu (<span
-                                    id="preOrderCount">0</span> item)</p>
-                            <div id="preOrderList" class="space-y-1 text-xs text-purple-800"></div>
-                            <div
-                                class="flex justify-between font-bold text-purple-700 mt-2 pt-2 border-t border-purple-200">
-                                <span>Total Pre-Order</span>
-                                <span id="preOrderTotal">Rp 0</span>
-                            </div>
-                            <button onclick="goScreen(3)"
-                                class="mt-2 text-xs text-purple-600 hover:text-purple-800 underline">← Edit Menu
-                                Pre-Order</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="goScreen(3)"
-                                class="py-3 rounded-xl border-2 border-gray-300 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all">←
-                                Kembali ke Menu</button>
-                            <button onclick="simpanReservasi()"
-                                class="py-3 rounded-xl bg-purple-500 text-white font-bold text-sm hover:bg-purple-600 transition-all">📅
-                                Simpan Reservasi</button>
-                        </div>
-                    </div>
-                    {{-- Info Panel --}}
-                    <div class="w-64 shrink-0">
-                        <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 sticky top-0">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Info Reservasi</p>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="text-xs text-gray-400 mb-1 block">Kasir</label>
-                                    <div class="text-sm font-semibold text-gray-800">{{ auth()->user()->nama ?? '-' }}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 mb-1 block">Waktu Reservasi</label>
-                                    <div class="text-sm font-semibold text-gray-800" id="konfirmWaktuSide">-</div>
-                                </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 mb-1 block">Meja</label>
-                                    <div class="text-sm font-semibold text-gray-800" id="reservMejaVal">-</div>
-                                </div>
-                            </div>
-                            <div
-                                class="mt-4 rounded-xl p-3 bg-purple-50 border border-purple-200 text-xs text-purple-700 leading-relaxed">
-                                📅 Reservasi tersimpan dengan status <strong>pending</strong>. Tombol
-                                <strong>Aktifkan</strong> muncul di halaman <strong>Reservasi</strong>.
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {{-- ── SCR 5: Konfirmasi Order (dine in & take away) ── --}}
@@ -359,9 +175,6 @@
                         <a href="{{ route('kasir.riwayat') }}"
                             class="block w-full py-3 rounded-xl bg-teal-600 text-white font-bold text-sm hover:bg-teal-700 transition-all text-center">📋
                             Lihat Riwayat</a>
-                        <a href="{{ route('kasir.reservasi') }}"
-                            class="block w-full py-3 rounded-xl bg-purple-500 text-white font-bold text-sm hover:bg-purple-600 transition-all text-center">📅
-                            Lihat Reservasi</a>
                     </div>
                 </div>
             </div>
@@ -408,24 +221,6 @@
         const ALL_MEJAS = @json($mejas);
         const ALL_MENUS = @json($menus);
 
-        // Data reservasi aktif untuk menandai meja dan menu yang sudah direservasi
-        let RESERVASI_AKTIF = [];
-
-        // Load data reservasi aktif
-        async function loadReservasiAktif() {
-            try {
-                const response = await fetch('{{ route('kasir.reservasi') }}');
-                const data = await response.json();
-                if (data.success) {
-                    RESERVASI_AKTIF = data.data;
-                    if (state.step === 2) renderMejaGrid(activeMejaFilter);
-                    if (state.step === 3) renderMenuGrid(activeFilter);
-                }
-            } catch (e) {
-                console.error('Gagal load reservasi aktif:', e);
-            }
-        }
-
         let state = {
             type: null,
             tableIds: [],
@@ -435,7 +230,6 @@
             step: 1,
             noTransaksi: null,
             namaCustomer: '',
-            // Screen ID terakhir (untuk step bar dan navigasi)
             currentScr: '1',
         };
 
@@ -445,9 +239,6 @@
         function getSteps() {
             if (state.type === 'dine_in') return ['Tipe Order', 'Pilih Meja', 'Pilih Menu', 'Konfirmasi'];
             if (state.type === 'take_away') return ['Tipe Order', 'Pilih Menu', 'Konfirmasi'];
-            if (state.type === 'reservasi') return ['Tipe Order', 'Info Customer', 'Pilih Meja', 'Pilih Menu',
-                'Konfirmasi'
-            ];
             return ['Tipe Order'];
         }
 
@@ -466,16 +257,6 @@
                     '1': 1,
                     '3': 2,
                     '5': 3
-                };
-                return map[String(scr)] || 1;
-            }
-            if (state.type === 'reservasi') {
-                const map = {
-                    '1': 1,
-                    '1r': 2,
-                    '2': 3,
-                    '3': 4,
-                    '4': 5
                 };
                 return map[String(scr)] || 1;
             }
@@ -509,46 +290,35 @@
         // TIPE ORDER
         // ══════════════════════════════════════════════
         function selectType(t) {
-            state.type = t === 'dine' ? 'dine_in' : t === 'take' ? 'take_away' : 'reservasi';
+            state.type = t === 'dine' ? 'dine_in' : 'take_away';
             const base = 'relative border-2 rounded-2xl p-7 cursor-pointer transition-all ';
             document.getElementById('cardDine').className = base + (t === 'dine' ? 'border-amber-400 bg-amber-50' :
                 'border-gray-200 bg-white hover:border-gray-300');
             document.getElementById('cardTake').className = base + (t === 'take' ? 'border-teal-400 bg-teal-50' :
                 'border-gray-200 bg-white hover:border-gray-300');
-            document.getElementById('cardReserv').className = base + (t === 'reservasi' ? 'border-purple-400 bg-purple-50' :
-                'border-gray-200 bg-white hover:border-gray-300');
-            ['Dine', 'Take', 'Reserv'].forEach((x, i) => {
-                const key = ['dine', 'take', 'reservasi'][i];
+            ['Dine', 'Take'].forEach((x, i) => {
+                const key = ['dine', 'take'][i];
                 document.getElementById('chk' + x).className =
                     'absolute top-4 right-4 w-6 h-6 rounded-full text-xs font-bold items-center justify-center ' +
                     (t === key ? 'flex ' : 'hidden ') +
-                    (x === 'Dine' ? 'bg-amber-400 text-black' : x === 'Take' ? 'bg-teal-400 text-black' :
-                        'bg-purple-400 text-white');
+                    (x === 'Dine' ? 'bg-amber-400 text-black' : 'bg-teal-400 text-black');
             });
             const metaHtml = t === 'dine' ?
                 '<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold">🍽️ Dine In</span>' :
-                t === 'take' ?
-                '<span class="px-2 py-1 rounded-full bg-teal-100 text-teal-600 text-xs font-semibold">🥡 Take Away</span>' :
-                '<span class="px-2 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-semibold">📅 Reservasi</span>';
+                '<span class="px-2 py-1 rounded-full bg-teal-100 text-teal-600 text-xs font-semibold">🥡 Take Away</span>';
             document.getElementById('cartMeta').innerHTML = metaHtml;
             const hintMap = {
                 dine: 'Pilih meja → menu → kirim dapur',
                 take: 'Pilih menu → kirim dapur → bayar setelah siap',
-                reservasi: 'Info customer → meja → pre-order menu → simpan',
             };
             document.getElementById('flowHint').textContent = hintMap[t];
             const btn = document.getElementById('btnNext');
             btn.style.display = 'block';
-            btn.textContent = t === 'dine' ? 'Pilih Meja →' : t === 'take' ? 'Pilih Menu →' : 'Isi Info Customer →';
+            btn.textContent = t === 'dine' ? 'Pilih Meja →' : 'Pilih Menu →';
             btn.className = 'w-full py-3.5 rounded-xl font-bold text-sm transition-all mt-3 ' +
                 (t === 'dine' ? 'bg-amber-400 hover:bg-amber-500 text-black' :
-                    t === 'take' ? 'bg-teal-500 hover:bg-teal-600 text-white' :
-                    'bg-purple-500 hover:bg-purple-600 text-white');
+                    'bg-teal-500 hover:bg-teal-600 text-white');
             renderStepBar();
-
-            if (t === 'reservasi') {
-                setMinReservasiDate();
-            }
         }
 
         // ══════════════════════════════════════════════
@@ -567,38 +337,7 @@
                     }
                     goScreen('3');
                 } else if (state.currentScr === '3') goScreen('5');
-            } else if (state.type === 'reservasi') {
-                if (state.currentScr === '1') goScreen('1r');
-                else if (state.currentScr === '1r') lanjutDariInfoCustomer();
-                else if (state.currentScr === '2') {
-                    if (!state.tableIds.length) {
-                        alertMeja();
-                        return;
-                    }
-                    goScreen('3');
-                } else if (state.currentScr === '3') goScreen('4');
             }
-        }
-
-        // Set min date untuk reservasi
-        function setMinReservasiDate() {
-            const tanggalInput = document.getElementById('reservTanggal');
-            if (tanggalInput) {
-                tanggalInput.min = new Date().toISOString().split('T')[0]; // hari ini
-            }
-        }
-
-
-        // Validasi dan lanjut dari info customer reservasi
-        function lanjutDariInfoCustomer() {
-            const nama = document.getElementById('reservNama').value.trim();
-            const tanggal = document.getElementById('reservTanggal').value;
-            const jam = document.getElementById('reservJam').value;
-            document.getElementById('reservNamaError').classList.toggle('hidden', !!nama);
-            document.getElementById('reservTanggalError').classList.toggle('hidden', !!tanggal);
-            document.getElementById('reservJamError').classList.toggle('hidden', !!jam);
-            if (!nama || !tanggal || !jam) return;
-            goScreen('2');
         }
 
         function alertMeja() {
@@ -616,13 +355,10 @@
             const target = document.getElementById('scr' + nStr);
             if (target) target.classList.remove('hidden');
             state.currentScr = nStr;
-            // step integer untuk kompatibilitas internal
             const stepMap = {
                 '1': 1,
-                '1r': 1,
                 '2': 2,
                 '3': 3,
-                '4': 4,
                 '5': 5,
                 '6': 6
             };
@@ -639,71 +375,18 @@
                 renderMenuGrid('semua');
                 const btnBack = document.getElementById('btnBackToMeja');
                 const infoBar = document.getElementById('selectedMejaInfoBar');
-                const reservBar = document.getElementById('reservasiMenuInfoBar');
-                const stokBar = document.getElementById('reservasiStokInfoBar');
-                if (state.type === 'reservasi') {
-                    reservBar.classList.remove('hidden');
-                    // Tampilkan stok bar jika ada menu yang ada reservasinya
-                    const anyReserved = ALL_MENUS.some(m => getReservedMenuQty(m.id) > 0);
-                    stokBar.classList.toggle('hidden', !anyReserved);
-                    if (state.tableNomors.length) {
-                        infoBar.classList.remove('hidden');
-                        document.getElementById('selectedMejaLabel').textContent = state.tableNomors.join(', ');
-                    }
-                    btnBack.classList.add('hidden');
-                    btnBack.classList.remove('flex');
-                } else if (state.type === 'dine_in' && state.tableNomors.length) {
-                    reservBar.classList.add('hidden');
-                    stokBar.classList.add('hidden');
+                if (state.type === 'dine_in' && state.tableNomors.length) {
                     btnBack.classList.remove('hidden');
                     btnBack.classList.add('flex');
                     infoBar.classList.remove('hidden');
                     document.getElementById('selectedMejaLabel').textContent = state.tableNomors.join(', ');
                 } else {
-                    reservBar.classList.add('hidden');
-                    stokBar.classList.add('hidden');
                     btnBack.classList.add('hidden');
                     btnBack.classList.remove('flex');
                     infoBar.classList.add('hidden');
                 }
             }
-            if (nStr === '4') {
-                // Isi konfirmasi reservasi
-                const nama = document.getElementById('reservNama').value.trim();
-                const tanggal = document.getElementById('reservTanggal').value;
-                const jam = document.getElementById('reservJam').value;
-                const catatan = document.getElementById('reservCatatan').value.trim();
-                document.getElementById('konfirmNama').textContent = nama || '-';
-                document.getElementById('konfirmMeja').textContent = state.tableNomors.join(', ') || '-';
-                document.getElementById('reservMejaVal').textContent = state.tableNomors.join(', ') || '-';
-                // Format tanggal ke dd/mm/yyyy
-                let tanggalFmt = '-';
-                if (tanggal) {
-                    const [y, m, d] = tanggal.split('-');
-                    tanggalFmt = `${d}/${m}/${y}`;
-                }
-                document.getElementById('konfirmTanggal').textContent = tanggalFmt;
-                document.getElementById('konfirmJam').textContent = jam || '-';
-                document.getElementById('konfirmCatatan').textContent = catatan || '-';
-                document.getElementById('konfirmWaktuSide').textContent = tanggalFmt + (jam ? ' ' + jam : '');
-                updatePreOrderSummary();
-            }
             if (nStr === '5') renderPayment();
-        }
-
-        function updatePreOrderSummary() {
-            const box = document.getElementById('preOrderSummaryBox');
-            if (!state.cart.length) {
-                box.innerHTML =
-                    '<p class="text-xs text-purple-600 italic">Tidak ada pre-order menu. Customer bisa pesan saat tiba.</p>';
-                document.getElementById('preOrderCount') && (document.getElementById('preOrderCount').textContent = '0');
-                return;
-            }
-            document.getElementById('preOrderCount').textContent = state.cart.reduce((s, c) => s + c.qty, 0);
-            document.getElementById('preOrderList').innerHTML = state.cart.map(c =>
-                `<div class="flex justify-between"><span>${c.nama} x${c.qty}</span><span class="font-semibold">${formatRp(c.harga * c.qty)}</span></div>`
-            ).join('');
-            document.getElementById('preOrderTotal').textContent = formatRp(getTotal());
         }
 
         function backToMeja() {
@@ -725,12 +408,7 @@
                 btn.style.display = state.type ? 'block' : 'none';
                 return;
             }
-            if (scr === '1r') {
-                // Di scr1r ada tombol inline, sembunyikan btnNext
-                btn.style.display = 'none';
-                return;
-            }
-            if (scr === '4' || scr === '6') {
+            if (scr === '5' || scr === '6') {
                 btn.style.display = 'none';
                 return;
             }
@@ -738,8 +416,7 @@
                 btn.style.display = 'block';
                 btn.textContent = state.tableIds.length ? `Lanjut (${state.tableIds.length} meja) →` : 'Lanjut →';
                 btn.disabled = !state.tableIds.length;
-                const color = state.type === 'reservasi' ? 'bg-purple-500 hover:bg-purple-600 text-white' :
-                    'bg-amber-400 hover:bg-amber-500 text-black';
+                const color = 'bg-amber-400 hover:bg-amber-500 text-black';
                 btn.className = base + color + ' disabled:opacity-40 disabled:cursor-not-allowed';
                 hint.textContent = state.tableIds.length ? state.tableNomors.join(', ') + ' dipilih' :
                     'Pilih minimal 1 meja';
@@ -747,22 +424,12 @@
             }
             if (scr === '3') {
                 btn.style.display = 'block';
-                if (state.type === 'reservasi') {
-                    btn.disabled = false;
-                    btn.textContent = state.cart.length ?
-                        `Konfirmasi Reservasi (${state.cart.reduce((s,c)=>s+c.qty,0)} item pre-order) →` :
-                        'Konfirmasi Reservasi →';
-                    btn.className = base + 'bg-purple-500 hover:bg-purple-600 text-white';
-                    hint.textContent = state.cart.length ? 'Pre-order: ' + formatRp(getTotal()) :
-                        'Menu opsional — bisa skip';
-                } else {
-                    btn.disabled = state.cart.length === 0;
-                    btn.textContent = 'Konfirmasi Order →';
-                    const color = state.type === 'dine_in' ? 'bg-amber-400 hover:bg-amber-500 text-black' :
-                        'bg-teal-500 hover:bg-teal-600 text-white';
-                    btn.className = base + color + ' disabled:opacity-40 disabled:cursor-not-allowed';
-                    hint.textContent = state.cart.length ? 'Total: ' + formatRp(getTotal()) : 'Tambahkan menu';
-                }
+                btn.disabled = state.cart.length === 0;
+                btn.textContent = 'Konfirmasi Order →';
+                const color = state.type === 'dine_in' ? 'bg-amber-400 hover:bg-amber-500 text-black' :
+                    'bg-teal-500 hover:bg-teal-600 text-white';
+                btn.className = base + color + ' disabled:opacity-40 disabled:cursor-not-allowed';
+                hint.textContent = state.cart.length ? 'Total: ' + formatRp(getTotal()) : 'Tambahkan menu';
                 return;
             }
             btn.style.display = 'none';
@@ -777,7 +444,6 @@
             const kursi = ALL_MEJAS.filter(m => m.tipe === 'kursi' || m.tipe_meja === 'Meja Kursi');
             const tersedia = ALL_MEJAS.filter(m => m.status === 'tersedia').length;
             const terisi = ALL_MEJAS.filter(m => m.status === 'terisi').length;
-            const direservasi = ALL_MEJAS.filter(m => m.status === 'direservasi').length;
 
             document.getElementById('mejaSummary').innerHTML = `
             <div class="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -795,10 +461,6 @@
             <div class="bg-white border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center text-lg shrink-0">🔴</div>
                 <div><div class="text-lg font-bold text-red-500 leading-none">${terisi}</div><div class="text-xs text-gray-400 mt-0.5">Terisi</div></div>
-            </div>
-            <div class="bg-white border border-purple-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-lg shrink-0">📅</div>
-                <div><div class="text-lg font-bold text-purple-600 leading-none">${direservasi}</div><div class="text-xs text-gray-400 mt-0.5">Direservasi</div></div>
             </div>
         `;
         }
@@ -820,35 +482,6 @@
             return meja.tipe || meja.tipe_meja;
         }
 
-        /**
-         * Ambil semua reservasi pending untuk meja tertentu.
-         * Return array of { tanggal, jam } yang sudah diformat.
-         */
-        function getMejaReservasiInfoList(mejaId) {
-            const list = [];
-            for (const r of RESERVASI_AKTIF) {
-                // Cek id_meja (bisa array kalau multi-meja) atau id_mejas
-                const mejaIds = r.id_mejas || (r.id_meja ? [r.id_meja] : []);
-                if (mejaIds.includes(mejaId) && r.status === 'reservasi') {
-                    let tanggalFmt = '';
-                    if (r.tanggal_reservasi) {
-                        const d = new Date(r.tanggal_reservasi);
-                        tanggalFmt = d.toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        });
-                    }
-                    const jam = r.jam_reservasi || '';
-                    list.push({
-                        tanggal: tanggalFmt,
-                        jam
-                    });
-                }
-            }
-            return list;
-        }
-
         function renderMejaGrid(filter) {
             const filtered = filter === 'semua' ? ALL_MEJAS : ALL_MEJAS.filter(m => {
                 const tipe = getMejaTipe(m);
@@ -859,16 +492,11 @@
 
             document.getElementById('tableGrid').innerHTML = filtered.map(m => {
                 const terisi = m.status === 'terisi';
-                const direservasi = m.status === 'direservasi';
                 const isLesehan = getMejaTipe(m) === 'Lesehan' || getMejaTipe(m) === 'lesehan';
                 const selected = state.tableIds.includes(m.id);
                 const nomorMeja = m.nomor_meja || m.no_meja;
                 const kapasitas = m.kapasitas;
                 const deskripsi = m.deskripsi || '-';
-                const accentColor = state.type === 'reservasi' ? 'purple' : 'amber';
-
-                // Ambil info reservasi untuk meja ini
-                const reservasiList = getMejaReservasiInfoList(m.id);
 
                 let statusText = '';
                 let statusColor = '';
@@ -878,14 +506,9 @@
                     statusText = 'Terisi';
                     statusColor = 'bg-red-100 text-red-500';
                     disabledClick = true;
-                } else if (direservasi) {
-                    statusText = 'Direservasi';
-                    statusColor = 'bg-purple-100 text-purple-600';
-                    disabledClick = state.type !== 'reservasi';
                 } else if (selected) {
                     statusText = 'Dipilih ✓';
-                    statusColor = accentColor === 'purple' ? 'bg-purple-100 text-purple-600' :
-                        'bg-amber-100 text-amber-600';
+                    statusColor = 'bg-amber-100 text-amber-600';
                     disabledClick = false;
                 } else {
                     statusText = 'Tersedia';
@@ -894,24 +517,20 @@
                 }
 
                 const icon = isLesehan ?
-                    (terisi || direservasi ?
-                        `<svg viewBox="0 0 48 36" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="4" y="24" width="40" height="5" rx="2" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5"/><circle cx="13" cy="17" r="4" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.2"/><path d="M9 24 Q13 20 17 24" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="35" cy="17" r="4" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.2"/><path d="M31 24 Q35 20 39 24" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>` :
+                    (terisi ?
+                        `<svg viewBox="0 0 48 36" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="4" y="24" width="40" height="5" rx="2" fill="#fca5a5" stroke="#ef4444" stroke-width="1.5"/><circle cx="13" cy="17" r="4" fill="#fca5a5" stroke="#ef4444" stroke-width="1.2"/><path d="M9 24 Q13 20 17 24" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="35" cy="17" r="4" fill="#fca5a5" stroke="#ef4444" stroke-width="1.2"/><path d="M31 24 Q35 20 39 24" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>` :
                         `<svg viewBox="0 0 48 36" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="4" y="24" width="40" height="5" rx="2" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/><rect x="8" y="14" width="10" height="10" rx="2" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="30" y="14" width="10" height="10" rx="2" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`
                     ) :
-                    (terisi || direservasi ?
-                        `<svg viewBox="0 0 48 40" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="8" y="16" width="32" height="8" rx="2" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5"/><line x1="16" y1="24" x2="16" y2="34" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="24" x2="32" y2="34" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="10" r="4" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.2"/><circle cx="30" cy="10" r="4" fill="${direservasi?'#e9d5ff':'#fca5a5'}" stroke="${direservasi?'#9333ea':'#ef4444'}" stroke-width="1.2"/></svg>` :
+                    (terisi ?
+                        `<svg viewBox="0 0 48 40" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="8" y="16" width="32" height="8" rx="2" fill="#fca5a5" stroke="#ef4444" stroke-width="1.5"/><line x1="16" y1="24" x2="16" y2="34" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="24" x2="32" y2="34" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="10" r="4" fill="#fca5a5" stroke="#ef4444" stroke-width="1.2"/><circle cx="30" cy="10" r="4" fill="#fca5a5" stroke="#ef4444" stroke-width="1.2"/></svg>` :
                         `<svg viewBox="0 0 48 40" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="8" y="16" width="32" height="8" rx="2" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/><line x1="16" y1="24" x2="16" y2="34" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="24" x2="32" y2="34" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/><rect x="12" y="6" width="10" height="7" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="26" y="6" width="10" height="7" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="12" y="28" width="10" height="6" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="26" y="28" width="10" height="6" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`
                     );
 
-                const selectedBorderColor = accentColor === 'purple' ?
-                    'border-purple-400 bg-purple-50 ring-purple-300' :
-                    'border-amber-400 bg-amber-50 ring-amber-300';
-                const checkBgColor = accentColor === 'purple' ? 'bg-purple-400 text-white' :
-                    'bg-amber-400 text-black';
+                const selectedBorderColor = 'border-amber-400 bg-amber-50 ring-amber-300';
+                const checkBgColor = 'bg-amber-400 text-black';
                 const base = 'relative border-2 rounded-xl p-3 text-center transition-all ';
                 let cls;
-                if (disabledClick) cls = base +
-                    `border-${direservasi?'purple':'red'}-200 bg-${direservasi?'purple':'red'}-50 opacity-60 cursor-not-allowed`;
+                if (disabledClick) cls = base + 'border-red-200 bg-red-50 opacity-60 cursor-not-allowed';
                 else if (selected) cls = base + `${selectedBorderColor} cursor-pointer ring-2`;
                 else cls = base +
                     'border-gray-200 bg-white cursor-pointer hover:border-amber-400 hover:bg-amber-50';
@@ -921,15 +540,6 @@
                     '';
                 const hasDeskripsi = deskripsi && deskripsi !== '-';
 
-                // Render badge waktu reservasi (bisa lebih dari 1 reservasi)
-                const reservasiBadges = reservasiList.map(info =>
-                    `<div class="flex items-center justify-center gap-1 mt-1">
-                    <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-purple-100 border border-purple-300 text-purple-700 text-xs font-semibold">
-                        📅 ${info.tanggal}${info.jam ? ' ' + info.jam : ''}
-                    </span>
-                </div>`
-                ).join('');
-
                 return `
                 <div id="tbl_${m.id}" class="${cls}" onclick="${disabledClick ? '' : `toggleTable(${m.id}, '${nomorMeja}', '${getMejaTipe(m)}', '${escHtml(deskripsi)}')`}">
                     ${checkBadge}
@@ -937,7 +547,6 @@
                     <div class="text-sm font-bold text-gray-800">${nomorMeja}</div>
                     <div class="text-xs text-gray-400 mt-0.5">${isLesehan ? 'Lesehan' : 'Meja Kursi'} ${kapasitas} org</div>
                     ${hasDeskripsi ? `<div class="text-xs text-gray-400 mt-0.5 truncate">${escHtml(deskripsi).substring(0,20)}${deskripsi.length>20?'...':''}</div>` : ''}
-                    ${reservasiBadges}
                     <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${statusColor}">
                         ${statusText}
                     </span>
@@ -955,12 +564,11 @@
 
         function toggleTable(id, nomor, tipe, deskripsi) {
             const meja = ALL_MEJAS.find(m => (m.nomor_meja || m.no_meja) === nomor);
-            if (meja && (meja.status === 'terisi' || (meja.status === 'direservasi' && state.type !== 'reservasi'))) {
+            if (meja && meja.status === 'terisi') {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Meja Tidak Tersedia',
-                    text: meja.status === 'terisi' ? 'Meja sedang terisi!' :
-                        'Meja sudah direservasi untuk waktu lain!',
+                    text: 'Meja sedang terisi!',
                     confirmButtonColor: '#f59e0b'
                 });
                 return;
@@ -998,9 +606,9 @@
                 `<span class="px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold">${t.nomor}</span>`
             ).join('');
             count.textContent = `${state.tableNomors.length} meja`;
-            const typeLabel = state.type === 'reservasi' ?
-                '<span class="px-2 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-semibold">📅 Reservasi</span>' :
-                '<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold">🍽️ Dine In</span>';
+            const typeLabel = state.type === 'dine_in' ?
+                '<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold">🍽️ Dine In</span>' :
+                '<span class="px-2 py-1 rounded-full bg-teal-100 text-teal-600 text-xs font-semibold">🥡 Take Away</span>';
             document.getElementById('cartMeta').innerHTML = typeLabel +
                 `<span class="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">🪑 ${state.tableNomors.join(', ')}</span>`;
             document.getElementById('menuSub').textContent = `Order untuk Meja ${state.tableNomors.join(', ')}`;
@@ -1030,28 +638,15 @@
             renderMenuGrid(cat);
         }
 
-        function getReservedMenuQty(menuId) {
-            let total = 0;
-            for (const reservasi of RESERVASI_AKTIF) {
-                if (reservasi.items) {
-                    const item = reservasi.items.find(i => i.id_menu === menuId);
-                    if (item) total += item.qty;
-                }
-            }
-            return total;
-        }
-
         function renderMenuGrid(cat) {
             const filtered = cat === 'semua' ? ALL_MENUS : ALL_MENUS.filter(m => m.kategori === cat);
 
             document.getElementById('menuGrid').innerHTML = filtered.map(m => {
-                const reservedQty = getReservedMenuQty(m.id);
-                const availableStok = Math.max(0, m.stok - reservedQty);
                 const inCart = state.cart.find(c => c.id === m.id);
-                const qty = inCart ? inCart.qty : 0;
+                const qtyInCart = inCart ? inCart.qty : 0;
+                const availableStok = getAvailableStok(m.id); // 🔥 pakai helper
                 const habis = availableStok <= 0;
 
-                // Foto Menu - Mirip contoh gambar (proporsional)
                 let imageHtml = '';
                 if (m.gambar) {
                     imageHtml = `
@@ -1068,43 +663,37 @@
             `;
                 }
 
-                // Stok Badge
                 let stokBadge = habis ?
                     `<span class="text-xs font-medium text-red-600">Habis</span>` :
-                    `<span class="text-xs font-medium text-gray-500">Stok ${availableStok}</span>`;
+                    `<span class="text-xs font-medium text-gray-500">Sisa ${availableStok}</span>`;
 
-                // Reservasi Badge
-                let reservBadge = reservedQty > 0 ?
-                    `<span class="text-xs font-medium text-purple-600">📅 ${reservedQty}</span>` :
-                    '';
-
-                // Tombol Tambah
                 let actionHtml = '';
                 if (!habis) {
-                    if (qty > 0) {
+                    if (qtyInCart > 0) {
+                        // Ada di cart → tampilkan badge qty
                         actionHtml = `
-                    <div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow">
-                        ${qty}
-                    </div>
-                `;
+            <div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow">
+                ${qtyInCart}
+            </div>
+        `;
                     } else {
+                        // Belum di cart → tampilkan tombol +
                         actionHtml = `
-                    <div onclick="addToCart(${m.id}); event.stopImmediatePropagation()" 
-                         class="absolute top-3 right-3 bg-amber-500 hover:bg-amber-600 w-8 h-8 flex items-center justify-center text-2xl text-white rounded-full shadow transition-all">
-                        +
-                    </div>
-                `;
+            <div onclick="addToCart(${m.id}); event.stopImmediatePropagation()" 
+                 class="absolute top-3 right-3 bg-amber-500 hover:bg-amber-600 w-8 h-8 flex items-center justify-center text-2xl text-white rounded-full shadow transition-all">
+                +
+            </div>
+        `;
                     }
+                } else {
+                    // Habis → tombol disabled (kosong)
+                    actionHtml = '';
                 }
 
                 return `
             <div onclick="${habis ? '' : `addToCart(${m.id})`}" 
                  class="group relative border border-gray-200 hover:border-amber-300 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-md">
-
-                <!-- Foto -->
                 ${imageHtml}
-
-                <!-- Isi Card -->
                 <div class="p-3">
                     <div class="text-xs text-gray-500 capitalize mb-1">${m.kategori || '-'}</div>
                     <div class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2 min-h-[40px]">
@@ -1114,13 +703,9 @@
                         ${formatRp(m.harga)}
                     </div>
                 </div>
-
-                <!-- Stok & Reservasi di bawah -->
                 <div class="px-3 pb-3 flex justify-between items-center text-xs">
                     <div>${stokBadge}</div>
-                    <div>${reservBadge}</div>
                 </div>
-
                 ${actionHtml}
             </div>
         `;
@@ -1139,8 +724,7 @@
         function addToCart(id) {
             const menu = ALL_MENUS.find(m => m.id === id);
             if (!menu) return;
-            const reservedQty = getReservedMenuQty(id);
-            const availableStok = menu.stok - reservedQty;
+            const availableStok = getAvailableStok(id);
             const existing = state.cart.find(c => c.id === id);
             if (existing && existing.qty >= availableStok) {
                 warnStok(menu.nama, availableStok);
@@ -1153,7 +737,6 @@
                 harga: menu.harga,
                 kategori: menu.kategori,
                 stok: menu.stok,
-                reservedStok: reservedQty,
                 emoji: menu.emoji,
                 qty: 1
             });
@@ -1203,8 +786,7 @@
             const idx = state.cart.findIndex(c => c.id === id);
             if (idx === -1) return;
             const menu = ALL_MENUS.find(m => m.id === id);
-            const reservedQty = getReservedMenuQty(id);
-            const availableStok = menu ? (menu.stok - reservedQty) : 0;
+            const availableStok = menu ? getAvailableStok(id) : 0;
             if (delta > 0 && state.cart[idx].qty >= availableStok) {
                 warnStok(state.cart[idx].nama, availableStok);
                 return;
@@ -1217,7 +799,7 @@
         }
 
         // ══════════════════════════════════════════════
-        // KONFIRMASI ORDER (SCR 5) — dine in & take away
+        // KONFIRMASI ORDER (SCR 5)
         // ══════════════════════════════════════════════
         function renderPayment() {
             const isDine = state.type === 'dine_in';
@@ -1318,8 +900,7 @@
                 .then(data => {
                     if (data.success) {
                         state.noTransaksi = data.no_transaksi;
-                        showSukses('order');
-                        loadReservasiAktif();
+                        showSukses();
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -1344,114 +925,30 @@
         }
 
         // ══════════════════════════════════════════════
-        // SIMPAN RESERVASI (SCR 4)
-        // ══════════════════════════════════════════════
-        function simpanReservasi() {
-            const nama = document.getElementById('reservNama').value.trim();
-            const tanggal = document.getElementById('reservTanggal').value;
-            const jam = document.getElementById('reservJam').value;
-            const catatan = document.getElementById('reservCatatan').value.trim();
-            if (!nama || !tanggal || !jam) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Data Tidak Lengkap',
-                    text: 'Kembali ke Info Customer untuk melengkapi data.',
-                    confirmButtonColor: '#9333ea'
-                });
-                return;
-            }
-            fetch('{{ route('kasir.order.store') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        tipe_order: 'reservasi',
-                        id_mejas: state.tableIds,
-                        nama_pelanggan: nama,
-                        tanggal_reservasi: tanggal,
-                        jam_reservasi: jam,
-                        catatan: catatan,
-                        items: state.cart.map(c => ({
-                            id: c.id,
-                            qty: c.qty,
-                            harga: c.harga
-                        })),
-                    }),
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        state.noTransaksi = data.no_transaksi;
-                        state.namaCustomer = nama;
-                        showSukses('reservasi');
-                        loadReservasiAktif();
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: data.message,
-                            confirmButtonColor: '#ef4444'
-                        });
-                    }
-                })
-                .catch(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Terjadi kesalahan koneksi.',
-                        confirmButtonColor: '#ef4444'
-                    });
-                });
-        }
-
-        // ══════════════════════════════════════════════
         // SUKSES (SCR 6)
         // ══════════════════════════════════════════════
-        function showSukses(mode) {
+        function showSukses() {
             const isDine = state.type === 'dine_in';
             const mejaInfo = state.tableNomors.length ? ` · Meja ${state.tableNomors.join(', ')}` : '';
-            if (mode === 'reservasi') {
-                document.getElementById('successBox').className =
-                    'bg-purple-50 border border-purple-200 rounded-2xl p-6 text-center';
-                document.getElementById('successIcon').textContent = '📅';
-                document.getElementById('successTitle').className = 'font-bold text-purple-700 text-lg';
-                document.getElementById('successTitle').textContent = 'Reservasi Tersimpan!';
-                document.getElementById('successSubText').className = 'text-sm text-purple-600 mt-2';
-                document.getElementById('successSubText').textContent = `${state.namaCustomer}${mejaInfo}`;
-                const infoBox = document.getElementById('successInfoBox');
-                infoBox.classList.remove('hidden');
-                infoBox.className =
-                    'bg-purple-50 border border-purple-200 rounded-xl p-4 text-xs text-purple-700 leading-relaxed';
-                infoBox.innerHTML = `<p class="font-bold mb-2">💡 Cara mengaktifkan reservasi:</p>
-                <ol class="list-decimal pl-4 space-y-1">
-                    <li>Buka menu <strong>Reservasi</strong></li>
-                    <li>Cari reservasi <strong>${state.noTransaksi || '-'}</strong></li>
-                    <li>Klik tombol <strong class="text-purple-700">✅ Aktifkan</strong></li>
-                    <li>Rincikan pesanan → tambah menu jika perlu → Lanjut → data masuk ke Riwayat</li>
-                </ol>`;
-            } else {
-                document.getElementById('successBox').className =
-                    'bg-green-50 border border-green-200 rounded-2xl p-6 text-center';
-                document.getElementById('successIcon').textContent = '🍳';
-                document.getElementById('successTitle').className = 'font-bold text-green-700 text-lg';
-                document.getElementById('successTitle').textContent = 'Order Terkirim ke Dapur!';
-                document.getElementById('successSubText').className = 'text-sm text-green-600 mt-2';
-                document.getElementById('successSubText').textContent =
-                    `${isDine ? '🍽️ Dine In' : '🥡 Take Away'}${mejaInfo} · ${state.namaCustomer}`;
-                const infoBox = document.getElementById('successInfoBox');
-                infoBox.classList.remove('hidden');
-                infoBox.className =
-                    'bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed';
-                infoBox.innerHTML = `<p class="font-bold mb-2">💡 Cara menagih setelah selesai:</p>
-                <ol class="list-decimal pl-4 space-y-1">
-                    <li>Buka menu <strong>Riwayat Transaksi</strong></li>
-                    <li>Cari order <strong>${state.noTransaksi || '-'}</strong></li>
-                    <li>Klik tombol <strong class="text-green-700">💳 Tagih</strong></li>
-                    <li>Masukkan jumlah bayar & konfirmasi</li>
-                </ol>`;
-            }
+            document.getElementById('successBox').className =
+                'bg-green-50 border border-green-200 rounded-2xl p-6 text-center';
+            document.getElementById('successIcon').textContent = '🍳';
+            document.getElementById('successTitle').className = 'font-bold text-green-700 text-lg';
+            document.getElementById('successTitle').textContent = 'Order Terkirim ke Dapur!';
+            document.getElementById('successSubText').className = 'text-sm text-green-600 mt-2';
+            document.getElementById('successSubText').textContent =
+                `${isDine ? '🍽️ Dine In' : '🥡 Take Away'}${mejaInfo} · ${state.namaCustomer}`;
+            const infoBox = document.getElementById('successInfoBox');
+            infoBox.classList.remove('hidden');
+            infoBox.className =
+                'bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed';
+            infoBox.innerHTML = `<p class="font-bold mb-2">💡 Cara menagih setelah selesai:</p>
+            <ol class="list-decimal pl-4 space-y-1">
+                <li>Buka menu <strong>Riwayat Transaksi</strong></li>
+                <li>Cari order <strong>${state.noTransaksi || '-'}</strong></li>
+                <li>Klik tombol <strong class="text-green-700">💳 Tagih</strong></li>
+                <li>Masukkan jumlah bayar & konfirmasi</li>
+            </ol>`;
             document.getElementById('btnNext').style.display = 'none';
             document.getElementById('flowHint').textContent = '';
             goScreen('6');
@@ -1475,8 +972,7 @@
             const base = 'relative border-2 rounded-2xl p-7 cursor-pointer transition-all ';
             document.getElementById('cardDine').className = base + 'border-gray-200 bg-white hover:border-gray-300';
             document.getElementById('cardTake').className = base + 'border-gray-200 bg-white hover:border-gray-300';
-            document.getElementById('cardReserv').className = base + 'border-gray-200 bg-white hover:border-gray-300';
-            ['Dine', 'Take', 'Reserv'].forEach(x => {
+            ['Dine', 'Take'].forEach(x => {
                 document.getElementById('chk' + x).className = document.getElementById('chk' + x).className.replace(
                     'flex', 'hidden');
             });
@@ -1499,11 +995,20 @@
             return 'Rp ' + n.toLocaleString('id-ID');
         }
 
+        // 🔥 Helper: Hitung stok tersedia = stok asli - qty di cart
+        function getAvailableStok(menuId) {
+            const menu = ALL_MENUS.find(m => m.id === menuId);
+            if (!menu) return 0;
+
+            const inCart = state.cart.find(c => c.id === menuId);
+            const qtyInCart = inCart ? inCart.qty : 0;
+
+            return Math.max(0, menu.stok - qtyInCart);
+        }
+
         // Init
         document.addEventListener('DOMContentLoaded', function() {
-            loadReservasiAktif();
             renderStepBar();
-            setMinReservasiDate();
         });
         renderStepBar();
     </script>

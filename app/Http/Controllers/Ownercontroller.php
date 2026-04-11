@@ -374,60 +374,29 @@ class OwnerController extends Controller
     }
 
     // ==========================================
-    // LAPORAN
+    // LAPORAN - TAMPILAN WEB
     // ==========================================
     public function laporan(Request $request)
     {
-        // ✅ VALIDASI INPUT
         $validated = $request->validate([
-            'dari' => [
-                'nullable',
-                'date',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('sampai') && $value > $request->sampai) {
-                        $fail('Tanggal "Dari" tidak boleh melebihi tanggal "Sampai".');
-                    }
-                    // Opsional: batasi maksimal 1 tahun ke belakang
-                    if ($value && \Carbon\Carbon::parse($value)->lt(\Carbon\Carbon::now()->subYears(2))) {
-                        $fail('Tanggal "Dari" tidak boleh lebih dari 2 tahun ke belakang.');
-                    }
-                },
-            ],
-            'sampai' => [
-                'nullable',
-                'date',
-                'date_format:Y-m-d',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('dari') && $value < $request->dari) {
-                        $fail('Tanggal "Sampai" tidak boleh sebelum tanggal "Dari".');
-                    }
-                    // Opsional: tidak boleh tanggal masa depan
-                    if ($value && \Carbon\Carbon::parse($value)->gt(\Carbon\Carbon::now())) {
-                        $fail('Tanggal "Sampai" tidak boleh melebihi hari ini.');
-                    }
-                },
-            ],
+            'dari'     => 'nullable|date|date_format:Y-m-d',
+            'sampai'   => 'nullable|date|date_format:Y-m-d|after_or_equal:dari',
             'id_kasir' => 'nullable|exists:users,id',
-            'export' => 'nullable|in:csv',
-        ], [
-            'dari.date' => 'Format tanggal "Dari" tidak valid.',
-            'sampai.date' => 'Format tanggal "Sampai" tidak valid.',
         ]);
 
-        // LOG: Owner melihat laporan
+        // LOG
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat laporan',
-            'detail' => 'Owner melihat laporan pendapatan' .
-                ($request->filled('dari') ? " ({$validated['dari']} s/d {$validated['sampai']})" : ''),
-            'waktu' => now(),
+            'detail'    => 'Owner melihat laporan pendapatan',
+            'waktu'     => now(),
         ]);
 
         $kasirs = User::where('role', 'kasir')->orderBy('nama')->get();
 
         $query = Transaksi::with(['kasir', 'detailTransaksi'])
-            ->where('status', 'lunas');
+            ->where('status', 'lunas')
+            ->latest();
 
         if ($request->filled('dari')) {
             $query->whereDate('tanggal', '>=', $validated['dari']);
@@ -439,24 +408,15 @@ class OwnerController extends Controller
             $query->where('id_kasir', $validated['id_kasir']);
         }
 
-        // ✅ HANDLE EXPORT CSV
-        if ($request->filled('export') && $request->export === 'csv') {
-            return $this->exportLaporanCsv($query, $request->all());
-        }
+        $transaksis = $query->get();
 
-        $transaksis = $query->latest()->get();
-
-        // Ringkasan Card
         $totalTransaksi = $transaksis->count();
         $totalPenjualan = $transaksis->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0);
         $totalPendapatan = $transaksis->sum('total_harga');
 
-        // Data Tabel
         $laporanData = $transaksis->groupBy(function ($trx) {
-            $tanggalStr = $trx->tanggal
-                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
-                : '0000-00-00';
-            return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
+            $tanggal = $trx->tanggal ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d') : '0000-00-00';
+            return $tanggal . '|' . ($trx->id_kasir ?? 'unknown');
         })->map(function ($group) {
             $first = $group->first();
             return [
@@ -468,20 +428,12 @@ class OwnerController extends Controller
             ];
         })->values();
 
-        // Data Grafik
         $chartData = $transaksis->groupBy(function ($trx) {
-            return $trx->tanggal
-                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
-                : '0000-00-00';
-        })->map(function ($group) {
-            $first = $group->first();
-            return [
-                'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d M') : 'No Date',
-                'pendapatan' => $group->sum('total_harga')
-            ];
-        })->sortBy(function ($item) {
-            return \Carbon\Carbon::parse($item['tanggal']);
-        })->values();
+            return $trx->tanggal ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d') : '0000-00-00';
+        })->map(fn($group) => [
+            'tanggal'    => \Carbon\Carbon::parse($group->first()->tanggal)->format('d M'),
+            'pendapatan' => $group->sum('total_harga')
+        ])->values();
 
         return view('owner.laporan', compact(
             'kasirs',
@@ -493,104 +445,74 @@ class OwnerController extends Controller
         ));
     }
 
-    /**
-     * Export laporan ke format CSV
-     */
-    private function exportLaporanCsv($query, array $filters)
+    // ==========================================
+    // EXPORT EXCEL
+    // ==========================================
+    public function exportExcel(Request $request)
     {
-        try {
-            // Ambil data dengan filter yang sama
-            $transaksis = $query->latest()->get();
+        $validated = $request->validate([
+            'dari'     => 'nullable|date|date_format:Y-m-d',
+            'sampai'   => 'nullable|date|date_format:Y-m-d|after_or_equal:dari',
+            'id_kasir' => 'nullable|exists:users,id',
+        ]);
 
-            // Grouping sama seperti view
-            $laporanData = $transaksis->groupBy(function ($trx) {
-                $tanggalStr = $trx->tanggal
-                    ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
-                    : '0000-00-00';
-                return $tanggalStr . '|' . ($trx->id_kasir ?? 'unknown');
-            })->map(function ($group) {
-                $first = $group->first();
-                return [
-                    'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
-                    'kasir'      => $first->kasir?->nama ?? '-',
-                    'transaksi'  => $group->count(),
-                    'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
-                    'pendapatan' => $group->sum('total_harga'),
-                ];
-            })->values();
+        $query = Transaksi::with(['kasir', 'detailTransaksi'])
+            ->where('status', 'lunas')
+            ->latest();
 
-            // Siapkan nama file
-            $filename = 'laporan_pendapatan_' . date('Y-m-d_His') . '.csv';
-
-            // Headers yang benar untuk CSV download
-            $headers = [
-                'Content-Type'        => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Cache-Control'       => 'no-store, no-cache, must-revalidate',
-                'Pragma'              => 'no-cache',
-                'Expires'             => '0',
-            ];
-
-            // Buffer output untuk mencegah whitespace/error keluar duluan
-            if (ob_get_level()) {
-                ob_end_clean();
-            }
-
-            // Generate CSV content di memory (lebih aman daripada stream langsung)
-            $output = fopen('php://temp', 'r+');
-
-            // BOM untuk Excel support UTF-8
-            fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            // Header info
-            fputcsv($output, ['LAPORAN PENDAPATAN']);
-            fputcsv($output, ['Periode: ' . ($filters['dari'] ?? '-') . ' s/d ' . ($filters['sampai'] ?? '-')]);
-            fputcsv($output, [
-                'Kasir: ' .
-                    (!empty($filters['id_kasir'])
-                        ? (\App\Models\User::find($filters['id_kasir'])?->nama ?? '-')
-                        : 'Semua Kasir')
-            ]);
-            fputcsv($output, ['']); // Empty row
-
-            // Column headers
-            fputcsv($output, ['No', 'Tanggal', 'Kasir', 'Jumlah Transaksi', 'Total Item Terjual', 'Pendapatan (Rp)']);
-
-            // Data rows
-            foreach ($laporanData as $index => $row) {
-                fputcsv($output, [
-                    $index + 1,
-                    $row['tanggal'],
-                    $row['kasir'],
-                    $row['transaksi'],
-                    $row['penjualan'],
-                    number_format($row['pendapatan'], 0, ',', '.'),
-                ]);
-            }
-
-            // Total row
-            fputcsv($output, ['']);
-            fputcsv($output, [
-                'TOTAL',
-                '',
-                '',
-                $laporanData->sum('transaksi') . ' transaksi',
-                $laporanData->sum('penjualan') . ' item',
-                'Rp ' . number_format($laporanData->sum('pendapatan'), 0, ',', '.'),
-            ]);
-
-            // Rewind dan ambil content
-            rewind($output);
-            $csvContent = stream_get_contents($output);
-            fclose($output);
-
-            // Return response dengan content yang sudah jadi
-            return response($csvContent, 200, $headers);
-        } catch (\Exception $e) {
-            // Kalau error, redirect back dengan pesan error
-            \Log::error('Export CSV Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal export: ' . $e->getMessage());
+        if ($request->filled('dari')) {
+            $query->whereDate('tanggal', '>=', $validated['dari']);
         }
+        if ($request->filled('sampai')) {
+            $query->whereDate('tanggal', '<=', $validated['sampai']);
+        }
+        if ($request->filled('id_kasir')) {
+            $query->where('id_kasir', $validated['id_kasir']);
+        }
+
+        $transaksis = $query->get();
+
+        $export = new \App\Exports\LaporanPendapatanExport($transaksis, $validated);
+        $filename = 'laporan_pendapatan_' . now()->format('Ymd_His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    // ==========================================
+    // EXPORT PDF
+    // ==========================================
+    public function exportPdf(Request $request)
+    {
+        $validated = $request->validate([
+            'dari'     => 'nullable|date|date_format:Y-m-d',
+            'sampai'   => 'nullable|date|date_format:Y-m-d|after_or_equal:dari',
+            'id_kasir' => 'nullable|exists:users,id',
+        ]);
+
+        $query = Transaksi::with(['kasir', 'detailTransaksi'])
+            ->where('status', 'lunas')
+            ->latest();
+
+        if ($request->filled('dari')) {
+            $query->whereDate('tanggal', '>=', $validated['dari']);
+        }
+        if ($request->filled('sampai')) {
+            $query->whereDate('tanggal', '<=', $validated['sampai']);
+        }
+        if ($request->filled('id_kasir')) {
+            $query->where('id_kasir', $validated['id_kasir']);
+        }
+
+        $transaksis = $query->get();
+
+        $export = new \App\Exports\LaporanPendapatanExport($transaksis, $validated);
+        $filename = 'laporan_pendapatan_' . now()->format('Ymd_His') . '.pdf';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            $export,
+            $filename,
+            \Maatwebsite\Excel\Excel::DOMPDF
+        );
     }
 
     // ==========================================

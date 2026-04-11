@@ -14,9 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class KasirController extends Controller
 {
-    const STATUS_TUNGGAK   = 'tunggak';
-    const STATUS_LUNAS     = 'lunas';
-    const STATUS_RESERVASI = 'reservasi';
+    const STATUS_TUNGGAK = 'tunggak';
+    const STATUS_LUNAS   = 'lunas';
 
     // ==========================================
     // DASHBOARD KASIR
@@ -42,13 +41,10 @@ class KasirController extends Controller
             ->whereDate('tanggal', $today)
             ->count();
 
-        $totalReservasi = Transaksi::where('status', self::STATUS_RESERVASI)
-            ->whereDate('tanggal', $today)
-            ->count();
-
         $transaksiTerakhir = Transaksi::with(['meja', 'kasir', 'detailTransaksi'])
             ->where('id_kasir', $idKasir)
             ->whereDate('tanggal', $today)
+            ->where('status', '!=', 'batal')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
@@ -57,24 +53,22 @@ class KasirController extends Controller
                 $totalMenu = $trx->detailTransaksi->count();
 
                 $statusColor = match ($trx->status) {
-                    'lunas'     => 'green',
-                    'tunggak'   => 'red',
-                    'reservasi' => 'blue',
-                    default     => 'gray',
+                    'lunas'   => 'green',
+                    'tunggak' => 'red',
+                    default   => 'gray',
                 };
 
                 $statusLabel = match ($trx->status) {
-                    'lunas'     => 'Lunas',
-                    'tunggak'   => 'Belum Bayar',
-                    'reservasi' => 'Reservasi',
-                    default     => ucfirst($trx->status),
+                    'lunas'   => 'Lunas',
+                    'tunggak' => 'Belum Bayar',
+                    default   => ucfirst($trx->status),
                 };
 
                 return (object)[
                     'id'            => $trx->id,
                     'no_transaksi'  => $trx->no_transaksi,
                     'kasir_nama'    => $trx->kasir->nama ?? '-',
-                    'tipe_order'    => $trx->jenis_pemesanan === 'dine_in' ? 'Dine in' : ($trx->jenis_pemesanan === 'reservasi' ? 'Reservasi' : 'Take away'),
+                    'tipe_order'    => $trx->jenis_pemesanan === 'dine_in' ? 'Dine in' : 'Take away',
                     'meja'          => $trx->meja->no_meja ?? '-',
                     'item_text'     => $totalMenu . '/' . $totalItem,
                     'total_harga'   => $trx->total_harga,
@@ -97,7 +91,6 @@ class KasirController extends Controller
             'meja_tersedia'      => $mejaTersedia,
             'total_meja'         => $totalMeja,
             'pending_tagihan'    => $pendingTagihan,
-            'total_reservasi'    => $totalReservasi,
             'transaksi_terakhir' => $transaksiTerakhir,
         ];
 
@@ -133,8 +126,7 @@ class KasirController extends Controller
                 'kategori'    => $m->kategori->nama_kategori ?? 'Lainnya',
                 'emoji'       => $m->emoji ?? '🍽️',
                 'stok'        => (int) $m->stok,
-                'gambar'      => $m->gambar,           // ← INI YANG DITAMBAHKAN
-                'nama_makanan' => $m->nama_makanan,     // cadangan
+                'gambar'      => $m->gambar,
             ]);
 
         Log::create([
@@ -148,26 +140,20 @@ class KasirController extends Controller
     }
 
     // ==========================================
-    // SIMPAN TRANSAKSI BARU (Kirim Dapur / Reservasi)
+    // SIMPAN TRANSAKSI BARU (Kirim Dapur)
     // ==========================================
     public function orderStore(Request $request)
     {
-        $isReservasi = $request->tipe_order === 'reservasi';
-
         $request->validate([
-            'tipe_order'        => 'required|in:dine_in,take_away,reservasi',
-            'id_mejas'          => 'required_if:tipe_order,dine_in|required_if:tipe_order,reservasi|nullable|array',
-            'id_mejas.*'        => 'integer|exists:meja,id',
-            'nama_pelanggan'    => 'required|string|max:100',
-            'bayar_nanti'       => 'boolean',
-            'items'             => 'required_unless:tipe_order,reservasi|nullable|array',
-            'items.*.id'        => 'required_with:items|integer',
-            'items.*.qty'       => 'required_with:items|integer|min:1',
-            'items.*.harga'     => 'required_with:items|integer|min:0',
-            'tanggal_reservasi' => 'required_if:tipe_order,reservasi|nullable|date|after_or_equal:today',
-            'jam_reservasi' => 'required_if:tipe_order,reservasi|nullable|string',
-            'jumlah_orang' => 'nullable|integer|min:1',
-            'catatan' => 'nullable|string|max:255',
+            'tipe_order'     => 'required|in:dine_in,take_away',
+            'id_mejas'       => 'required_if:tipe_order,dine_in|nullable|array',
+            'id_mejas.*'     => 'integer|exists:meja,id',
+            'nama_pelanggan' => 'required|string|max:100',
+            'bayar_nanti'    => 'boolean',
+            'items'          => 'required|array',
+            'items.*.id'     => 'required|integer',
+            'items.*.qty'    => 'required|integer|min:1',
+            'items.*.harga'  => 'required|integer|min:0',
         ]);
 
         $idMejas = $request->input('id_mejas', []);
@@ -175,17 +161,11 @@ class KasirController extends Controller
         DB::beginTransaction();
 
         try {
-            $total       = collect($request->items ?? [])->sum(fn($i) => $i['harga'] * $i['qty']);
+            $total       = collect($request->items)->sum(fn($i) => $i['harga'] * $i['qty']);
             $noTransaksi = 'TRX-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
             $idMejaUtama = !empty($idMejas) ? $idMejas[0] : null;
 
-            if ($isReservasi) {
-                $jenisPemesanan = 'reservasi';
-                $statusAwal     = self::STATUS_RESERVASI;
-            } else {
-                $jenisPemesanan = $request->tipe_order === 'dine_in' ? 'dine_in' : 'takeaway';
-                $statusAwal     = self::STATUS_TUNGGAK;
-            }
+            $jenisPemesanan = $request->tipe_order === 'dine_in' ? 'dine_in' : 'takeaway';
 
             $transaksi = Transaksi::create([
                 'id_kasir'          => Auth::id(),
@@ -197,14 +177,11 @@ class KasirController extends Controller
                 'total_harga'       => $total,
                 'jumlah_bayar'      => 0,
                 'kembalian'         => 0,
-                'status'            => $statusAwal,
-                'waktu_pemesanan'   => $isReservasi ? $request->tanggal_reservasi . ' ' . $request->jam_reservasi . ':00' : null,
-                'jam_reservasi'     => $isReservasi ? $request->jam_reservasi : null,
-                'jumlah_orang'      => $isReservasi ? $request->jumlah_orang : null,
-                'catatan'           => $request->catatan ?? null,
+                'status'            => self::STATUS_TUNGGAK,
+                'waktu_pemesanan'   => now(),
             ]);
 
-            foreach ($request->items ?? [] as $item) {
+            foreach ($request->items as $item) {
                 DetailTransaksi::create([
                     'id_transaksi' => $transaksi->id,
                     'id_menu'      => $item['id'],
@@ -215,32 +192,31 @@ class KasirController extends Controller
                 Menu::where('id', $item['id'])->decrement('stok', $item['qty']);
             }
 
-            if (!$isReservasi && $request->tipe_order === 'dine_in' && !empty($idMejas)) {
+            if ($request->tipe_order === 'dine_in' && !empty($idMejas)) {
                 Meja::whereIn('id', $idMejas)->update(['status' => 'terisi']);
             }
 
             DB::commit();
 
             $namaMejas     = !empty($idMejas) ? Meja::whereIn('id', $idMejas)->pluck('no_meja')->join(', ') : null;
-            $tipeOrderText = $isReservasi ? 'Reservasi' : ($request->tipe_order === 'dine_in' ? 'Dine In' : 'Take Away');
+            $tipeOrderText = $request->tipe_order === 'dine_in' ? 'Dine In' : 'Take Away';
             $mejaText      = $namaMejas ? ' - Meja: ' . $namaMejas : '';
 
             Log::create([
                 'id_user'   => Auth::id(),
-                'aktivitas' => $isReservasi ? 'Membuat reservasi' : 'Membuat transaksi baru',
+                'aktivitas' => 'Membuat transaksi baru',
                 'detail'    => 'Transaksi #' . $noTransaksi . ' - ' . $tipeOrderText . $mejaText .
-                    ($isReservasi ? ' - Tgl: ' . $request->tanggal_reservasi . ' ' . $request->jam_reservasi . ' - ' . $request->jumlah_orang . ' orang' : '') .
                     ' - Total: Rp ' . number_format($total, 0, ',', '.'),
                 'waktu'     => now(),
             ]);
 
             return response()->json([
                 'success'      => true,
-                'message'      => $isReservasi ? 'Reservasi berhasil disimpan.' : 'Order dikirim ke dapur.',
+                'message'      => 'Order dikirim ke dapur.',
                 'id_transaksi' => $transaksi->id,
                 'no_transaksi' => $noTransaksi,
                 'tipe'         => $request->tipe_order,
-                'status'       => $statusAwal,
+                'status'       => self::STATUS_TUNGGAK,
                 'total'        => $total,
                 'nama_mejas'   => $namaMejas,
             ]);
@@ -262,125 +238,6 @@ class KasirController extends Controller
     }
 
     // ==========================================
-    // HALAMAN RESERVASI
-    // ==========================================
-    public function reservasiIndex()
-    {
-        $reservasis = Transaksi::where('jenis_pemesanan', 'reservasi')
-            ->with(['detailTransaksi.menu', 'meja', 'kasir'])
-            ->latest()                    // atau orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($r) {
-                $r->nama_kasir = $r->kasir->nama ?? '-';
-                $r->nama_meja  = $r->meja->no_meja ?? '-';
-
-                $r->tanggal_reservasi = $r->waktu_pemesanan
-                    ? Carbon::parse($r->waktu_pemesanan)->toDateString()
-                    : null;
-
-                $r->jam_reservasi = $r->waktu_pemesanan
-                    ? Carbon::parse($r->waktu_pemesanan)->format('H:i')
-                    : null;
-
-                $r->items = $r->detailTransaksi->map(fn($d) => [
-                    'id_menu'      => $d->id_menu,
-                    'nama'         => $d->menu->nama_makanan ?? '-',
-                    'qty'          => $d->qty,
-                    'harga_satuan' => $d->harga_satuan,
-                    'emoji'        => $d->menu->emoji ?? '🍽️',
-                    'kategori'     => $d->menu->kategori->nama_kategori ?? '-'
-                ]);
-
-                return $r;
-            });
-
-        $menus = Menu::where('stok', '>', 0)
-            ->orderBy('nama_makanan')
-            ->get()
-            ->map(fn($m) => (object)[
-                'id'       => $m->id,
-                'nama'     => $m->nama_makanan,
-                'harga'    => (int)$m->harga,
-                'kategori' => $m->kategori->nama_kategori ?? 'Lainnya',
-                'emoji'    => $m->emoji ?? '🍽️',
-                'stok'     => (int)$m->stok,
-            ]);
-
-        return view('kasir.reservasi', compact('reservasis', 'menus'));
-    }
-
-    // ==========================================
-    // AKTIFKAN RESERVASI (dari modal)
-    // ==========================================
-    public function aktifkanReservasi(Request $request, $id)
-    {
-        DB::beginTransaction();
-        try {
-            $transaksi = Transaksi::with('detailTransaksi')->findOrFail($id);
-
-            if ($transaksi->status !== self::STATUS_RESERVASI) {
-                return response()->json(['success' => false, 'message' => 'Bukan reservasi yang valid.'], 422);
-            }
-
-            // Hapus semua detail lama, ganti dengan item terbaru dari modal
-            // (modal cart sudah berisi pre-order + tambahan sekaligus)
-            $existingIds = $transaksi->detailTransaksi->pluck('id_menu')->toArray();
-            $existingQty = $transaksi->detailTransaksi->pluck('qty', 'id_menu')->toArray();
-
-            // Kembalikan stok item lama dulu sebelum di-replace
-            foreach ($transaksi->detailTransaksi as $old) {
-                Menu::where('id', $old->id_menu)->increment('stok', $old->qty);
-            }
-            $transaksi->detailTransaksi()->delete();
-
-            $total = 0;
-            foreach ($request->items ?? [] as $item) {
-                DetailTransaksi::create([
-                    'id_transaksi' => $transaksi->id,
-                    'id_menu'      => $item['id'],
-                    'qty'          => $item['qty'],
-                    'harga_satuan' => $item['harga'],
-                    'subtotal'     => $item['harga'] * $item['qty'],
-                ]);
-                Menu::where('id', $item['id'])->decrement('stok', $item['qty']);
-                $total += $item['harga'] * $item['qty'];
-            }
-
-            $transaksi->update([
-                'status'          => self::STATUS_TUNGGAK,
-                'jenis_pemesanan' => 'dine_in',
-                'tanggal'         => now(),
-                'total_harga'     => $total,
-            ]);
-
-            if ($transaksi->id_meja) {
-                Meja::where('id', $transaksi->id_meja)->update(['status' => 'terisi']);
-            }
-
-            DB::commit();
-
-            Log::create([
-                'id_user'   => Auth::id(),
-                'aktivitas' => 'Mengaktifkan reservasi',
-                'detail'    => 'Reservasi #' . $transaksi->no_transaksi . ' diaktifkan - Total: Rp ' . number_format($total, 0, ',', '.'),
-                'waktu'     => now(),
-            ]);
-
-            return response()->json([
-                'success'      => true,
-                'message'      => 'Reservasi berhasil diaktifkan.',
-                'no_transaksi' => $transaksi->no_transaksi,
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // ==========================================
     // BATALKAN TRANSAKSI
     // ==========================================
     public function batalTransaksi($id)
@@ -389,7 +246,6 @@ class KasirController extends Controller
         try {
             $transaksi = Transaksi::with('detailTransaksi')->findOrFail($id);
 
-            // Cek kalau sudah lunas, tidak boleh dibatalkan
             if ($transaksi->status === self::STATUS_LUNAS) {
                 return response()->json([
                     'success' => false,
@@ -397,25 +253,20 @@ class KasirController extends Controller
                 ], 400);
             }
 
-            // Kembalikan stok menu yang sudah dipesan
             foreach ($transaksi->detailTransaksi as $detail) {
                 Menu::where('id', $detail->id_menu)->increment('stok', $detail->qty);
             }
 
-            // Kembalikan status meja jadi tersedia (khusus dine_in)
             if (in_array($transaksi->jenis_pemesanan, ['dine_in']) && $transaksi->id_meja) {
                 Meja::where('id', $transaksi->id_meja)->update(['status' => 'tersedia']);
             }
 
-            // === PERUBAHAN UTAMA ===
-            $transaksi->update([
-                'status' => 'batal'        // hanya ubah status, TIDAK DIHAPUS
-            ]);
+            $transaksi->update(['status' => 'batal']);
 
             Log::create([
                 'id_user'   => Auth::id(),
-                'aktivitas' => 'Membatalkan reservasi',
-                'detail'    => 'Membatalkan reservasi #' . ($transaksi->no_transaksi ?? 'TRX-' . $transaksi->id),
+                'aktivitas' => 'Membatalkan transaksi',
+                'detail'    => 'Membatalkan transaksi #' . ($transaksi->no_transaksi ?? 'TRX-' . $transaksi->id),
                 'waktu'     => now(),
             ]);
 
@@ -423,65 +274,26 @@ class KasirController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Reservasi berhasil dibatalkan.'
+                'message' => 'Transaksi berhasil dibatalkan.'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membatalkan reservasi: ' . $e->getMessage()
+                'message' => 'Gagal membatalkan: ' . $e->getMessage()
             ], 500);
         }
     }
 
     // ==========================================
-    // GET RESERVASI AKTIF (untuk polling di halaman reservasi)
-    // ==========================================
-    public function getReservasiAktif()
-    {
-        $reservasis = Transaksi::where('jenis_pemesanan', 'reservasi')
-            ->where('status', self::STATUS_RESERVASI)
-            ->whereDate('tanggal_reservasi', '>=', now()->subDay()) // H+1 masih tampil
-            ->with(['detailTransaksi', 'meja'])
-            ->get()
-            ->map(function ($r) {
-                return [
-                    'id' => $r->id,
-                    'id_meja' => $r->id_meja,
-                    'tanggal_reservasi' => $r->tanggal_reservasi,
-                    'jam_reservasi' => $r->jam_reservasi,
-                    'status' => $r->status,
-                    'items' => $r->detailTransaksi->map(function ($d) {
-                        return [
-                            'id_menu' => $d->id_menu,
-                            'qty' => $d->qty,
-                            'nama' => $d->menu->nama_makanan ?? '-'
-                        ];
-                    })
-                ];
-            });
-
-        return response()->json([
-            'success' => true,
-            'data' => $reservasis
-        ]);
-    }
-
-    // ==========================================
-    // RIWAYAT TRANSAKSI (Hanya transaksi yang sudah aktif)
+    // RIWAYAT TRANSAKSI
     // ==========================================
     public function riwayat(Request $request)
     {
         $transaksis = Transaksi::with(['detailTransaksi.menu', 'meja', 'kasir'])
             ->whereDate('created_at', Carbon::today())
-            ->where('status', '!=', 'batal')                    // ← Tambahkan ini
-            ->where(function ($query) {
-                $query->where('jenis_pemesanan', '!=', 'reservasi')
-                    ->orWhere(function ($q) {
-                        $q->where('jenis_pemesanan', 'reservasi')
-                            ->where('status', '!=', self::STATUS_RESERVASI); // ini boleh tetap
-                    });
-            })
+            ->where('status', '!=', 'batal')
+            ->where('jenis_pemesanan', '!=', 'reservasi')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($t) {
@@ -489,8 +301,6 @@ class KasirController extends Controller
                 $t->nama_pelanggan = $t->nama_pelanggan ?? '-';
                 $t->nama_meja      = $t->meja->no_meja ?? null;
                 $t->tipe_order     = $t->jenis_pemesanan;
-                $t->tanggal_reservasi = $t->tanggal_reservasi;
-                $t->jam_reservasi     = $t->jam_reservasi;
                 $t->items = $t->detailTransaksi->map(function ($d) {
                     return (object)[
                         'nama'         => $d->menu->nama_makanan ?? '-',
@@ -587,38 +397,31 @@ class KasirController extends Controller
     }
 
     // ==========================================
-    // INDEX MENU
+    // INDEX MENU & MEJA
     // ==========================================
     public function indexMenu()
     {
         $menus = Menu::with('kategori')->orderBy('nama_makanan')->get();
-
         Log::create([
             'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat daftar menu',
             'detail'    => 'Kasir melihat ' . $menus->count() . ' menu',
             'waktu'     => now(),
         ]);
-
         return view('kasir.menu', compact('menus'));
     }
 
-    // ==========================================
-    // INDEX MEJA
-    // ==========================================
     public function indexMeja()
     {
         $mejas   = Meja::orderBy('no_meja')->get();
         $tersedia = $mejas->where('status', 'tersedia')->count();
         $terisi   = $mejas->where('status', 'terisi')->count();
-
         Log::create([
             'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat daftar meja',
             'detail'    => 'Kasir melihat ' . $mejas->count() . ' meja (Tersedia: ' . $tersedia . ', Terisi: ' . $terisi . ')',
             'waktu'     => now(),
         ]);
-
         return view('kasir.meja', compact('mejas', 'tersedia', 'terisi'));
     }
 }

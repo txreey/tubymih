@@ -91,12 +91,12 @@
                     </a>
 
                     <!-- Menu Reservasi yang baru ditambahkan -->
-                    <a href="{{ route('kasir.reservasi') }}"
+                    {{-- <a href="{{ route('kasir.reservasi') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
                               {{ request()->routeIs('kasir.reservasi') ? 'bg-teal-800/50 text-teal-300 border-l-4 border-teal-400' : 'text-teal-200/80 hover:bg-teal-900/40 hover:text-white' }}">
                         <i class="fas fa-calendar-alt w-5 text-center"></i>
                         Reservasi
-                    </a>
+                    </a> --}}
                 </nav>
             </div>
 

@@ -15,7 +15,7 @@
             </div>
 
             <!-- Quick Action Buttons -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4"> {{-- Changed from 3 to 2 columns --}}
                 <a href="{{ route('kasir.order.index') }}"
                     class="group bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center">
                     <svg class="w-10 h-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,54 +33,9 @@
                     </svg>
                     <span class="font-semibold text-lg">Riwayat Transaksi</span>
                 </a>
-
-                <a href="{{ route('kasir.reservasi') }}"
-                    class="group bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center">
-                    <svg class="w-10 h-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span class="font-semibold text-lg">Reservasi</span>
-                </a>
-
-                <!-- 3. Total Reservasi -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Total Reservasi</p>
-                            <p class="text-4xl font-bold text-blue-600 mt-3">
-                                {{ number_format($data['total_reservasi']) }}
-                            </p>
-                        </div>
-                        <div class="text-blue-500 bg-blue-50 p-4 rounded-2xl">
-                            <i class="fas fa-calendar-alt text-4xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Tagih Tagihan (Bisa Diklik) -->
-                <!-- 4. Pending Tagihan (Bisa Diklik) -->
-                <a href="{{ route('kasir.riwayat') }}?status=tunggak"
-                    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow block">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Pending Tagihan</p>
-                            <p class="text-4xl font-bold text-red-600 mt-3">
-                                {{ number_format($data['pending_tagihan']) }}
-                            </p>
-                        </div>
-                        <div class="text-red-500 bg-red-50 p-4 rounded-2xl">
-                            <i class="fas fa-hand-holding-dollar text-4xl"></i>
-                        </div>
-                    </div>
-                    <p class="text-xs text-red-600 mt-4 font-medium flex items-center gap-1">
-                        <span>Klik untuk tagih</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </p>
-                </a>
             </div>
 
-            <!-- Stat Cards - 4 Card per Baris -->
+            <!-- Stat Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 <!-- 1. Transaksi Hari Ini -->
@@ -114,24 +69,41 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-8">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500">Pemasukan Hari Ini</p>
-                                <p class="text-5xl font-bold text-emerald-600 mt-4">
-                                    Rp {{ number_format($data['pendapatan_hari'], 0, ',', '.') }}
-                                </p>
-                            </div>
-                            <div class="text-emerald-500 bg-emerald-50 p-6 rounded-3xl">
-                                <i class="fas fa-wallet text-6xl"></i>
-                            </div>
+                <!-- 3. Pemasukan Hari Ini -->
+                <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6 hover:shadow transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Pemasukan Hari Ini</p>
+                            <p class="text-3xl font-bold text-emerald-600 mt-2">
+                                Rp {{ number_format($data['pendapatan_hari'], 0, ',', '.') }}
+                            </p>
+                        </div>
+                        <div class="text-emerald-500 bg-emerald-50 p-4 rounded-2xl">
+                            <i class="fas fa-wallet text-4xl"></i>
                         </div>
                     </div>
                 </div>
 
+                <!-- 4. Pending Tagihan -->
+                <a href="{{ route('kasir.riwayat') }}?status=tunggak"
+                    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow block">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Pending Tagihan</p>
+                            <p class="text-4xl font-bold text-red-600 mt-3">
+                                {{ number_format($data['pending_tagihan']) }}
+                            </p>
+                        </div>
+                        <div class="text-red-500 bg-red-50 p-4 rounded-2xl">
+                            <i class="fas fa-hand-holding-dollar text-4xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-red-600 mt-4 font-medium flex items-center gap-1">
+                        <span>Klik untuk tagih</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </p>
+                </a>
             </div>
-
 
             <!-- Transaksi Terakhir -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -195,29 +167,21 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="inline-flex px-3 py-1 text-xs font-medium rounded-full
-                                                {{ $trx->tipe_order == 'Dine in'
-                                                    ? 'bg-amber-100 text-amber-700'
-                                                    : ($trx->tipe_order == 'Reservasi'
-                                                        ? 'bg-purple-100 text-purple-700'
-                                                        : 'bg-teal-100 text-teal-700') }}">
+                                                {{ $trx->tipe_order == 'Dine in' ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700' }}">
                                                 {{ $trx->tipe_order }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $trx->meja }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {{ $trx->item_text }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $trx->item_text }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                             Rp {{ number_format($trx->total_harga, 0, ',', '.') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="inline-flex px-3 py-1 text-xs font-medium rounded-full
-                                                {{ $trx->status_color == 'green'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : ($trx->status_color == 'red'
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : 'bg-blue-100 text-blue-700') }}">
+                                                {{ $trx->status_color == 'green' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                                 {{ $trx->status_label }}
                                             </span>
                                         </td>

@@ -29,39 +29,39 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-        // Users – pakai prefix resource 'users' biar konsisten sama yang lain
+        // Users
         Route::prefix('users')->name('users.')->group(function () {
-            Route::get('/',                          [AdminController::class, 'indexUser'])->name('index');
-            Route::post('/',                         [AdminController::class, 'storeUser'])->name('store');
-            Route::put('/{user}',                    [AdminController::class, 'updateUser'])->name('update');
-            Route::delete('/{user}',                 [AdminController::class, 'destroyUser'])->name('destroy');
-            Route::post('/{user}/toggle-status',     [AdminController::class, 'toggleStatus'])->name('toggleStatus');
+            Route::get('/',                      [AdminController::class, 'indexUser'])->name('index');
+            Route::post('/',                     [AdminController::class, 'storeUser'])->name('store');
+            Route::put('/{user}',                [AdminController::class, 'updateUser'])->name('update');
+            Route::delete('/{user}',             [AdminController::class, 'destroyUser'])->name('destroy');
+            Route::post('/{user}/toggle-status', [AdminController::class, 'toggleStatus'])->name('toggleStatus');
         });
 
         // Meja
         Route::prefix('meja')->name('meja.')->group(function () {
-            Route::get('/',        [AdminController::class, 'indexMeja'])->name('index');
-            Route::post('/',       [AdminController::class, 'storeMeja'])->name('store');
-            Route::put('/{meja}',  [AdminController::class, 'updateMeja'])->name('update');
+            Route::get('/',          [AdminController::class, 'indexMeja'])->name('index');
+            Route::post('/',         [AdminController::class, 'storeMeja'])->name('store');
+            Route::put('/{meja}',    [AdminController::class, 'updateMeja'])->name('update');
             Route::delete('/{meja}', [AdminController::class, 'destroyMeja'])->name('destroy');
         });
 
         // Kategori
         Route::prefix('kategori')->name('kategori.')->group(function () {
-            Route::get('/',            [AdminController::class, 'indexKategori'])->name('index');
-            Route::post('/',           [AdminController::class, 'storeKategori'])->name('store');
-            Route::put('/{kategori}',  [AdminController::class, 'updateKategori'])->name('update');
+            Route::get('/',              [AdminController::class, 'indexKategori'])->name('index');
+            Route::post('/',             [AdminController::class, 'storeKategori'])->name('store');
+            Route::put('/{kategori}',    [AdminController::class, 'updateKategori'])->name('update');
             Route::delete('/{kategori}', [AdminController::class, 'destroyKategori'])->name('destroy');
         });
 
         // Menu
         Route::prefix('menu')->name('menu.')->group(function () {
-            Route::get('/',        [AdminController::class, 'indexMenu'])->name('index');
-            Route::post('/',       [AdminController::class, 'storeMenu'])->name('store');
-            Route::put('/{menu}',  [AdminController::class, 'updateMenu'])->name('update');
-            Route::delete('/{menu}', [AdminController::class, 'destroyMenu'])->name('destroy');
-            // Tambahkan route ini untuk cek pesanan
-            Route::get('/{menu}/check-orders', [AdminController::class, 'checkOrders'])->name('checkOrders');
+            Route::get('/',                          [AdminController::class, 'indexMenu'])->name('index');
+            Route::post('/',                         [AdminController::class, 'storeMenu'])->name('store');
+            Route::put('/{menu}',                    [AdminController::class, 'updateMenu'])->name('update');
+            Route::delete('/{menu}',                 [AdminController::class, 'destroyMenu'])->name('destroy');
+            Route::get('/{id}/check-orders',         [AdminController::class, 'checkOrders'])->name('checkOrders');
+            Route::post('/{menu}/toggle-status',     [AdminController::class, 'toggleStatusMenu'])->name('toggleStatus');
         });
 
         // Riwayat Transaksi
@@ -143,6 +143,9 @@ Route::middleware(['auth', 'role:owner'])
 
         Route::get('/riwayat-transaksi', [OwnerController::class, 'riwayatTransaksi'])->name('riwayat');
         Route::get('/laporan', [OwnerController::class, 'laporan'])->name('laporan');
+
+        Route::get('/laporan/export-excel', [OwnerController::class, 'exportExcel'])->name('laporan.export.excel');
+        Route::get('/laporan/export-pdf',   [OwnerController::class, 'exportPdf'])->name('laporan.export.pdf');
 
         // LOG AKTIVITAS (yang diminta)
         Route::get('/log-aktivitas', [OwnerController::class, 'logAktivitas'])->name('log');

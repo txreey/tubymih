@@ -2,15 +2,6 @@
 
 @section('title', 'Laporan')
 
-@php
-    $exportParams = array_filter([
-        'dari' => request('dari'),
-        'sampai' => request('sampai'),
-        'id_kasir' => request('id_kasir'),
-        'export' => 'csv',
-    ]);
-@endphp
-
 @section('content')
     <div class="space-y-8 max-w-7xl mx-auto p-6">
 
@@ -84,7 +75,7 @@
 
         <!-- Tabel Laporan -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Header Tabel -->
+            <!-- Header Tabel + Export Buttons -->
             <div class="px-6 py-5 border-b flex items-center justify-between bg-gray-50">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -92,17 +83,24 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-bold text-gray-900">Data Laporan</h2>
-                        <p class="text-xs text-gray-500">Total: {{ $laporanData->count() }} Laporan</p>
+                        <p class="text-xs text-gray-500">Total: {{ $laporanData->count() }} entri</p>
                     </div>
                 </div>
 
-                <!-- Button Ekspor di dalam tabel -->
-                <a href="{{ route('owner.laporan') . '?' . http_build_query($exportParams) }}"
-                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl flex items-center gap-2 transition shadow-sm"
-                    title="Export ke CSV">
-                    <i class="fas fa-file-csv"></i>
-                    <span>Export CSV</span>
-                </a>
+                <!-- Export Buttons (Hanya Excel & PDF) -->
+                <div class="flex gap-3">
+                    <a href="{{ route('owner.laporan.export.excel') }}?{{ http_build_query(request()->only(['dari', 'sampai', 'id_kasir'])) }}"
+                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-2 transition">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Export Excel</span>
+                    </a>
+
+                    <a href="{{ route('owner.laporan.export.pdf') }}?{{ http_build_query(request()->only(['dari', 'sampai', 'id_kasir'])) }}"
+                        class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center gap-2 transition">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Export PDF</span>
+                    </a>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -124,7 +122,7 @@
                                 <td class="px-6 py-5 text-sm font-medium">{{ $row['tanggal'] }}</td>
                                 <td class="px-6 py-5 text-sm">{{ $row['kasir'] }}</td>
                                 <td class="px-6 py-5 text-sm text-teal-600 font-semibold">{{ $row['transaksi'] }}x</td>
-                                <td class="px-6 py-5 text-sm text-blue-600">{{ $row['penjualan'] }}x</td>
+                                <td class="px-6 py-5 text-sm text-blue-600">{{ $row['penjualan'] }} item</td>
                                 <td class="px-6 py-5 text-sm font-semibold text-emerald-600">
                                     Rp {{ number_format($row['pendapatan'], 0, ',', '.') }}
                                 </td>
@@ -140,26 +138,19 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t bg-gray-50 flex items-center justify-between text-sm">
-                <div class="text-gray-600">
-                    Menampilkan <strong>1-{{ $laporanData->count() }}</strong> dari
-                    <strong>{{ $laporanData->count() }}</strong> laporan
-                </div>
-                <div class="flex gap-1">
-                    <button class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium shadow-sm">1</button>
-                    <button
-                        class="px-4 py-2 bg-white border border-gray-300 rounded-xl font-medium hover:bg-gray-50">2</button>
-                </div>
+            <!-- Footer Tabel -->
+            <div class="px-6 py-4 border-t bg-gray-50 text-sm text-gray-600">
+                Menampilkan <strong>{{ $laporanData->count() }}</strong> data laporan
             </div>
         </div>
     </div>
 
+    <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        // ============================================================
-        // 📊 CHART.JS - Grafik Pendapatan
-        // ============================================================
+        // ============================
+        // 📊 CHART - Grafik Pendapatan
+        // ============================
         const rawData = @json($chartData);
         const labels = rawData.map(item => item.tanggal);
         const values = rawData.map(item => item.pendapatan);
@@ -196,48 +187,56 @@
             }
         });
 
-        // ============================================================
-        // ✅ VALIDASI TANGGAL (Frontend)
-        // ============================================================
+        // ============================
+        // ✅ FILTER TANGGAL VALIDATION
+        // ============================
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form[method="GET"]');
             const dariInput = document.querySelector('input[name="dari"]');
             const sampaiInput = document.querySelector('input[name="sampai"]');
 
-            // Sync min/max attribute realtime
+            if (!form || !dariInput || !sampaiInput) return;
+
+            // Sync min/max tanggal secara realtime
             function syncDateRange() {
-                if (dariInput?.value) sampaiInput.min = dariInput.value;
-                if (sampaiInput?.value) dariInput.max = sampaiInput.value;
+                if (dariInput.value) {
+                    sampaiInput.min = dariInput.value;
+                }
+                if (sampaiInput.value) {
+                    dariInput.max = sampaiInput.value;
+                }
             }
 
-            dariInput?.addEventListener('change', syncDateRange);
-            sampaiInput?.addEventListener('change', syncDateRange);
-            syncDateRange(); // Init
+            dariInput.addEventListener('change', syncDateRange);
+            sampaiInput.addEventListener('change', syncDateRange);
+            syncDateRange(); // jalankan saat pertama kali load
 
-            // Validasi sebelum submit
-            form?.addEventListener('submit', function(e) {
-                const dari = dariInput?.value;
-                const sampai = sampaiInput?.value;
+            // Validasi sebelum form disubmit
+            form.addEventListener('submit', function(e) {
+                const dari = dariInput.value;
+                const sampai = sampaiInput.value;
 
-                if (dari && sampai && dari > sampai) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tanggal Tidak Valid',
-                        text: 'Tanggal "Dari" tidak boleh melebihi tanggal "Sampai"',
-                        confirmButtonColor: '#0d9488'
-                    });
-                    return false;
-                }
-
-                // Opsional: Batasi maksimal range 1 tahun
                 if (dari && sampai) {
-                    const diffDays = Math.ceil((new Date(sampai) - new Date(dari)) / (1000 * 60 * 60 * 24));
+                    if (dari > sampai) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Tanggal "Dari" tidak boleh lebih besar dari tanggal "Sampai"',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        return false;
+                    }
+
+                    // Batasi maksimal 1 tahun (365 hari)
+                    const diffTime = Math.abs(new Date(sampai) - new Date(dari));
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                     if (diffDays > 365) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Range Terlalu Lebar',
+                            title: 'Rentang Terlalu Panjang',
                             text: 'Maksimal rentang tanggal adalah 1 tahun (365 hari)',
                             confirmButtonColor: '#0d9488'
                         });
@@ -245,31 +244,6 @@
                     }
                 }
             });
-
-            // ============================================================
-            // 📤 EXPORT CSV - Toast Notification (Opsional)
-            // ============================================================
-            document.querySelector('a[href*="export=csv"]')?.addEventListener('click', function() {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
-                    title: 'Export dimulai...',
-                    text: 'File CSV sedang disiapkan',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            });
         });
-
-        // ============================================================
-        // 🔄 Fallback: Jika tombol masih pakai onclick
-        // ============================================================
-        function exportToExcel() {
-            // Redirect ke endpoint CSV export dengan parameter saat ini
-            const params = new URLSearchParams(window.location.search);
-            params.set('export', 'csv');
-            window.location.href = window.location.pathname + '?' + params.toString();
-        }
     </script>
 @endsection
