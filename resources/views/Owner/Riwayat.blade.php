@@ -1,17 +1,15 @@
 @extends('owner.layouts.app')
-
 @section('title', 'Riwayat Transaksi')
 
 @section('content')
     <div class="space-y-8 max-w-7xl mx-auto p-6">
-
         {{-- Header --}}
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
             <p class="text-gray-600 mt-1">Catatan semua transaksi dari kasir</p>
         </div>
 
-        {{-- Statistik Cards (sama persis Admin) --}}
+        {{-- Statistik Cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
             <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <div class="flex items-center justify-between">
@@ -66,12 +64,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Tanggal</label>
                         <input type="date" id="filterTanggal"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Cari Kasir</label>
                         <input type="text" id="filterKasir" placeholder="Ketik nama kasir..."
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
@@ -109,7 +107,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -139,15 +136,13 @@
                                 Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="riwayatTableBody"></tbody>
+                    <tbody id="riwayatTableBody" class="divide-y divide-gray-100"></tbody>
                 </table>
             </div>
-
             <div id="emptyState" class="hidden px-6 py-16 text-center text-gray-400">
                 <i class="fas fa-receipt text-5xl text-gray-200 mb-4 block"></i>
                 Belum ada transaksi
             </div>
-
             <div id="paginationWrapper"
                 class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
@@ -156,7 +151,29 @@
         </div>
     </div>
 
-    {{-- MODAL STRUK --}}
+    {{-- ================== MODAL DETAIL PESANAN (sama persis dengan kasir) ================== --}}
+    <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full mx-4 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-teal-50">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-list-ul text-teal-600"></i>
+                    <h3 class="font-bold text-gray-900">Detail Pesanan</h3>
+                </div>
+                <button onclick="closeModal('detailModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5" id="detailContent"></div>
+            <div class="px-5 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                <button onclick="closeModal('detailModal')"
+                    class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL STRUK (tetap seperti sebelumnya) --}}
     <div id="strukModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full mx-4">
             <div class="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between">
@@ -189,8 +206,7 @@
     <script>
         let semuaTransaksi = @json($transaksis);
         let transaksiTerfilter = [...semuaTransaksi];
-
-        const PER_PAGE = 5;
+        const PER_PAGE = 10;
         let halamanAktif = 1;
 
         const formatRupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n || 0);
@@ -237,7 +253,6 @@
         function renderHalaman() {
             const tbody = document.getElementById('riwayatTableBody');
             const empty = document.getElementById('emptyState');
-            const wrapper = document.getElementById('paginationWrapper');
             const total = transaksiTerfilter.length;
 
             document.getElementById('totalTransaksiLabel').textContent = `Total: ${semuaTransaksi.length} Transaksi`;
@@ -245,33 +260,34 @@
             if (!total) {
                 tbody.innerHTML = '';
                 empty.classList.remove('hidden');
-                wrapper.classList.add('hidden');
+                document.getElementById('paginationWrapper').classList.add('hidden');
                 return;
             }
 
             empty.classList.add('hidden');
-            wrapper.classList.remove('hidden');
+            document.getElementById('paginationWrapper').classList.remove('hidden');
 
             const totalHalaman = Math.ceil(total / PER_PAGE);
             const mulai = (halamanAktif - 1) * PER_PAGE;
             const dataHalaman = transaksiTerfilter.slice(mulai, mulai + PER_PAGE);
 
-            tbody.innerHTML = dataHalaman.map((trx, i) => {
+            let html = '';
+            dataHalaman.forEach((trx, i) => {
                 const nomor = mulai + i + 1;
-                const statusClass = trx.status === 'lunas' ? 'bg-green-100 text-green-700' :
+                const itemCount = (trx.items || []).length;
+
+                const statusClass = trx.status === 'lunas' ?
+                    'bg-green-100 text-green-700' :
                     'bg-orange-100 text-orange-700';
-                const statusText = trx.status === 'lunas' ? 'Lunas' : 'Belum Bayar';
+                const statusText = trx.status === 'lunas' ? '✅ Lunas' : '⏰ Belum Bayar';
 
-                const aksi = trx.status === 'lunas' ?
-                    `<button onclick="showStruk(${trx.id})" class="w-8 h-8 flex items-center justify-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-lg transition" title="Lihat Struk">
-                        <i class="fas fa-receipt"></i>
-                     </button>` : `<span class="text-gray-300">-</span>`;
-
-                return `
+                html += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                         <td class="px-6 py-4 text-sm text-gray-400 font-medium">${nomor}</td>
                         <td class="px-6 py-4 font-mono text-sm font-semibold text-teal-600">${trx.no_transaksi ?? '-'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${trx.tanggal ? new Date(trx.tanggal).toLocaleString('id-ID') : '-'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            ${trx.tanggal ? new Date(trx.tanggal).toLocaleString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-700">${trx.kasir?.nama ?? '-'}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">${trx.nama_pelanggan ?? '-'}</td>
                         <td class="px-6 py-4">
@@ -280,16 +296,31 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">${trx.meja?.no_meja ?? '-'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">${(trx.detail_transaksi || trx.items || []).length} item</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                        <button onclick="showDetail(${trx.id})" 
+                            class="inline-flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm font-medium">
+                            <i class="fas fa-eye"></i> Detail
+                        </button>    
+                        </td>
                         <td class="px-6 py-4 text-sm font-semibold text-emerald-600">${formatRupiah(trx.total_harga)}</td>
                         <td class="px-6 py-4">
                             <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClass}">${statusText}</span>
                         </td>
-                        <td class="px-6 py-4">${aksi}</td>
-                    </tr>
-                `;
-            }).join('');
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                ${trx.status === 'lunas' 
+                                    ? `<button onclick="showStruk(${trx.id})" 
+                                                                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                                                                <i class="fas fa-receipt"></i> Struk
+                                                                              </button>`
+                                    : `<span class="text-gray-400 text-sm">Belum Lunas</span>`
+                                }
+                            </div>
+                        </td>
+                    </tr>`;
+            });
 
+            tbody.innerHTML = html;
             renderPagination(total, totalHalaman);
         }
 
@@ -317,8 +348,9 @@
                 `<button class="${base} bg-gray-100 text-gray-300 cursor-not-allowed" disabled><i class="fas fa-chevron-left"></i></button>`;
 
             for (let i = 1; i <= totalHalaman; i++) {
-                if (i === halamanAktif) html += `<button class="${activeClass}">${i}</button>`;
-                else if (i === 1 || i === totalHalaman || Math.abs(i - halamanAktif) <= 1) {
+                if (i === halamanAktif) {
+                    html += `<button class="${activeClass}">${i}</button>`;
+                } else if (i === 1 || i === totalHalaman || Math.abs(i - halamanAktif) <= 1) {
                     html += `<button onclick="keHalaman(${i})" class="${normalClass}">${i}</button>`;
                 } else if (Math.abs(i - halamanAktif) === 2) {
                     html += `<span class="px-2 text-gray-400">…</span>`;
@@ -337,6 +369,90 @@
             renderHalaman();
         }
 
+        // MODAL DETAIL
+        function showDetail(id) {
+            const trx = semuaTransaksi.find(t => t.id === id);
+            if (!trx) {
+                Swal.fire('Error', 'Transaksi tidak ditemukan', 'error');
+                return;
+            }
+
+            const items = trx.items || [];
+
+            let itemsHtml = items.map(item => {
+                const nama = item.nama_menu || item.nama || '-';
+                const qty = parseInt(item.qty) || 0;
+                const hargaSatuan = parseFloat(item.harga_satuan || item.harga) || 0;
+                const subtotal = qty * hargaSatuan;
+
+                return `
+                    <div class="flex items-center justify-between py-2.5 px-4 border-b border-gray-100 last:border-b-0 text-sm">
+                        <!-- Nama Menu -->
+                        <div class="flex-1 font-medium text-gray-800 truncate">
+                            ${nama}
+                        </div>
+                        
+                        <!-- Harga Satuan -->
+                        <div class="w-24 text-center text-gray-600">
+                            ${formatRupiah(hargaSatuan)}
+                        </div>
+                        
+                        <!-- Qty -->
+                        <div class="w-12 text-center text-gray-700 font-medium">
+                            x${qty}
+                        </div>
+                        
+                        <!-- Subtotal -->
+                        <div class="w-28 text-right font-semibold text-emerald-600">
+                            ${formatRupiah(subtotal)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (items.length === 0) {
+                itemsHtml = `<p class="text-gray-400 py-8 text-center">Tidak ada item pesanan</p>`;
+            }
+
+            const html = `
+                <div class="space-y-5">
+                    <!-- Info Transaksi -->
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-3.5 rounded-xl">
+                        <div>
+                            <span class="text-gray-500">No Transaksi</span>
+                            <p class="font-mono font-medium text-gray-900">${trx.no_transaksi || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Tanggal</span>
+                            <p class="text-gray-900">${trx.tanggal ? new Date(trx.tanggal).toLocaleString('id-ID') : '-'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Daftar Menu -->
+                    <div>
+                        <p class="uppercase text-xs font-semibold text-gray-500 mb-2">DAFTAR MENU PESANAN</p>
+                        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-100">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="pt-4 border-t border-gray-200 flex justify-between items-center text-l font-bold">
+                        <span class="text-gray-700">Total</span>
+                        <span class="text-emerald-600">${formatRupiah(trx.total_harga)}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detailContent').innerHTML = html;
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // ================== FUNGSI STRUK (tetap) ==================
         function showStruk(id) {
             const trx = semuaTransaksi.find(t => t.id === id);
             if (!trx) return;
@@ -381,20 +497,24 @@
             window.print();
         }
 
+        // Init
         document.addEventListener('DOMContentLoaded', function() {
+            updateCards();
+            renderHalaman();
+
             document.getElementById('filterTanggal').addEventListener('change', applyFilter);
             document.getElementById('filterKasir').addEventListener('input', applyFilter);
             document.getElementById('filterStatus').addEventListener('change', applyFilter);
-
-            updateCards();
-            renderHalaman();
         });
 
+        // Expose ke global
         window.applyFilter = applyFilter;
         window.resetFilter = resetFilter;
         window.keHalaman = keHalaman;
+        window.showDetail = showDetail;
         window.showStruk = showStruk;
         window.closeStrukModal = closeStrukModal;
         window.printStruk = printStruk;
+        window.closeModal = closeModal;
     </script>
 @endsection

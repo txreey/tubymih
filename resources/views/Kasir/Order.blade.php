@@ -197,7 +197,7 @@
                     </span>
                 </div>
                 <div class="flex gap-2 mb-5 flex-wrap" id="menuFilterBar"></div>
-                <div class="grid grid-cols-4 gap-3" id="menuGrid"></div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4" id="menuGrid"></div>
             </div>
 
             {{-- ── SCR 4: Konfirmasi Reservasi ── --}}
@@ -1046,76 +1046,82 @@
 
             document.getElementById('menuGrid').innerHTML = filtered.map(m => {
                 const reservedQty = getReservedMenuQty(m.id);
-                const availableStok = m.stok - reservedQty;
+                const availableStok = Math.max(0, m.stok - reservedQty);
                 const inCart = state.cart.find(c => c.id === m.id);
                 const qty = inCart ? inCart.qty : 0;
                 const habis = availableStok <= 0;
-                const maxed = qty >= availableStok;
-                const stokSisa = availableStok - qty;
 
-                // ================== FOTO MENU ==================
+                // Foto Menu - Mirip contoh gambar (proporsional)
                 let imageHtml = '';
                 if (m.gambar) {
                     imageHtml = `
                 <img src="/storage/${m.gambar}" 
-                     class="w-full h-40 object-cover"
+                     class="w-full h-44 object-cover rounded-t-2xl"
                      alt="${m.nama}"
-                     onerror="this.onerror=null; this.src='https://placehold.co/400x300/e2e8f0/64748b?text=${encodeURIComponent(m.nama.substring(0,15))}';">
+                     onerror="this.src='https://placehold.co/400x300/e2e8f0/94a3b8?text=${encodeURIComponent(m.nama.substring(0,15))}';">
             `;
                 } else {
                     imageHtml = `
-                <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-7xl">
-                    ${m.emoji}
+                <div class="w-full h-44 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center text-7xl rounded-t-2xl">
+                    ${m.emoji || '🍽️'}
                 </div>
             `;
                 }
 
-                // Badge stok
+                // Stok Badge
                 let stokBadge = habis ?
-                    `<span class="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded">Habis</span>` :
-                    stokSisa <= 3 ?
-                    `<span class="text-xs font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded">Sisa ${stokSisa}</span>` :
-                    `<span class="text-xs text-gray-400">Stok ${stokSisa}</span>`;
+                    `<span class="text-xs font-medium text-red-600">Habis</span>` :
+                    `<span class="text-xs font-medium text-gray-500">Stok ${availableStok}</span>`;
 
-                // Badge reservasi
-                let reservasiBadge = reservedQty > 0 ?
-                    `<span class="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">📅 Reservasi ${reservedQty}</span>` :
+                // Reservasi Badge
+                let reservBadge = reservedQty > 0 ?
+                    `<span class="text-xs font-medium text-purple-600">📅 ${reservedQty}</span>` :
                     '';
 
-                // Tombol + atau jumlah
-                let addEl = '';
+                // Tombol Tambah
+                let actionHtml = '';
                 if (!habis) {
                     if (qty > 0) {
-                        addEl =
-                            `<div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow-md">${qty}</div>`;
+                        actionHtml = `
+                    <div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow">
+                        ${qty}
+                    </div>
+                `;
                     } else {
-                        addEl =
-                            `<div class="absolute top-3 right-3 bg-amber-500 text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md">+</div>`;
+                        actionHtml = `
+                    <div onclick="addToCart(${m.id}); event.stopImmediatePropagation()" 
+                         class="absolute top-3 right-3 bg-amber-500 hover:bg-amber-600 w-8 h-8 flex items-center justify-center text-2xl text-white rounded-full shadow transition-all">
+                        +
+                    </div>
+                `;
                     }
                 }
 
-                const clickHandler = habis ? '' : (maxed ?
-                    `onclick="warnStok('${m.nama.replace(/'/g, "\\'")}', ${availableStok})"` :
-                    `onclick="addToCart(${m.id})"`);
-
                 return `
-            <div ${clickHandler} class="relative border-2 ${qty > 0 ? 'border-amber-400' : reservedQty > 0 ? 'border-purple-200' : 'border-gray-200'} 
-                rounded-2xl overflow-hidden bg-white transition-all ${habis ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:-translate-y-1 hover:shadow-md'} group">
-                
+            <div onclick="${habis ? '' : `addToCart(${m.id})`}" 
+                 class="group relative border border-gray-200 hover:border-amber-300 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-md">
+
+                <!-- Foto -->
                 ${imageHtml}
-                
+
+                <!-- Isi Card -->
                 <div class="p-3">
-                    <div class="text-xs text-gray-400 capitalize mb-1 truncate">${m.kategori}</div>
-                    <div class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2 mb-2 min-h-[42px]">${m.nama}</div>
-                    <div class="text-lg font-bold text-amber-500 mb-3">${formatRp(m.harga)}</div>
-                    
-                    <div class="flex flex-wrap gap-1">
-                        ${stokBadge}
-                        ${reservasiBadge}
+                    <div class="text-xs text-gray-500 capitalize mb-1">${m.kategori || '-'}</div>
+                    <div class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2 min-h-[40px]">
+                        ${m.nama}
+                    </div>
+                    <div class="mt-3 text-lg font-bold text-amber-600">
+                        ${formatRp(m.harga)}
                     </div>
                 </div>
-                
-                ${addEl}
+
+                <!-- Stok & Reservasi di bawah -->
+                <div class="px-3 pb-3 flex justify-between items-center text-xs">
+                    <div>${stokBadge}</div>
+                    <div>${reservBadge}</div>
+                </div>
+
+                ${actionHtml}
             </div>
         `;
             }).join('');

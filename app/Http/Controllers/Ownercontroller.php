@@ -78,7 +78,7 @@ class OwnerController extends Controller
 
         // 10. MENU TERLARIS 7 HARI TERAKHIR (REAL) - Maksimal 5
         $menu_terlaris = \App\Models\DetailTransaksi::select('id_menu')
-            ->with('menu')              
+            ->with('menu')
             ->whereHas('transaksi', function ($query) {
                 $query->where('status', 'lunas')
                     ->where('tanggal', '>=', Carbon::today()->subDays(7));
@@ -105,7 +105,7 @@ class OwnerController extends Controller
         // ==================== KIRIM KE VIEW ====================
         $data = [
             'total_menu'         => $total_menu,
-            'total_user'         => $total_user, 
+            'total_user'         => $total_user,
             'total_meja'         => $total_meja,
             'total_kasir'        => $total_kasir,
 
@@ -243,7 +243,7 @@ class OwnerController extends Controller
         ]);
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'user' => $user]); 
+            return response()->json(['success' => true, 'user' => $user]);
         }
 
         return redirect()->route('owner.users.index')->with('success', 'User berhasil diupdate.');
@@ -322,15 +322,16 @@ class OwnerController extends Controller
     // ==========================================
     public function riwayatTransaksi(Request $request)
     {
-        // LOG: Owner melihat riwayat transaksi
+        // LOG
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat riwayat transaksi',
-            'detail' => 'Owner melihat riwayat transaksi',
-            'waktu' => now(),
+            'detail'    => 'Owner melihat riwayat transaksi',
+            'waktu'     => now(),
         ]);
 
-        $query = Transaksi::with(['kasir', 'meja', 'detailTransaksi'])->latest();
+        $query = Transaksi::with(['kasir', 'meja', 'detailTransaksi.menu'])
+            ->latest();
 
         if ($request->filled('tanggal')) {
             $query->whereDate('tanggal', $request->tanggal);
@@ -346,9 +347,25 @@ class OwnerController extends Controller
             $query->where('status', $request->status);
         }
 
-        $transaksis = $query->get();
+        $transaksis = $query->get()->map(function ($t) {
+            $t->nama_kasir      = $t->kasir->nama ?? '-';
+            $t->nama_pelanggan  = $t->nama_pelanggan ?? '-';
+            $t->tipe_order      = $t->jenis_pemesanan ?? $t->tipe_order ?? '-';
+            $t->nama_meja       = $t->meja->no_meja ?? '-';
 
-        // Data real untuk card (menggunakan status yang sama dengan Admin)
+            // Mapping items supaya sama dengan halaman Kasir
+            $t->items = $t->detailTransaksi->map(function ($d) {
+                return (object)[
+                    'nama'         => $d->menu->nama_makanan ?? $d->nama_menu ?? '-',
+                    'qty'          => $d->qty,
+                    'harga_satuan' => $d->harga_satuan,
+                ];
+            });
+
+            return $t;
+        });
+
+        // Data untuk card statistik
         $totalTransaksi = Transaksi::count();
         $totalLunas     = Transaksi::where('status', 'lunas')->count();
         $totalNunggak   = Transaksi::where('status', 'tunggak')->count();

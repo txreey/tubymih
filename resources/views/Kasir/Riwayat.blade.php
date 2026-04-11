@@ -170,6 +170,56 @@
         </div>
     </div>
 
+    {{-- MODAL DETAIL PESANAN --}}
+    <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-teal-50">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-list-ul text-teal-600"></i>
+                    <h3 class="font-bold text-gray-900">Detail Pesanan</h3>
+                </div>
+                <button onclick="closeModal('detailModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5" id="detailContent">
+                <!-- Isi akan diisi oleh JavaScript -->
+            </div>
+
+            <div class="px-5 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                <button onclick="closeModal('detailModal')"
+                    class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL DETAIL PESANAN --}}
+    <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full mx-4 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-teal-50">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-list-ul text-teal-600"></i>
+                    <h3 class="font-bold text-gray-900">Detail Pesanan</h3>
+                </div>
+                <button onclick="closeModal('detailModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5" id="detailContent"></div>
+
+            <div class="px-5 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                <button onclick="closeModal('detailModal')"
+                    class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- MODAL TAGIH --}}
     <div id="tagihModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-xl max-w-md w-full mx-4">
@@ -222,11 +272,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Data dari server
         let allTransaksi = @json($transaksis);
         let filteredTransaksi = [...allTransaksi];
+        let selectedTransaksiId = null;
         let currentPage = 1;
-        const PER_PAGE = 5; // Pagination 5 item per halaman
+        const PER_PAGE = 5;
 
         const CSRF = '{{ csrf_token() }}';
         const BASE_URL = '{{ url('') }}';
@@ -325,14 +375,26 @@
                         <td class="px-3 py-3 text-xs font-medium text-gray-700">${trx.nama_pelanggan || '-'}</td>
                         <td class="px-3 py-3">${getTipeBadge(trx.tipe_order)}</td>
                         <td class="px-3 py-3 text-xs text-gray-700">${trx.nama_meja || '-'}</td>
-                        <td class="px-3 py-3 text-xs text-gray-500">${itemCount} item / ${totalQty} porsi</td>
+                        <td class="px-3 py-3 text-xs text-gray-500">
+                        <button onclick="showDetail(${trx.id})" 
+                                    class="inline-flex items-center gap-1 text-purple-600 hover:text-purple-700 text-xs font-medium">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>    
+                        </td>
                         <td class="px-3 py-3 text-xs font-semibold text-gray-900">${formatRp(trx.total_harga)}</td>
                         <td class="px-3 py-3">${getStatusBadge(trx)}</td>
                         <td class="px-3 py-3">
-                            ${trx.status === 'lunas' 
-                                ? `<button onclick="showStruk(${trx.id})" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs"><i class="fas fa-receipt"></i> Struk</button>`
-                                : `<button onclick="openTagihModal(${trx.id})" class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 text-xs font-medium ${terlambat ? 'animate-pulse' : ''}"><i class="fas fa-money-bill-wave"></i> Tagih</button>`
-                            }
+                            <div class="flex flex-wrap gap-3">
+
+                                ${trx.status === 'lunas' 
+                                    ? `<button onclick="showStruk(${trx.id})" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-xs">
+                                                                            <i class="fas fa-receipt"></i> Struk
+                                                                           </button>`
+                                    : `<button onclick="openTagihModal(${trx.id})" class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 text-xs font-medium ${terlambat ? 'animate-pulse' : ''}">
+                                                                            <i class="fas fa-money-bill-wave"></i> Tagih
+                                                                           </button>`
+                                }
+                            </div>
                         </td>
                     </tr>`;
             });
@@ -575,6 +637,75 @@
             document.getElementById('strukModal').classList.remove('hidden');
         }
 
+        // ================== MODAL DETAIL KASIR - COMPACT + SCROLL ==================
+        function showDetail(id) {
+            const trx = allTransaksi.find(t => t.id === id);
+            if (!trx) {
+                Swal.fire('Error', 'Transaksi tidak ditemukan', 'error');
+                return;
+            }
+
+            const items = trx.items || [];
+
+            let itemsHtml = items.map(item => {
+                const nama = item.nama || '-';
+                const qty = parseInt(item.qty) || 0;
+                const hargaSatuan = parseFloat(item.harga_satuan) || 0;
+                const subtotal = qty * hargaSatuan;
+
+                return `
+                    <div class="flex items-center justify-between py-3 px-4 border-b border-gray-100 last:border-b-0 text-sm hover:bg-gray-50">
+                        <div class="flex-1 font-medium text-gray-800 truncate pr-3">
+                            ${nama}
+                        </div>
+                        <div class="w-28 text-center text-gray-600">
+                            ${formatRp(hargaSatuan)}
+                        </div>
+                        <div class="w-12 text-center text-gray-700 font-medium">
+                            x${qty}
+                        </div>
+                        <div class="w-28 text-right font-semibold text-emerald-600">
+                            ${formatRp(subtotal)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (items.length === 0) {
+                itemsHtml = `<p class="text-gray-400 py-8 text-center">Tidak ada item pesanan</p>`;
+            }
+
+            const html = `
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-3.5 rounded-xl">
+                        <div>
+                            <span class="text-gray-500">No Transaksi</span>
+                            <p class="font-mono font-medium text-gray-900">${trx.no_transaksi || '-'}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Tanggal</span>
+                            <p class="text-gray-900">${formatTanggal(trx.created_at || trx.tanggal)}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="uppercase text-xs font-semibold text-gray-500 mb-3">DAFTAR MENU PESANAN</p>
+                        <div class="bg-white border border-gray-100 rounded-2xl max-h-[320px] overflow-y-auto divide-y divide-gray-100 custom-scroll">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+
+                    <div class="pt-5 border-t border-gray-200 flex justify-between items-center text-xl font-bold">
+                        <span class="text-gray-700">Total Pembayaran</span>
+                        <span class="text-emerald-600">${formatRp(trx.total_harga)}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detailContent').innerHTML = html;
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
         function printStruk() {
             const printContent = document.getElementById('strukContent').innerHTML;
             const printWindow = window.open('', '_blank');
@@ -609,6 +740,20 @@
             document.getElementById('filterStatus').addEventListener('change', applyFilter);
             updateStats();
             renderTable();
+
+            // Tambahkan style scroll
+            const scrollStyle = document.createElement('style');
+            scrollStyle.innerHTML = `
+            .custom-scroll::-webkit-scrollbar { width: 6px; }
+            .custom-scroll::-webkit-scrollbar-thumb {
+                background-color: #cbd5e1;
+                border-radius: 20px;
+            }
+            .custom-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: #94a3b8;
+            }
+        `;
+            document.head.appendChild(scrollStyle);
         });
     </script>
 @endsection

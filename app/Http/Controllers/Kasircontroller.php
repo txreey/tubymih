@@ -127,12 +127,14 @@ class KasirController extends Controller
             ->orderBy('nama_makanan')
             ->get()
             ->map(fn($m) => (object)[
-                'id'       => $m->id,
-                'nama'     => $m->nama_makanan,
-                'harga'    => (int) $m->harga,
-                'kategori' => $m->kategori->nama_kategori ?? 'Lainnya',
-                'emoji'    => $m->emoji ?? '🍽️',
-                'stok'     => (int) $m->stok,
+                'id'          => $m->id,
+                'nama'        => $m->nama_makanan,
+                'harga'       => (int) $m->harga,
+                'kategori'    => $m->kategori->nama_kategori ?? 'Lainnya',
+                'emoji'       => $m->emoji ?? '🍽️',
+                'stok'        => (int) $m->stok,
+                'gambar'      => $m->gambar,           // ← INI YANG DITAMBAHKAN
+                'nama_makanan' => $m->nama_makanan,     // cadangan
             ]);
 
         Log::create([
