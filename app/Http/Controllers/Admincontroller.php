@@ -445,40 +445,62 @@ class AdminController extends Controller
     }
 
     // UPDATE MENU - AJAX JSON
+    // UPDATE MENU - AJAX JSON
     public function updateMenu(Request $request, Menu $menu)
     {
         $hargaLama = $menu->harga;
-        $stokLama = $menu->stok;
-        $namaLama = $menu->nama_makanan;
+        $stokLama  = $menu->stok;
+        $namaLama  = $menu->nama_makanan;
 
         $validated = $request->validate([
-            'id_kategori'  => 'required|exists:kategori,id',
-            'nama_makanan' => 'required|string|max:100',
-            'harga'        => 'required|numeric|min:0',
-            'stok'         => 'required|integer|min:0',
-            'gambar'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'id_kategori'   => 'required|exists:kategori,id',
+            'nama_makanan'  => 'required|string|max:100',
+            'harga'         => 'required|numeric|min:0',
+            'stok'          => 'required|integer|min:0',
+            'gambar'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = collect($validated)->except('gambar')->toArray();
 
+        // ── Geser history HARGA (1 level saja) ──────────────────────
+        if ((float) $validated['harga'] !== (float) $hargaLama) {
+            $data['harga_sebelumnya'] = $hargaLama;   // simpan harga lama ke kolom sebelumnya
+        }
+
+        // ── Geser history STOK (1 level saja) ───────────────────────
+        if ((int) $validated['stok'] !== (int) $stokLama) {
+            $data['stok_sebelumnya'] = $stokLama;     // simpan stok lama ke kolom sebelumnya
+        }
+
+        // Update gambar jika ada
         if ($request->hasFile('gambar')) {
-            if ($menu->gambar) Storage::disk('public')->delete($menu->gambar);
+            if ($menu->gambar) {
+                Storage::disk('public')->delete($menu->gambar);
+            }
             $data['gambar'] = $request->file('gambar')->store('menu', 'public');
         }
 
         $menu->update($data);
 
-        // LOG: Admin mengupdate menu
+        // LOG AKTIVITAS
         $perubahan = [];
-        if ($namaLama != $menu->nama_makanan) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $menu->nama_makanan;
-        if ($hargaLama != $menu->harga) $perubahan[] = 'Harga: Rp ' . number_format($hargaLama, 0, ',', '.') . ' → Rp ' . number_format($menu->harga, 0, ',', '.');
-        if ($stokLama != $menu->stok) $perubahan[] = 'Stok: ' . $stokLama . ' → ' . $menu->stok;
+        if ($namaLama != $menu->nama_makanan) {
+            $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $menu->nama_makanan;
+        }
+        if ($hargaLama != $menu->harga) {
+            $perubahan[] = 'Harga: Rp ' . number_format($hargaLama, 0, ',', '.') .
+                ' → Rp ' . number_format($menu->harga, 0, ',', '.');
+        }
+        if ($stokLama != $menu->stok) {
+            $perubahan[] = 'Stok: ' . $stokLama . ' → ' . $menu->stok;
+        }
 
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Update menu',
-            'detail' => 'Menu: ' . $menu->nama_makanan . ' - ' . implode(', ', $perubahan),
-            'waktu' => now(),
+            'detail'    => 'Menu: ' . $menu->nama_makanan .
+                ($perubahan ? ' - ' . implode(', ', $perubahan) : ''),
+            'waktu'     => now(),
         ]);
 
         return response()->json([

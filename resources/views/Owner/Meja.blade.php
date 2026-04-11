@@ -106,43 +106,35 @@
                 Belum ada data meja
             </div>
 
+            {{-- Pagination Arrow --}}
             <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
-                <div id="paginationBtns" class="flex items-center gap-1.5"></div>
+
+                <div class="flex items-center gap-1.5">
+                    <!-- Tombol Previous -->
+                    <button onclick="prevPage()" id="btnPrev"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+
+                    <!-- Kotak Angka Halaman Saat Ini -->
+                    <div id="currentPageBox"
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        1
+                    </div>
+
+                    <!-- Tombol Next -->
+                    <button onclick="nextPage()" id="btnNext"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
     </div>
 
     <style>
-        .pg {
-            min-width: 30px;
-            height: 30px;
-            padding: 0 8px;
-            border-radius: 7px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            transition: all .15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pg:hover {
-            border-color: #0d9488;
-            color: #0d9488;
-        }
-
-        .pg.active {
-            background: #0d9488;
-            border-color: #0d9488;
-            color: #fff;
-        }
-
         .s-tersedia {
             background: #d1fae5;
             color: #065f46;
@@ -163,7 +155,7 @@
         // ─── STATE ───────────────────────────────────────────────────────
         let allMeja = @json($mejas);
         let filteredMeja = [...allMeja];
-        const PER_PAGE = 5; // ← 5 baris per halaman
+        const PER_PAGE = 5;
         let currentPage = 1;
 
         // ─── SUMMARY ─────────────────────────────────────────────────────
@@ -196,37 +188,43 @@
             const tbody = document.getElementById('mejaTableBody');
             const empty = document.getElementById('emptyState');
             const pgInfo = document.getElementById('paginationInfo');
-            const pgBtns = document.getElementById('paginationBtns');
+            const currentBox = document.getElementById('currentPageBox');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
 
             if (!filteredMeja.length) {
                 tbody.innerHTML = '';
                 empty.classList.remove('hidden');
                 pgInfo.textContent = '';
-                pgBtns.innerHTML = '';
+                currentBox.textContent = '1';
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
                 document.getElementById('mejaCountLabel').textContent = 'Total: 0 meja';
                 return;
             }
+
             empty.classList.add('hidden');
 
             const sorted = susunDataGrouped(filteredMeja);
             const total = sorted.length;
             const totalPages = Math.ceil(total / PER_PAGE);
-            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage > totalPages) currentPage = totalPages || 1;
 
             const start = (currentPage - 1) * PER_PAGE;
             const end = Math.min(start + PER_PAGE, total);
             const pageData = sorted.slice(start, end);
 
             tbody.innerHTML = pageData.map((meja, i) => {
-                const sBadge = meja.status === 'tersedia' ? 's-tersedia' : meja.status === 'terisi' ? 's-terisi' :
+                const sBadge = meja.status === 'tersedia' ? 's-tersedia' :
+                    meja.status === 'terisi' ? 's-terisi' :
                     's-reserved';
                 return `
                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                     <td class="px-6 py-4 text-sm text-gray-400 font-medium">${start + i + 1}</td>
                     <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escHtml(meja.no_meja)}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600">${escHtml(meja.tipe_meja||'-')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${escHtml(meja.tipe_meja || '-')}</td>
                     <td class="px-6 py-4 text-sm text-gray-600">${meja.kapasitas} orang</td>
-                    <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${escHtml(meja.deskripsi||'-')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${escHtml(meja.deskripsi || '-')}</td>
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${sBadge}">
                             ${capitalize(meja.status)}
@@ -236,18 +234,28 @@
             }).join('');
 
             pgInfo.innerHTML = `Menampilkan <strong>${start + 1}–${end}</strong> dari <strong>${total}</strong> meja`;
+            currentBox.textContent = currentPage;
             document.getElementById('mejaCountLabel').textContent = `Total: ${allMeja.length} meja`;
 
-            let btns = '';
-            for (let p = 1; p <= totalPages; p++) {
-                btns += `<button class="pg ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-            }
-            pgBtns.innerHTML = btns;
+            // Enable / Disable tombol panah
+            btnPrev.disabled = (currentPage === 1);
+            btnNext.disabled = (currentPage === totalPages);
         }
 
-        function goPage(p) {
-            currentPage = p;
-            renderTable();
+        // ─── NAVIGASI PANAH ──────────────────────────────────────────────
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredMeja.length / PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
         }
 
         // ─── FILTER ──────────────────────────────────────────────────────
@@ -281,5 +289,8 @@
             updateSummary();
             renderTable();
         });
+
+        window.prevPage = prevPage;
+        window.nextPage = nextPage;
     </script>
 @endsection

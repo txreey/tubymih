@@ -275,17 +275,6 @@
                     <p class="text-xs text-amber-600">Nilai harga sebelum perubahan terakhir dilakukan</p>
                 </div>
 
-                {{-- Harga Sebelumnya Lagi --}}
-                <div id="hargaSebelumnyaLagiWrapper"
-                    class="hidden bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-1">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-history text-orange-500 text-sm"></i>
-                        <p class="text-xs text-orange-700 font-medium">Harga Sebelumnya Lagi</p>
-                    </div>
-                    <p class="text-xl font-bold text-orange-800" id="hargaSebelumnyaLagi">-</p>
-                    <p class="text-xs text-orange-600">Nilai harga 2 edit sebelumnya</p>
-                </div>
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Harga Baru <span
                             class="text-red-500">*</span></label>
@@ -491,7 +480,7 @@
         }
 
         // ============================================================
-        // HISTORY 2 LEVEL (last + previous)
+        // HISTORY 1 LEVEL (hanya last value)
         // ============================================================
         function getHistory(type, menuId) {
             const key = `${type}_history_${menuId}`;
@@ -499,18 +488,15 @@
             return data ? JSON.parse(data) : {
                 editCount: 0,
                 lastValue: null,
-                prevValue: null
             };
         }
 
-        function saveHistory(type, menuId, newLastValue, oldLastValue) {
+        function saveHistory(type, menuId, oldValue) {
             const key = `${type}_history_${menuId}`;
             const history = getHistory(type, menuId);
-
             localStorage.setItem(key, JSON.stringify({
                 editCount: history.editCount + 1,
-                lastValue: newLastValue,
-                prevValue: oldLastValue !== undefined ? oldLastValue : history.lastValue
+                lastValue: oldValue,
             }));
         }
 
@@ -856,7 +842,7 @@
                     if (newRow) {
                         newRow.classList.add('bg-teal-50', 'ring-2', 'ring-teal-300');
                         setTimeout(() => newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300'),
-                        3000);
+                            3000);
                     }
                 }, 300);
 
@@ -892,28 +878,21 @@
             document.getElementById('hargaNama').textContent = m.nama_makanan;
             document.getElementById('hargaKategori').textContent = m.kategori ?
                 `${m.kategori.nama_kategori} — ${m.kategori.jenis}` : '-';
+
             document.getElementById('hargaSaatIni').textContent = formatRupiah(m.harga);
             document.getElementById('inputHargaBaru').value = m.harga;
+
+            // Tampilkan harga sebelumnya dari DB
+            const wrapper = document.getElementById('hargaSebelumnyaWrapper');
+            if (m.harga_sebelumnya !== null) {
+                document.getElementById('hargaSebelumnya').textContent = formatRupiah(m.harga_sebelumnya);
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+
             document.getElementById('errHarga').classList.add('hidden');
             setBorderError('inputHargaBaru', false);
-
-            const history = getHistory('harga', id);
-            const wrapper1 = document.getElementById('hargaSebelumnyaWrapper');
-            const wrapper2 = document.getElementById('hargaSebelumnyaLagiWrapper');
-
-            if (history.editCount >= 1 && history.lastValue !== null) {
-                document.getElementById('hargaSebelumnya').textContent = formatRupiah(history.lastValue);
-                wrapper1.classList.remove('hidden');
-            } else {
-                wrapper1.classList.add('hidden');
-            }
-
-            if (history.editCount >= 2 && history.prevValue !== null) {
-                document.getElementById('hargaSebelumnyaLagi').textContent = formatRupiah(history.prevValue);
-                wrapper2.classList.remove('hidden');
-            } else {
-                wrapper2.classList.add('hidden');
-            }
 
             tampilkanModal('hargaModal');
         }
@@ -934,7 +913,6 @@
             try {
                 const m = semuaMenu.find(x => Number(x.id) === Number(id));
                 const hargaLama = m.harga;
-                const history = getHistory('harga', id);
 
                 const form = new FormData();
                 form.append('harga', hargaBaru);
@@ -962,7 +940,7 @@
                     return;
                 }
 
-                saveHistory('harga', id, hargaLama, history.lastValue);
+                saveHistory('harga', id, hargaLama);
 
                 const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
                 if (idx !== -1) semuaMenu[idx] = data.data;
@@ -1007,19 +985,22 @@
             document.getElementById('stokNama').textContent = m.nama_makanan;
             document.getElementById('stokSaatIni').textContent = m.stok;
             document.getElementById('stokTotal').textContent = m.stok;
+
             document.getElementById('inputJumlahStok').value = '';
             document.getElementById('errStok').classList.add('hidden');
             setBorderError('inputJumlahStok', false);
 
-            const history = getHistory('stok', id);
-            const wrapper1 = document.getElementById('stokSebelumnyaWrapper');
-
-            if (history.editCount >= 1 && history.lastValue !== null) {
-                document.getElementById('stokSebelumnya').textContent = history.lastValue;
-                wrapper1.classList.remove('hidden');
+            // Tampilkan stok sebelumnya dari DB
+            const wrapper = document.getElementById('stokSebelumnyaWrapper');
+            if (m.stok_sebelumnya !== null) {
+                document.getElementById('stokSebelumnya').textContent = m.stok_sebelumnya;
+                wrapper.classList.remove('hidden');
             } else {
-                wrapper1.classList.add('hidden');
+                wrapper.classList.add('hidden');
             }
+
+            // Sembunyikan wrapper "Stok Sebelumnya Lagi" karena tidak ada di schema
+            document.getElementById('stokSebelumnyaLagiWrapper').classList.add('hidden');
 
             tampilkanModal('stokModal');
         }
@@ -1058,7 +1039,6 @@
             try {
                 const m = semuaMenu.find(x => Number(x.id) === Number(id));
                 const stokLama = stokSaatIni;
-                const history = getHistory('stok', id);
 
                 const form = new FormData();
                 form.append('stok', newStok);
@@ -1086,7 +1066,7 @@
                     return;
                 }
 
-                saveHistory('stok', id, stokLama, history.lastValue);
+                saveHistory('stok', id, stokLama);
 
                 const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
                 if (idx !== -1) semuaMenu[idx] = data.data;

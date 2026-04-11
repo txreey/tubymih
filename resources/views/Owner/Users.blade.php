@@ -112,9 +112,29 @@
                 Belum ada data user
             </div>
 
+            {{-- Pagination dengan Arrow + Kotak Angka (sama seperti admin) --}}
             <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
-                <div id="paginationBtns" class="flex items-center gap-1.5"></div>
+
+                <div class="flex items-center gap-1.5">
+                    <!-- Tombol Previous -->
+                    <button onclick="prevPage()" id="btnPrev"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+
+                    <!-- Kotak Angka Halaman Saat Ini -->
+                    <div id="currentPageBox"
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        1
+                    </div>
+
+                    <!-- Tombol Next -->
+                    <button onclick="nextPage()" id="btnNext"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -485,34 +505,6 @@
             color: #fff;
         }
 
-        .pg {
-            min-width: 30px;
-            height: 30px;
-            padding: 0 8px;
-            border-radius: 7px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            transition: all .15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pg:hover {
-            border-color: #0d9488;
-            color: #0d9488;
-        }
-
-        .pg.active {
-            background: #0d9488;
-            border-color: #0d9488;
-            color: #fff;
-        }
-
         .s-aktif {
             background: #d1fae5;
             color: #065f46;
@@ -529,7 +521,7 @@
         let allUsers = @json($users);
         let filteredUsers = [...allUsers];
         const CSRF = '{{ csrf_token() }}';
-        const PER_PAGE = 5; // ← 5 baris per halaman
+        const PER_PAGE = 5;
         let currentPage = 1;
 
         const ROUTES = {
@@ -551,21 +543,26 @@
             const tbody = document.getElementById('userTableBody');
             const empty = document.getElementById('emptyState');
             const pgInfo = document.getElementById('paginationInfo');
-            const pgBtns = document.getElementById('paginationBtns');
+            const currentBox = document.getElementById('currentPageBox');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
 
             if (!filteredUsers.length) {
                 tbody.innerHTML = '';
                 empty.classList.remove('hidden');
                 pgInfo.textContent = '';
-                pgBtns.innerHTML = '';
+                currentBox.textContent = '1';
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
                 document.getElementById('userCountLabel').textContent = 'Total: 0 user';
                 return;
             }
+
             empty.classList.add('hidden');
 
             const total = filteredUsers.length;
             const totalPages = Math.ceil(total / PER_PAGE);
-            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage > totalPages) currentPage = totalPages || 1;
 
             const start = (currentPage - 1) * PER_PAGE;
             const end = Math.min(start + PER_PAGE, total);
@@ -574,7 +571,8 @@
             tbody.innerHTML = pageUsers.map((user, i) => {
                 const checked = user.status === 'aktif' ? 'checked' : '';
                 const sBadge = user.status === 'aktif' ? 's-aktif' : 's-nonaktif';
-                const roleBadgeClass = user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                const roleBadgeClass = user.role === 'admin' ?
+                    'bg-purple-100 text-purple-800' :
                     'bg-teal-100 text-teal-800';
 
                 return `
@@ -606,19 +604,30 @@
                 </tr>`;
             }).join('');
 
+            // Update info & kotak halaman
             pgInfo.innerHTML = `Menampilkan <strong>${start + 1}–${end}</strong> dari <strong>${total}</strong> user`;
+            currentBox.textContent = currentPage;
             document.getElementById('userCountLabel').textContent = `Total: ${allUsers.length} user`;
 
-            let btns = '';
-            for (let p = 1; p <= totalPages; p++) {
-                btns += `<button class="pg ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
-            }
-            pgBtns.innerHTML = btns;
+            // Enable / Disable tombol panah
+            btnPrev.disabled = (currentPage === 1);
+            btnNext.disabled = (currentPage === totalPages);
         }
 
-        function goPage(p) {
-            currentPage = p;
-            renderTable();
+        // ─── NAVIGASI PANAH ──────────────────────────────────────────────
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredUsers.length / PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
         }
 
         // ─── FILTER ──────────────────────────────────────────────────────
@@ -660,6 +669,14 @@
             updateSummary();
             renderTable();
         });
+
+        // Expose ke HTML
+        window.prevPage = prevPage;
+        window.nextPage = nextPage;
+        window.doDetail = (id) => openDetailModal(id);
+        window.doEdit = (id) => openEditModal(id);
+        window.doDelete = (id) => deleteUser(id);
+        window.doToggle = (id, el) => toggleStatus(id, el);
 
         // ─── MODAL ───────────────────────────────────────────────────────
         function showModal(id) {
@@ -1007,7 +1024,7 @@
                         const isAktif = allUsers[idx].status === 'aktif';
                         badge.textContent = isAktif ? 'Aktif' : 'Nonaktif';
                         badge.className =
-                            `inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isAktif?'s-aktif':'s-nonaktif'}`;
+                            `inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isAktif ? 's-aktif' : 's-nonaktif'}`;
                     }
                     updateSummary();
                 }
@@ -1071,10 +1088,5 @@
                 btn.innerHTML = btn.dataset.orig;
             }
         }
-
-        window.doDetail = (id) => openDetailModal(id);
-        window.doEdit = (id) => openEditModal(id);
-        window.doDelete = (id) => deleteUser(id);
-        window.doToggle = (id, el) => toggleStatus(id, el);
     </script>
 @endsection

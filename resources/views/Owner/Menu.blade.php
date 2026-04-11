@@ -11,7 +11,7 @@
             <p class="text-gray-600 mt-1">Semua menu yang tersedia di sistem</p>
         </div>
 
-        {{-- Filter Cards (Dynamic) --}}
+        {{-- Summary Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
                 <p class="text-sm font-medium text-gray-600">Total Menu</p>
@@ -55,13 +55,9 @@
                     </div>
                     <div class="flex items-end gap-3">
                         <button onclick="terapkanFilter()"
-                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">
-                            Cari
-                        </button>
+                            class="flex-1 px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">Cari</button>
                         <button onclick="resetFilter()"
-                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-sm">
-                            Reset
-                        </button>
+                            class="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition shadow-sm text-sm">Reset</button>
                     </div>
                 </div>
             </div>
@@ -69,7 +65,6 @@
 
         {{-- Tabel --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
             <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
                 <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
@@ -99,6 +94,8 @@
                                 Stok</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Gambar</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="menuTableBody"></tbody>
@@ -110,10 +107,159 @@
                 Belum ada data menu
             </div>
 
+            {{-- Pagination --}}
             <div id="paginationWrapper"
                 class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
-                <div class="flex items-center gap-1.5" id="paginationButtons"></div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="prevPage()" id="btnPrev"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <div id="currentPageBox"
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        1
+                    </div>
+                    <button onclick="nextPage()" id="btnNext"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL DETAIL HARGA & STOK (SAMA SEPERTI ADMIN) --}}
+    <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
+        <div id="detailContent"
+            class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0 max-h-[90vh] flex flex-col">
+
+            {{-- Header --}}
+            <div
+                class="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 text-white flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">Detail Harga & Stok</h2>
+                        <p class="text-teal-100 text-xs mt-0.5" id="detailSubtitle">Riwayat perubahan menu</p>
+                    </div>
+                </div>
+                <button onclick="tutupModal('detailModal')"
+                    class="w-9 h-9 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center rounded-xl transition shadow-md">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="p-6 overflow-y-auto space-y-6">
+
+                {{-- Info Menu --}}
+                <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                    <div id="detailGambar"
+                        class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-image text-gray-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-900 text-base" id="detailNama">-</p>
+                        <p class="text-sm text-gray-500 mt-0.5" id="detailKategori">-</p>
+                    </div>
+                </div>
+
+                {{-- Harga & Stok Sekarang --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                        <p class="text-xs text-emerald-600 font-medium mb-1">
+                            <i class="fas fa-money-bill-wave mr-1"></i>Harga Saat Ini
+                        </p>
+                        <p class="text-2xl font-bold text-emerald-700" id="detailHargaSekarang">Rp 0</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                        <p class="text-xs text-blue-600 font-medium mb-1">
+                            <i class="fas fa-boxes-stacked mr-1"></i>Stok Saat Ini
+                        </p>
+                        <p class="text-2xl font-bold text-blue-700" id="detailStokSekarang">0 <span
+                                class="text-sm font-normal">pcs</span></p>
+                    </div>
+                </div>
+
+                {{-- Divider --}}
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Riwayat Perubahan</p>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+
+                {{-- RIWAYAT HARGA --}}
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-emerald-600 text-xs"></i>
+                        </div>
+                        <p class="text-sm font-bold text-gray-800">Riwayat Harga</p>
+                    </div>
+
+                    <div id="hargaSlot1" class="hidden mb-3">
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-history text-amber-500 text-sm"></i>
+                                    <p class="text-xs text-amber-700 font-medium">Harga Sebelum Edit Terakhir</p>
+                                </div>
+                            </div>
+                            <p class="text-xl font-bold text-amber-800" id="hargaSlot1Val">-</p>
+                            <p class="text-xs text-amber-600 mt-1">Nilai harga sebelum perubahan terakhir dilakukan</p>
+                        </div>
+                    </div>
+
+                    <div id="hargaKosong"
+                        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
+                        <i class="fas fa-clock text-2xl mb-2 block"></i>
+                        Belum ada riwayat perubahan harga
+                    </div>
+                </div>
+
+                {{-- Divider --}}
+                <div class="h-px bg-gray-100"></div>
+
+                {{-- RIWAYAT STOK --}}
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-boxes-stacked text-blue-600 text-xs"></i>
+                        </div>
+                        <p class="text-sm font-bold text-gray-800">Riwayat Stok</p>
+                    </div>
+
+                    <div id="stokSlot1" class="hidden mb-3">
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-history text-amber-500 text-sm"></i>
+                                    <p class="text-xs text-amber-700 font-medium">Stok Sebelum Edit Terakhir</p>
+                                </div>
+                            </div>
+                            <p class="text-xl font-bold text-amber-800" id="stokSlot1Val">-</p>
+                            <p class="text-xs text-amber-600 mt-1">Nilai stok sebelum perubahan terakhir dilakukan</p>
+                        </div>
+                    </div>
+
+                    <div id="stokKosong"
+                        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
+                        <i class="fas fa-clock text-2xl mb-2 block"></i>
+                        Belum ada riwayat perubahan stok
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end flex-shrink-0">
+                <button onclick="tutupModal('detailModal')"
+                    class="px-8 py-2.5 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition shadow-md">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -121,9 +267,9 @@
     <script>
         let semuaMenu = @json($menus);
         let menuTerfilter = [...semuaMenu];
-
         const PER_PAGE = 5;
         let halamanAktif = 1;
+        let totalHalamanGlobal = 1;
 
         const formatRupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n || 0);
 
@@ -133,18 +279,14 @@
             return div.innerHTML;
         }
 
-        // Update Card Stats
         function updateCards() {
-            const total = semuaMenu.length;
-            const makanan = semuaMenu.filter(m => m.kategori?.nama_kategori === 'Makanan').length;
-            const minuman = semuaMenu.filter(m => m.kategori?.nama_kategori === 'Minuman').length;
-
-            document.getElementById('totalMenuCard').textContent = total;
-            document.getElementById('totalMakananCard').textContent = makanan;
-            document.getElementById('totalMinumanCard').textContent = minuman;
+            document.getElementById('totalMenuCard').textContent = semuaMenu.length;
+            document.getElementById('totalMakananCard').textContent = semuaMenu.filter(m => m.kategori?.nama_kategori ===
+                'Makanan').length;
+            document.getElementById('totalMinumanCard').textContent = semuaMenu.filter(m => m.kategori?.nama_kategori ===
+                'Minuman').length;
         }
 
-        // Filter Functions (sama seperti sebelumnya)
         function resetDropdownJenis() {
             const select = document.getElementById('filterJenis');
             select.innerHTML = '<option value="">pilih kategori dulu</option>';
@@ -155,24 +297,17 @@
         function filterKategoriChange() {
             const kategori = document.getElementById('filterKategori').value;
             const selectJenis = document.getElementById('filterJenis');
-
             if (!kategori) {
                 resetDropdownJenis();
                 terapkanFilter();
                 return;
             }
-
             selectJenis.disabled = false;
             selectJenis.classList.remove('bg-gray-100', 'cursor-not-allowed');
-
-            const daftarJenis = [...new Set(
-                semuaMenu.filter(m => m.kategori?.nama_kategori === kategori)
-                .map(m => m.kategori.jenis)
-            )];
-
+            const daftarJenis = [...new Set(semuaMenu.filter(m => m.kategori?.nama_kategori === kategori).map(m => m
+                .kategori.jenis))];
             selectJenis.innerHTML = '<option value="">-- Semua Jenis --</option>' +
                 daftarJenis.map(j => `<option value="${j}">${j}</option>`).join('');
-
             terapkanFilter();
         }
 
@@ -181,12 +316,11 @@
             const induk = document.getElementById('filterKategori').value;
             const jenis = document.getElementById('filterJenis').value;
 
-            menuTerfilter = semuaMenu.filter(m => {
-                const cocokKeyword = !keyword || m.nama_makanan.toLowerCase().includes(keyword);
-                const cocokInduk = !induk || (m.kategori?.nama_kategori === induk);
-                const cocokJenis = !jenis || (m.kategori?.jenis === jenis);
-                return cocokKeyword && cocokInduk && cocokJenis;
-            });
+            menuTerfilter = semuaMenu.filter(m =>
+                (!keyword || m.nama_makanan.toLowerCase().includes(keyword)) &&
+                (!induk || m.kategori?.nama_kategori === induk) &&
+                (!jenis || m.kategori?.jenis === jenis)
+            );
 
             halamanAktif = 1;
             renderHalaman();
@@ -202,7 +336,6 @@
         }
 
         function renderHalaman() {
-            // ... (kode render tabel & pagination sama seperti sebelumnya)
             const tbody = document.getElementById('menuTableBody');
             const empty = document.getElementById('emptyState');
             const wrapperPag = document.getElementById('paginationWrapper');
@@ -221,6 +354,9 @@
             wrapperPag.classList.remove('hidden');
 
             const totalHalaman = Math.ceil(total / PER_PAGE);
+            totalHalamanGlobal = totalHalaman;
+            if (halamanAktif > totalHalaman) halamanAktif = totalHalaman || 1;
+
             const mulai = (halamanAktif - 1) * PER_PAGE;
             const dataHalaman = menuTerfilter.slice(mulai, mulai + PER_PAGE);
 
@@ -235,80 +371,135 @@
                     `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm" onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
                     `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image text-lg"></i></div>`;
 
+                const warnaStok = m.stok <= 5 ? 'text-red-600 font-bold' : m.stok <= 15 ?
+                    'text-amber-600 font-semibold' : 'text-gray-700';
+
                 return `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                        <td class="px-6 py-4 text-sm text-gray-400 font-medium">${nomor}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escapeHtml(m.nama_makanan)}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-700">${formatRupiah(m.harga)}</td>
-                        <td class="px-6 py-4 text-sm ${m.stok <= 5 ? 'text-red-600 font-bold' : m.stok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700'}">
-                            ${m.stok} pcs
-                        </td>
-                        <td class="px-6 py-4">${gambar}</td>
-                    </tr>
-                `;
+                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-400 font-medium">${nomor}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escapeHtml(m.nama_makanan)}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-semibold text-gray-700">${formatRupiah(m.harga)}</td>
+                    <td class="px-6 py-4 text-sm ${warnaStok}">${m.stok} pcs</td>
+                    <td class="px-6 py-4">${gambar}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="bukaModalDetail(${m.id})" 
+                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 transition">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </td>
+                </tr>`;
             }).join('');
 
-            renderPagination(total, totalHalaman);
-        }
-
-        // Pagination functions (sama seperti sebelumnya)
-        function renderPagination(total, totalHalaman) {
-            const info = document.getElementById('paginationInfo');
-            const btns = document.getElementById('paginationButtons');
-            const mulai = (halamanAktif - 1) * PER_PAGE + 1;
+            const pgInfo = document.getElementById('paginationInfo');
+            const currentBox = document.getElementById('currentPageBox');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
             const sampai = Math.min(halamanAktif * PER_PAGE, total);
 
-            info.innerHTML = `Menampilkan <strong>${mulai}-${sampai}</strong> dari <strong>${total}</strong> menu`;
-
-            if (totalHalaman <= 1) {
-                btns.innerHTML = '';
-                return;
-            }
-
-            const base =
-                'min-w-[30px] h-[30px] px-2 rounded-lg border text-xs font-semibold transition flex items-center justify-center cursor-pointer';
-            const active = `${base} bg-teal-600 border-teal-600 text-white`;
-            const normal = `${base} bg-white border-gray-200 text-gray-700 hover:border-teal-400 hover:text-teal-600`;
-
-            let html = halamanAktif > 1 ?
-                `<button onclick="keHalaman(${halamanAktif-1})" class="${normal}"><i class="fas fa-chevron-left"></i></button>` :
-                `<button class="${base} bg-gray-50 text-gray-300 cursor-not-allowed" disabled><i class="fas fa-chevron-left"></i></button>`;
-
-            for (let i = 1; i <= totalHalaman; i++) {
-                if (Math.abs(i - halamanAktif) <= 1 || i === 1 || i === totalHalaman) {
-                    html +=
-                        `<button onclick="keHalaman(${i})" class="${i === halamanAktif ? active : normal}">${i}</button>`;
-                } else if (Math.abs(i - halamanAktif) === 2) {
-                    html += `<span class="px-2 text-gray-400">…</span>`;
-                }
-            }
-
-            html += halamanAktif < totalHalaman ?
-                `<button onclick="keHalaman(${halamanAktif+1})" class="${normal}"><i class="fas fa-chevron-right"></i></button>` :
-                `<button class="${base} bg-gray-50 text-gray-300 cursor-not-allowed" disabled><i class="fas fa-chevron-right"></i></button>`;
-
-            btns.innerHTML = html;
+            pgInfo.innerHTML = `Menampilkan <strong>${mulai + 1}–${sampai}</strong> dari <strong>${total}</strong> menu`;
+            currentBox.textContent = halamanAktif;
+            btnPrev.disabled = (halamanAktif === 1);
+            btnNext.disabled = (halamanAktif === totalHalaman);
         }
 
-        function keHalaman(h) {
-            halamanAktif = h;
-            renderHalaman();
+        // ==================== MODAL FUNCTIONS ====================
+        function tampilkanModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+
+            setTimeout(() => {
+                const content = document.getElementById(id.replace('Modal', 'Content'));
+                if (content) {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }
+            }, 10);
+        }
+
+        function tutupModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+
+            const content = document.getElementById(id.replace('Modal', 'Content'));
+            if (content) {
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+            }
+
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // ==================== BUKA MODAL DETAIL ====================
+        function bukaModalDetail(id) {
+            const m = semuaMenu.find(x => Number(x.id) === Number(id));
+            if (!m) return;
+
+            document.getElementById('detailSubtitle').textContent = m.nama_makanan;
+            document.getElementById('detailNama').textContent = m.nama_makanan;
+            document.getElementById('detailKategori').textContent = m.kategori ?
+                `${m.kategori.nama_kategori} — ${m.kategori.jenis}` : '-';
+
+            // Gambar
+            const gambarEl = document.getElementById('detailGambar');
+            gambarEl.innerHTML = m.gambar ?
+                `<img src="/storage/${m.gambar}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-gray-400 text-xl\\'></i>'">` :
+                `<i class="fas fa-image text-gray-400 text-xl"></i>`;
+
+            document.getElementById('detailHargaSekarang').textContent = formatRupiah(m.harga);
+            document.getElementById('detailStokSekarang').innerHTML =
+                `${m.stok} <span class="text-sm font-normal">pcs</span>`;
+
+            // Riwayat Harga
+            const adaHarga = m.harga_sebelumnya != null;
+            document.getElementById('hargaSlot1').classList.toggle('hidden', !adaHarga);
+            document.getElementById('hargaKosong').classList.toggle('hidden', adaHarga);
+            if (adaHarga) {
+                document.getElementById('hargaSlot1Val').textContent = formatRupiah(m.harga_sebelumnya);
+            }
+
+            // Riwayat Stok
+            const adaStok = m.stok_sebelumnya != null;
+            document.getElementById('stokSlot1').classList.toggle('hidden', !adaStok);
+            document.getElementById('stokKosong').classList.toggle('hidden', adaStok);
+            if (adaStok) {
+                document.getElementById('stokSlot1Val').textContent = `${m.stok_sebelumnya} pcs`;
+            }
+
+            tampilkanModal('detailModal');
+        }
+
+        function prevPage() {
+            if (halamanAktif > 1) {
+                halamanAktif--;
+                renderHalaman();
+            }
+        }
+
+        function nextPage() {
+            if (halamanAktif < totalHalamanGlobal) {
+                halamanAktif++;
+                renderHalaman();
+            }
         }
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('filterSearch').addEventListener('input', terapkanFilter);
             document.getElementById('filterKategori').addEventListener('change', filterKategoriChange);
-
             updateCards();
             renderHalaman();
         });
 
+        // Expose ke window
         window.terapkanFilter = terapkanFilter;
         window.resetFilter = resetFilter;
-        window.keHalaman = keHalaman;
+        window.prevPage = prevPage;
+        window.nextPage = nextPage;
+        window.bukaModalDetail = bukaModalDetail;
+        window.tutupModal = tutupModal;
     </script>
 @endsection

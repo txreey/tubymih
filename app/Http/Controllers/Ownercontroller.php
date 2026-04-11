@@ -26,8 +26,6 @@ class OwnerController extends Controller
             'waktu'    => now(),
         ]);
 
-        // ==================== DATA REAL ====================
-
         // 1. Total Menu 
         $total_menu = Menu::count();
 
@@ -80,7 +78,7 @@ class OwnerController extends Controller
 
         // 10. MENU TERLARIS 7 HARI TERAKHIR (REAL) - Maksimal 5
         $menu_terlaris = \App\Models\DetailTransaksi::select('id_menu')
-            ->with('menu')                    // pastikan relasi 'menu' ada di model DetailTransaksi
+            ->with('menu')              
             ->whereHas('transaksi', function ($query) {
                 $query->where('status', 'lunas')
                     ->where('tanggal', '>=', Carbon::today()->subDays(7));
@@ -107,7 +105,7 @@ class OwnerController extends Controller
         // ==================== KIRIM KE VIEW ====================
         $data = [
             'total_menu'         => $total_menu,
-            'total_user'         => $total_user,           // ← Total User (tanpa owner)
+            'total_user'         => $total_user, 
             'total_meja'         => $total_meja,
             'total_kasir'        => $total_kasir,
 
@@ -115,7 +113,7 @@ class OwnerController extends Controller
             'pendapatan_bulan'   => $pendapatan_bulan,
             'pendapatan_tahun'   => $pendapatan_tahun,
 
-            'transaksi_hari_ini' => $transaksi_hari_ini,   // untuk card Transaksi Hari Ini
+            'transaksi_hari_ini' => $transaksi_hari_ini,
             'transaksi_7hari'    => $transaksi_7hari,
             'menu_terlaris'      => $menu_terlaris,
         ];
@@ -245,7 +243,7 @@ class OwnerController extends Controller
         ]);
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'user' => $user]);
+            return response()->json(['success' => true, 'user' => $user]); 
         }
 
         return redirect()->route('owner.users.index')->with('success', 'User berhasil diupdate.');
