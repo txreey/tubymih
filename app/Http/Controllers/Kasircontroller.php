@@ -115,8 +115,6 @@ class KasirController extends Controller
                 'deskripsi'  => $m->deskripsi ?? '-',
             ]);
 
-        // Ambil SEMUA menu (tanpa filter stok & is_aktif)
-        // supaya menu nonaktif & stok 0 tetap muncul di UI tapi dikunci
         $menus = Menu::with('kategori')
             ->orderBy('nama_makanan')
             ->get()
@@ -128,7 +126,7 @@ class KasirController extends Controller
                 'emoji'    => $m->emoji ?? '🍽️',
                 'stok'     => (int) $m->stok,
                 'gambar'   => $m->gambar,
-                'is_aktif' => $m->status === 'aktif', // ✅ dari enum status
+                'is_aktif' => $m->status === 'aktif',
             ]);
 
         Log::create([

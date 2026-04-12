@@ -11,7 +11,7 @@
             <p class="text-gray-600 mt-1">Kelola akun kasir dan admin</p>
         </div>
 
-        {{-- Summary Cards — dihitung dinamis dari JS (exclude owner) --}}
+        {{-- Summary Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center transition hover:shadow-lg">
                 <p class="text-sm font-medium text-gray-600">Total User</p>
@@ -110,7 +110,7 @@
                 Belum ada data user
             </div>
 
-            {{-- Pagination dengan Arrow + Kotak Angka (sama seperti admin) --}}
+            {{-- Pagination --}}
             <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
 
@@ -121,7 +121,7 @@
                         <i class="fas fa-chevron-left text-xs"></i>
                     </button>
 
-                    <!-- Kotak Angka Halaman Saat Ini -->
+                    <!-- Kotak Angka -->
                     <div id="currentPageBox"
                         class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
                         1
@@ -213,7 +213,7 @@
         </div>
     </div>
 
-    {{-- MODAL TAMBAH USER --}}
+    {{-- MODAL TAMBAH --}}
     <div id="createModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-3xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
             id="createContent">
@@ -313,7 +313,7 @@
         </div>
     </div>
 
-    {{-- MODAL EDIT USER --}}
+    {{-- MODAL EDIT --}}
     <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-3xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
             id="editContent">

@@ -3,13 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;   // optional
 
 class Meja extends Model
 {
-    // use SoftDeletes;   // optional
 
-    protected $table = 'meja';   // ← penting: singular 'meja'
+    protected $table = 'meja';  
 
     protected $fillable = [
         'no_meja',

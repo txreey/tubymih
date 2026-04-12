@@ -10,6 +10,8 @@ use App\Models\Meja;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 
 class OwnerController extends Controller
 {
@@ -376,6 +378,7 @@ class OwnerController extends Controller
     // ==========================================
     // LAPORAN - TAMPILAN WEB
     // ==========================================
+
     public function laporan(Request $request)
     {
         $validated = $request->validate([
@@ -384,7 +387,6 @@ class OwnerController extends Controller
             'id_kasir' => 'nullable|exists:users,id',
         ]);
 
-        // LOG
         Log::create([
             'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat laporan',
@@ -398,23 +400,17 @@ class OwnerController extends Controller
             ->where('status', 'lunas')
             ->latest();
 
-        if ($request->filled('dari')) {
-            $query->whereDate('tanggal', '>=', $validated['dari']);
-        }
-        if ($request->filled('sampai')) {
-            $query->whereDate('tanggal', '<=', $validated['sampai']);
-        }
-        if ($request->filled('id_kasir')) {
-            $query->where('id_kasir', $validated['id_kasir']);
-        }
+        if ($request->filled('dari')) $query->whereDate('tanggal', '>=', $validated['dari']);
+        if ($request->filled('sampai')) $query->whereDate('tanggal', '<=', $validated['sampai']);
+        if ($request->filled('id_kasir')) $query->where('id_kasir', $validated['id_kasir']);
 
         $transaksis = $query->get();
 
-        $totalTransaksi = $transaksis->count();
-        $totalPenjualan = $transaksis->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0);
+        $totalTransaksi  = $transaksis->count();
+        $totalPenjualan  = $transaksis->sum(fn($trx) => $trx->detailTransaksi->sum('qty'));
         $totalPendapatan = $transaksis->sum('total_harga');
 
-        $laporanData = $transaksis->groupBy(function ($trx) {
+        $laporanRaw = $transaksis->groupBy(function ($trx) {
             $tanggal = $trx->tanggal ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d') : '0000-00-00';
             return $tanggal . '|' . ($trx->id_kasir ?? 'unknown');
         })->map(function ($group) {
@@ -423,16 +419,25 @@ class OwnerController extends Controller
                 'tanggal'    => $first->tanggal ? \Carbon\Carbon::parse($first->tanggal)->format('d-m-Y') : '-',
                 'kasir'      => $first->kasir->nama ?? '-',
                 'transaksi'  => $group->count(),
-                'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty') ?? 0),
+                'penjualan'  => $group->sum(fn($trx) => $trx->detailTransaksi->sum('qty')),
                 'pendapatan' => $group->sum('total_harga'),
             ];
         })->values();
+
+        // Paginate manual
+        $perPage     = 5;
+        $currentPage = $request->input('page', 1);
+        $items       = $laporanRaw->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $laporanData = new LengthAwarePaginator($items, $laporanRaw->count(), $perPage, $currentPage, [
+            'path'  => $request->url(),
+            'query' => $request->query(),
+        ]);
 
         $chartData = $transaksis->groupBy(function ($trx) {
             return $trx->tanggal ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d') : '0000-00-00';
         })->map(fn($group) => [
             'tanggal'    => \Carbon\Carbon::parse($group->first()->tanggal)->format('d M'),
-            'pendapatan' => $group->sum('total_harga')
+            'pendapatan' => $group->sum('total_harga'),
         ])->values();
 
         return view('owner.laporan', compact(
@@ -522,17 +527,6 @@ class OwnerController extends Controller
     {
         $query = Log::with('user')->orderBy('waktu', 'desc');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('aktivitas', 'like', "%{$search}%")
-                    ->orWhere('detail', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($userQ) use ($search) {
-                        $userQ->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
         if ($request->filled('dari_tanggal')) {
             $query->whereDate('waktu', '>=', $request->dari_tanggal);
         }
@@ -547,36 +541,8 @@ class OwnerController extends Controller
             });
         }
 
-        // Export CSV (pakai get() khusus untuk export)
-        if ($request->get('export') === 'csv') {
-            $logs = $query->get();
-            $filename = 'log-aktivitas-' . now()->format('Ymd-His') . '.csv';
-            $headers = [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => "attachment; filename=\"$filename\"",
-            ];
-
-            $callback = function () use ($logs) {
-                $file = fopen('php://output', 'w');
-                fputcsv($file, ['No', 'Waktu', 'User', 'Role', 'Aksi', 'Detail']);
-                foreach ($logs as $i => $log) {
-                    fputcsv($file, [
-                        $i + 1,
-                        $log->waktu->format('d-m-Y H:i'),
-                        $log->user->name ?? 'Unknown',
-                        $log->user->role ?? '-',
-                        $log->aktivitas,
-                        $log->detail ?? '-',
-                    ]);
-                }
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, $headers);
-        }
-
-        $total = $query->count(); // hitung total sebelum paginate
-        $logs = $query->paginate(15); // pakai paginate bukan get()
+        $total = $query->count();
+        $logs  = $query->paginate(5);
 
         return view('owner.log', compact('logs', 'total'));
     }

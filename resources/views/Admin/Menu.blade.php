@@ -484,18 +484,7 @@
                 const gambar = m.gambar ?
                     `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm" onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
                     `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image text-lg"></i></div>`;
-
-                // let statusHtml = '';
-                // if (m.status === 'kosong') {
-                //     statusHtml =
-                //         `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"><i class="fas fa-times-circle"></i> Habis</span>`;
-                // } else if (m.status === 'aktif') {
-                //     statusHtml =
-                //         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[8px]"></i> Aktif</span>`;
-                // } else {
-                //     statusHtml =
-                //         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500"><i class="fas fa-circle text-[8px]"></i> Nonaktif</span>`;
-                // }
+                    
 
                 let statusHtml = '';
                 if (m.stok === 0) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Menu;
 use App\Models\Log;
 use App\Models\Transaksi;
+use App\Models\DetailTransaksi;
 use App\Models\User;
 use App\Models\Meja;
 use App\Models\Kategori;
@@ -19,50 +20,37 @@ class AdminController extends Controller
     // DASHBOARD (tetep sama)
     public function dashboard()
     {
-        // LOG: Admin melihat dashboard
         Log::create([
-            'id_user' => Auth::id(),
+            'id_user'   => Auth::id(),
             'aktivitas' => 'Melihat dashboard',
-            'detail' => 'Admin melihat dashboard',
-            'waktu' => now(),
+            'detail'    => 'Admin melihat dashboard',
+            'waktu'     => now(),
         ]);
 
+        $semuaMeja    = Meja::orderBy('no_meja')->get();
+        $mejaTersedia = $semuaMeja->where('status', 'tersedia')->count();
+
+        $menuTerlaris = DetailTransaksi::with('menu')
+            ->whereHas('transaksi', fn($q) => $q->whereDate('created_at', today())->where('status', 'lunas'))
+            ->selectRaw('id_menu, SUM(qty) as total')
+            ->groupBy('id_menu')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get()
+            ->map(fn($d) => [
+                'nama_makanan' => $d->menu->nama_makanan ?? '-',
+                'total'        => (int) $d->total,
+            ]);
+
         $data = [
-            'total_menu'            => 24,
-            'total_kategori'        => 8,
-            'total_transaksi'       => 15,
-            'transaksi_belum_lunas' => 3,
-            'total_kasir'           => 4,
-            'total_meja'            => 15,
-            'meja_tersedia'         => 8,
-            'pendapatan_hari'       => 2450000,
-            'persentase_pendapatan' => '+12% dari kemarin',
-
-            'menu_terlaris' => [
-                ['nama_makanan' => 'Nasi Goreng Spesial', 'total' => 18],
-                ['nama_makanan' => 'Ayam Bakar',          'total' => 14],
-                ['nama_makanan' => 'Es Teh Manis',        'total' => 12],
-                ['nama_makanan' => 'Mie Goreng',          'total' => 8],
-                ['nama_makanan' => 'Soto Ayam',           'total' => 6],
-            ],
-
-            'semua_meja' => collect([
-                (object)['no_meja' => 'M01', 'status' => 'terisi'],
-                (object)['no_meja' => 'M02', 'status' => 'tersedia'],
-                (object)['no_meja' => 'M03', 'status' => 'terisi'],
-                (object)['no_meja' => 'M04', 'status' => 'tersedia'],
-                (object)['no_meja' => 'M05', 'status' => 'tersedia'],
-                (object)['no_meja' => 'M06', 'status' => 'tersedia'],
-                (object)['no_meja' => 'M07', 'status' => 'terisi'],
-                (object)['no_meja' => 'M08', 'status' => 'tersedia'],
-                (object)['no_meja' => 'M09', 'status' => 'terisi'],
-                (object)['no_meja' => 'M10', 'status' => 'tersedia'],
-                (object)['no_meja' => 'L01', 'status' => 'tersedia'],
-                (object)['no_meja' => 'L02', 'status' => 'terisi'],
-                (object)['no_meja' => 'L03', 'status' => 'tersedia'],
-                (object)['no_meja' => 'K01', 'status' => 'tersedia'],
-                (object)['no_meja' => 'K02', 'status' => 'terisi'],
-            ]),
+            'total_menu'      => Menu::count(),
+            'total_kategori'  => Kategori::count(),
+            'total_transaksi' => Transaksi::count(),
+            'total_kasir'     => User::whereIn('role', ['kasir', 'admin'])->count(),
+            'total_meja'      => $semuaMeja->count(),
+            'meja_tersedia'   => $mejaTersedia,
+            'menu_terlaris'   => $menuTerlaris,
+            'semua_meja'      => $semuaMeja,
         ];
 
         return view('admin.dashboard', compact('data'));
@@ -403,7 +391,7 @@ class AdminController extends Controller
             'nama_makanan'  => $validated['nama_makanan'],
             'harga'         => $validated['harga'],
             'stok'          => $validated['stok'],
-            'status'        => 'aktif',                    // default aktif
+            'status'        => 'aktif',
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -442,13 +430,10 @@ class AdminController extends Controller
 
         $data = collect($validated)->except('gambar')->toArray();
 
-        // Auto status dari stok (override kalau tidak ada status eksplisit)
-        // Di dalam updateMenu, bagian auto status:
         if (isset($validated['stok'])) {
             if ((int)$validated['stok'] === 0) {
                 $data['status'] = 'kosong';
             } elseif ((int)$validated['stok'] > 0 && $menu->status === 'kosong') {
-                // Kalau dari kosong balik ada stok → aktif (bukan nonaktif)
                 $data['status'] = isset($validated['status']) ? $validated['status'] : 'aktif';
             }
         }

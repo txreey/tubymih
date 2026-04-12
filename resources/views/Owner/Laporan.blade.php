@@ -65,13 +65,15 @@
             </div>
         </div>
 
-        <!-- Grafik -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Harian</h3>
-            <div style="height: 280px;">
-                <canvas id="pendapatanChart"></canvas>
+        {{-- Grafik — hanya tampil jika ada data transaksi --}}
+        @if ($chartData->isNotEmpty())
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Harian</h3>
+                <div style="height: 280px;">
+                    <canvas id="pendapatanChart"></canvas>
+                </div>
             </div>
-        </div>
+        @endif
 
         <!-- Tabel Laporan -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -83,18 +85,17 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-bold text-gray-900">Data Laporan</h2>
-                        <p class="text-xs text-gray-500">Total: {{ $laporanData->count() }} entri</p>
+                        <p class="text-xs text-gray-500">Total: {{ $laporanData->total() }} entri</p>
                     </div>
                 </div>
 
-                <!-- Export Buttons (Hanya Excel & PDF) -->
+                <!-- Export Buttons -->
                 <div class="flex gap-3">
                     <a href="{{ route('owner.laporan.export.excel') }}?{{ http_build_query(request()->only(['dari', 'sampai', 'id_kasir'])) }}"
                         class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-2 transition">
                         <i class="fas fa-file-excel"></i>
                         <span>Export Excel</span>
                     </a>
-
                     <a href="{{ route('owner.laporan.export.pdf') }}?{{ http_build_query(request()->only(['dari', 'sampai', 'id_kasir'])) }}"
                         class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center gap-2 transition">
                         <i class="fas fa-file-pdf"></i>
@@ -118,7 +119,9 @@
                     <tbody class="divide-y divide-gray-100">
                         @forelse($laporanData as $index => $row)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-5 text-sm text-gray-600">{{ $index + 1 }}</td>
+                                <td class="px-6 py-5 text-sm text-gray-600">
+                                    {{ ($laporanData->currentPage() - 1) * $laporanData->perPage() + $index + 1 }}
+                                </td>
                                 <td class="px-6 py-5 text-sm font-medium">{{ $row['tanggal'] }}</td>
                                 <td class="px-6 py-5 text-sm">{{ $row['kasir'] }}</td>
                                 <td class="px-6 py-5 text-sm text-teal-600 font-semibold">{{ $row['transaksi'] }}x</td>
@@ -130,6 +133,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-20 text-center text-gray-400">
+                                    <i class="fas fa-chart-bar text-5xl text-gray-200 mb-4 block"></i>
                                     Belum ada data laporan
                                 </td>
                             </tr>
@@ -138,58 +142,98 @@
                 </table>
             </div>
 
-            <!-- Footer Tabel -->
-            <div class="px-6 py-4 border-t bg-gray-50 text-sm text-gray-600">
-                Menampilkan <strong>{{ $laporanData->count() }}</strong> data laporan
+            {{-- Footer + Pagination --}}
+            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-400">
+                    @if ($laporanData->count() > 0)
+                        Menampilkan <strong>{{ $laporanData->firstItem() }}–{{ $laporanData->lastItem() }}</strong>
+                        dari <strong>{{ $laporanData->total() }}</strong> entri
+                    @endif
+                </p>
+                <div class="flex items-center gap-1.5">
+                    @if ($laporanData->onFirstPage())
+                        <button disabled
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 opacity-40 cursor-not-allowed">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                    @else
+                        <a href="{{ $laporanData->appends(request()->query())->previousPageUrl() }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </a>
+                    @endif
+
+                    <div
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        {{ $laporanData->currentPage() }}
+                    </div>
+
+                    @if ($laporanData->hasMorePages())
+                        <a href="{{ $laporanData->appends(request()->query())->nextPageUrl() }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                    @else
+                        <button disabled
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 opacity-40 cursor-not-allowed">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Chart.js Script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script>
-        // ============================
-        // 📊 CHART - Grafik Pendapatan
-        // ============================
-        const rawData = @json($chartData);
-        const labels = rawData.map(item => item.tanggal);
-        const values = rawData.map(item => item.pendapatan);
+    {{-- Chart.js hanya di-load jika grafik ditampilkan --}}
+    @if ($chartData->isNotEmpty())
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            const rawData = @json($chartData);
+            const labels = rawData.map(item => item.tanggal);
+            const values = rawData.map(item => item.pendapatan);
 
-        new Chart(document.getElementById('pendapatanChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Pendapatan',
-                    data: values,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.3,
-                    borderWidth: 3,
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+            new Chart(document.getElementById('pendapatanChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pendapatan',
+                        data: values,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
                 },
-                scales: {
-                    y: {
-                        ticks: {
-                            callback: v => 'Rp ' + (v / 1000000) + 'jt'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 200000,
+                                callback: function(v) {
+                                    if (v === 0) return 'Rp 0';
+                                    if (v < 1000000) return 'Rp ' + (v / 1000) + 'rb';
+                                    return 'Rp ' + (v / 1000000) + 'jt';
+                                }
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        </script>
+    @endif
 
-        // ============================
-        // ✅ FILTER TANGGAL VALIDATION
-        // ============================
+    <script>
+        // Validasi filter tanggal
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form[method="GET"]');
             const dariInput = document.querySelector('input[name="dari"]');
@@ -197,21 +241,15 @@
 
             if (!form || !dariInput || !sampaiInput) return;
 
-            // Sync min/max tanggal secara realtime
             function syncDateRange() {
-                if (dariInput.value) {
-                    sampaiInput.min = dariInput.value;
-                }
-                if (sampaiInput.value) {
-                    dariInput.max = sampaiInput.value;
-                }
+                if (dariInput.value) sampaiInput.min = dariInput.value;
+                if (sampaiInput.value) dariInput.max = sampaiInput.value;
             }
 
             dariInput.addEventListener('change', syncDateRange);
             sampaiInput.addEventListener('change', syncDateRange);
-            syncDateRange(); // jalankan saat pertama kali load
+            syncDateRange();
 
-            // Validasi sebelum form disubmit
             form.addEventListener('submit', function(e) {
                 const dari = dariInput.value;
                 const sampai = sampaiInput.value;
@@ -228,9 +266,9 @@
                         return false;
                     }
 
-                    // Batasi maksimal 1 tahun (365 hari)
-                    const diffTime = Math.abs(new Date(sampai) - new Date(dari));
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.ceil(
+                        Math.abs(new Date(sampai) - new Date(dari)) / (1000 * 60 * 60 * 24)
+                    );
 
                     if (diffDays > 365) {
                         e.preventDefault();

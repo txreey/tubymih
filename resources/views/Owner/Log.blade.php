@@ -1,33 +1,34 @@
 @extends('owner.layouts.app')
-
 @section('title', 'Log Aktivitas')
-
 @section('content')
-    <div class="space-y-5 max-w-7xl mx-auto p-6">
+    <div class="space-y-8 max-w-7xl mx-auto p-6">
+
+        {{-- Header --}}
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Log Aktivitas</h1>
             <p class="text-gray-600 mt-1">Riwayat aktivitas semua user</p>
         </div>
 
-        <!-- Filter Box -->
+        {{-- Filter --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <form method="GET" action="{{ route('owner.log') }}" class="p-6">
+            <form method="GET" action="{{ route('owner.log') }}" id="filterForm" class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Dari Tanggal</label>
-                        <input type="date" name="dari_tanggal" value="{{ request('dari_tanggal') }}"
+                        <input type="date" name="dari_tanggal" id="dari_tanggal" value="{{ request('dari_tanggal') }}"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Sampai Tanggal</label>
-                        <input type="date" name="sampai_tanggal" value="{{ request('sampai_tanggal') }}"
+                        <input type="date" name="sampai_tanggal" id="sampai_tanggal"
+                            value="{{ request('sampai_tanggal') }}"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Kasir</label>
-                        <select name="role"
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                        <select name="role" id="filterRole"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 outline-none transition text-sm">
-                            <option value="">Semua kasir</option>
+                            <option value="">Semua Role</option>
                             <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="kasir" {{ request('role') == 'kasir' ? 'selected' : '' }}>Kasir</option>
                             <option value="owner" {{ request('role') == 'owner' ? 'selected' : '' }}>Owner</option>
@@ -47,53 +48,53 @@
             </form>
         </div>
 
-        <!-- Tabel Log -->
-        <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        {{-- Tabel --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-teal-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+                    <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-clipboard-list text-teal-600 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-900">Log aktivitas</h2>
-                        <p class="text-xs text-gray-500">Total: {{ $total }} aktivitas</p>
+                        <p class="text-sm font-bold text-gray-800 leading-none">Log Aktivitas</p>
+                        <p class="text-xs text-gray-400 mt-1">Total: {{ $total }} aktivitas</p>
                     </div>
                 </div>
-                <a href="{{ route('owner.log') }}?{{ http_build_query(array_merge(request()->all(), ['export' => 'csv'])) }}"
-                    class="px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">
-                    Eksport
-                </a>
             </div>
+
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">NO
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                WAKTU</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                USER</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                AKSI</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                DETAIL</th>
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/40">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">
+                                No</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Waktu</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                User</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Aksi</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Detail</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-100">
                         @forelse($logs as $index => $log)
-                            <tr class="hover:bg-gray-50 transition duration-150">
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="px-6 py-4 text-sm text-gray-400 font-medium">
                                     {{ ($logs->currentPage() - 1) * $logs->perPage() + $index + 1 }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                     {{ $log->waktu->format('d-m-Y H:i') }}
                                 </td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-800">
                                     {{ $log->user->nama ?? 'Unknown' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    {{ ucfirst($log->user->role ?? '-') }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600">
                                     {{ $log->aktivitas }}
@@ -104,32 +105,69 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-16 text-center text-gray-500">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                        </path>
-                                    </svg>
-                                    <p class="mt-2">Belum ada log aktivitas</p>
+                                <td colspan="5" class="px-6 py-16 text-center text-gray-400">
+                                    <i class="fas fa-clipboard-list text-5xl text-gray-200 mb-4 block"></i>
+                                    Belum ada log aktivitas
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            @if ($logs->count() > 0)
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                    <p class="text-sm text-gray-600">
-                        Menampilkan <strong>{{ $logs->firstItem() }}</strong> - <strong>{{ $logs->lastItem() }}</strong>
-                        dari
-                        <strong>{{ $total }}</strong> Log aktivitas
-                    </p>
-                    <div>
-                        {{ $logs->appends(request()->query())->links() }}
+
+            {{-- Pagination Arrow --}}
+            <div class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+                <p class="text-xs text-gray-400">
+                    @if ($logs->count() > 0)
+                        Menampilkan <strong>{{ $logs->firstItem() }}–{{ $logs->lastItem() }}</strong>
+                        dari <strong>{{ $total }}</strong> aktivitas
+                    @endif
+                </p>
+                <div class="flex items-center gap-1.5">
+                    {{-- Prev --}}
+                    @if ($logs->onFirstPage())
+                        <button disabled
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 opacity-40 cursor-not-allowed">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                    @else
+                        <a href="{{ $logs->appends(request()->query())->previousPageUrl() }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </a>
+                    @endif
+
+                    {{-- Current Page --}}
+                    <div
+                        class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
+                        {{ $logs->currentPage() }}
                     </div>
+
+                    {{-- Next --}}
+                    @if ($logs->hasMorePages())
+                        <a href="{{ $logs->appends(request()->query())->nextPageUrl() }}"
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </a>
+                    @else
+                        <button disabled
+                            class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 opacity-40 cursor-not-allowed">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    @endif  
                 </div>
-            @endif
+            </div>
         </div>
     </div>
+
+    <script>
+        // Realtime filter — auto submit saat berubah
+        document.addEventListener('DOMContentLoaded', function() {
+            ['dari_tanggal', 'sampai_tanggal', 'filterRole'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', function() {
+                    document.getElementById('filterForm').submit();
+                });
+            });
+        });
+    </script>
 @endsection

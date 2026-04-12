@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('stok')->default(0);
             $table->integer('stok_sebelumnya')->nullable();
             $table->string('gambar')->nullable();
+            $table->enum('status', ['aktif', 'nonaktif', 'kosong'])->default('aktif');
             $table->timestamps();
         });
     }

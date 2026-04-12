@@ -6,7 +6,7 @@
 
     <div class="min-h-screen bg-gray-50 py-6">
 
-        {{-- TOPBAR --}}
+        <!-- TOPBAR -->
         <div class="max-w-7xl mx-auto px-6 mb-8">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">Beranda</h2>

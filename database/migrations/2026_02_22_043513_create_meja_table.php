@@ -16,7 +16,6 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->enum('status', ['tersedia', 'terisi', 'reserved'])->default('tersedia');
             $table->timestamps();
-            // $table->softDeletes();   // optional kalau mau
         });
     }
 
