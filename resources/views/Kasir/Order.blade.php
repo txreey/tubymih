@@ -11,7 +11,7 @@
             <div class="order-screen" id="scr1">
                 <h2 class="text-2xl font-bold text-gray-800 mb-1">Mulai Order Baru</h2>
                 <p class="text-sm text-gray-400 mb-6">Pilih tipe order untuk menentukan alur transaksi</p>
-                <div class="grid grid-cols-2 gap-4"> {{-- Changed from grid-cols-3 to grid-cols-2 --}}
+                <div class="grid grid-cols-2 gap-4">
                     {{-- Dine In --}}
                     <div id="cardDine" onclick="selectType('dine')"
                         class="relative border-2 border-gray-200 rounded-2xl p-7 cursor-pointer transition-all hover:border-gray-300 bg-white">
@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4" id="menuGrid"></div>
             </div>
 
-            {{-- ── SCR 5: Konfirmasi Order (dine in & take away) ── --}}
+            {{-- ── SCR 5: Konfirmasi Order ── --}}
             <div class="order-screen hidden" id="scr5">
                 <div class="flex gap-6">
                     <div class="flex-1">
@@ -416,8 +416,8 @@
                 btn.style.display = 'block';
                 btn.textContent = state.tableIds.length ? `Lanjut (${state.tableIds.length} meja) →` : 'Lanjut →';
                 btn.disabled = !state.tableIds.length;
-                const color = 'bg-amber-400 hover:bg-amber-500 text-black';
-                btn.className = base + color + ' disabled:opacity-40 disabled:cursor-not-allowed';
+                btn.className = base +
+                    'bg-amber-400 hover:bg-amber-500 text-black disabled:opacity-40 disabled:cursor-not-allowed';
                 hint.textContent = state.tableIds.length ? state.tableNomors.join(', ') + ' dipilih' :
                     'Pilih minimal 1 meja';
                 return;
@@ -461,8 +461,7 @@
             <div class="bg-white border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center text-lg shrink-0">🔴</div>
                 <div><div class="text-lg font-bold text-red-500 leading-none">${terisi}</div><div class="text-xs text-gray-400 mt-0.5">Terisi</div></div>
-            </div>
-        `;
+            </div>`;
         }
 
         let activeMejaFilter = 'semua';
@@ -495,13 +494,10 @@
                 const isLesehan = getMejaTipe(m) === 'Lesehan' || getMejaTipe(m) === 'lesehan';
                 const selected = state.tableIds.includes(m.id);
                 const nomorMeja = m.nomor_meja || m.no_meja;
-                const kapasitas = m.kapasitas;
-                const deskripsi = m.deskripsi || '-';
 
-                let statusText = '';
-                let statusColor = '';
-                let disabledClick = false;
-
+                let statusText = '',
+                    statusColor = '',
+                    disabledClick = false;
                 if (terisi) {
                     statusText = 'Terisi';
                     statusColor = 'bg-red-100 text-red-500';
@@ -509,11 +505,9 @@
                 } else if (selected) {
                     statusText = 'Dipilih ✓';
                     statusColor = 'bg-amber-100 text-amber-600';
-                    disabledClick = false;
                 } else {
                     statusText = 'Tersedia';
                     statusColor = 'bg-green-100 text-green-600';
-                    disabledClick = false;
                 }
 
                 const icon = isLesehan ?
@@ -526,32 +520,26 @@
                         `<svg viewBox="0 0 48 40" class="w-10 h-8 mx-auto mb-2" fill="none"><rect x="8" y="16" width="32" height="8" rx="2" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/><line x1="16" y1="24" x2="16" y2="34" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/><line x1="32" y1="24" x2="32" y2="34" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/><rect x="12" y="6" width="10" height="7" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="26" y="6" width="10" height="7" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="12" y="28" width="10" height="6" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/><rect x="26" y="28" width="10" height="6" rx="1.5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/></svg>`
                     );
 
-                const selectedBorderColor = 'border-amber-400 bg-amber-50 ring-amber-300';
-                const checkBgColor = 'bg-amber-400 text-black';
+                const checkBadge = selected ?
+                    `<div class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-amber-400 text-black text-xs font-bold flex items-center justify-center">✓</div>` :
+                    '';
+                const hasDeskripsi = m.deskripsi && m.deskripsi !== '-';
                 const base = 'relative border-2 rounded-xl p-3 text-center transition-all ';
                 let cls;
                 if (disabledClick) cls = base + 'border-red-200 bg-red-50 opacity-60 cursor-not-allowed';
-                else if (selected) cls = base + `${selectedBorderColor} cursor-pointer ring-2`;
+                else if (selected) cls = base + 'border-amber-400 bg-amber-50 ring-2 ring-amber-300 cursor-pointer';
                 else cls = base +
-                    'border-gray-200 bg-white cursor-pointer hover:border-amber-400 hover:bg-amber-50';
-
-                const checkBadge = selected ?
-                    `<div class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full ${checkBgColor} text-xs font-bold flex items-center justify-center">✓</div>` :
-                    '';
-                const hasDeskripsi = deskripsi && deskripsi !== '-';
+                'border-gray-200 bg-white cursor-pointer hover:border-amber-400 hover:bg-amber-50';
 
                 return `
-                <div id="tbl_${m.id}" class="${cls}" onclick="${disabledClick ? '' : `toggleTable(${m.id}, '${nomorMeja}', '${getMejaTipe(m)}', '${escHtml(deskripsi)}')`}">
+                <div id="tbl_${m.id}" class="${cls}" onclick="${disabledClick ? '' : `toggleTable(${m.id}, '${nomorMeja}', '${getMejaTipe(m)}', '${escHtml(m.deskripsi || '')}')`}">
                     ${checkBadge}
                     ${icon}
                     <div class="text-sm font-bold text-gray-800">${nomorMeja}</div>
-                    <div class="text-xs text-gray-400 mt-0.5">${isLesehan ? 'Lesehan' : 'Meja Kursi'} ${kapasitas} org</div>
-                    ${hasDeskripsi ? `<div class="text-xs text-gray-400 mt-0.5 truncate">${escHtml(deskripsi).substring(0,20)}${deskripsi.length>20?'...':''}</div>` : ''}
-                    <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${statusColor}">
-                        ${statusText}
-                    </span>
-                </div>
-            `;
+                    <div class="text-xs text-gray-400 mt-0.5">${isLesehan ? 'Lesehan' : 'Meja Kursi'} ${m.kapasitas} org</div>
+                    ${hasDeskripsi ? `<div class="text-xs text-gray-400 mt-0.5 truncate">${escHtml(m.deskripsi).substring(0,20)}${m.deskripsi.length>20?'...':''}</div>` : ''}
+                    <span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${statusColor}">${statusText}</span>
+                </div>`;
             }).join('');
         }
 
@@ -644,109 +632,165 @@
             document.getElementById('menuGrid').innerHTML = filtered.map(m => {
                 const inCart = state.cart.find(c => c.id === m.id);
                 const qtyInCart = inCart ? inCart.qty : 0;
-                const availableStok = getAvailableStok(m.id); // 🔥 pakai helper
-                const habis = availableStok <= 0;
 
-                let imageHtml = '';
-                if (m.gambar) {
-                    imageHtml = `
-                <img src="/storage/${m.gambar}" 
-                     class="w-full h-44 object-cover rounded-t-2xl"
-                     alt="${m.nama}"
-                     onerror="this.src='https://placehold.co/400x300/e2e8f0/94a3b8?text=${encodeURIComponent(m.nama.substring(0,15))}';">
-            `;
+                // ── PERBAIKAN: gunakan stok asli dari server, BUKAN dikurangi cart ──
+                const stokAsli = m.stok; // stok murni dari DB
+                const sisaStok = stokAsli - qtyInCart; // sisa yang belum dipesan (untuk tampilan badge)
+
+                // ── Tentukan status menu ──────────────────────────────────
+                const isNonaktif = m.is_aktif === false;
+                const isHabis = !isNonaktif && stokAsli <= 0; // habis = stok asli 0, bukan sisa
+                const bisa = !isNonaktif && !isHabis;
+
+                // ── Gambar ───────────────────────────────────────────────
+                const imageHtml = m.gambar ?
+                    `<img src="/storage/${m.gambar}" class="w-full h-44 object-cover rounded-t-2xl" alt="${m.nama}" onerror="this.src='https://placehold.co/400x300/e2e8f0/94a3b8?text=${encodeURIComponent(m.nama.substring(0,15))}';">` :
+                    `<div class="w-full h-44 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center text-7xl rounded-t-2xl">${m.emoji || '🍽️'}</div>`;
+
+                // ── Badge stok ──────────────────────────────────────────
+                let stokBadge = '';
+                if (isNonaktif) {
+                    stokBadge =
+                        `<span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Tidak Tersedia</span>`;
+                } else if (isHabis) {
+                    stokBadge =
+                        `<span class="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Stok Habis</span>`;
+                } else if (sisaStok <= 0) {
+                    // Stok asli > 0 tapi sudah habis dimasukkan ke cart semua
+                    stokBadge =
+                        `<span class="text-xs font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">Maks. di keranjang</span>`;
                 } else {
-                    imageHtml = `
-                <div class="w-full h-44 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center text-7xl rounded-t-2xl">
-                    ${m.emoji || '🍽️'}
-                </div>
-            `;
+                    stokBadge = `<span class="text-xs font-medium text-gray-500">Sisa ${sisaStok}</span>`;
                 }
 
-                let stokBadge = habis ?
-                    `<span class="text-xs font-medium text-red-600">Habis</span>` :
-                    `<span class="text-xs font-medium text-gray-500">Sisa ${availableStok}</span>`;
-
+                // ── Tombol / badge qty ────────────────────────────────────
                 let actionHtml = '';
-                if (!habis) {
+                if (bisa) {
                     if (qtyInCart > 0) {
-                        // Ada di cart → tampilkan badge qty
-                        actionHtml = `
-            <div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow">
-                ${qtyInCart}
-            </div>
-        `;
+                        actionHtml =
+                            `<div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full shadow">${qtyInCart}</div>`;
                     } else {
-                        // Belum di cart → tampilkan tombol +
-                        actionHtml = `
-            <div onclick="addToCart(${m.id}); event.stopImmediatePropagation()" 
-                 class="absolute top-3 right-3 bg-amber-500 hover:bg-amber-600 w-8 h-8 flex items-center justify-center text-2xl text-white rounded-full shadow transition-all">
-                +
-            </div>
-        `;
+                        actionHtml =
+                            `<div onclick="addToCart(${m.id}); event.stopImmediatePropagation()" class="absolute top-3 right-3 bg-amber-500 hover:bg-amber-600 w-8 h-8 flex items-center justify-center text-2xl text-white rounded-full shadow transition-all">+</div>`;
                     }
-                } else {
-                    // Habis → tombol disabled (kosong)
-                    actionHtml = '';
                 }
+
+                // ── Overlay gelap untuk nonaktif & habis ─────────────────
+                const overlayHtml = (isNonaktif || isHabis) ?
+                    `<div class="absolute inset-0 bg-white/60 rounded-2xl pointer-events-none"></div>` : '';
+
+                // ── Handler klik ─────────────────────────────────────────
+                let onclickAttr = '';
+                if (isNonaktif) {
+                    onclickAttr = `onclick="alertMenuNonaktif('${m.nama.replace(/'/g, "\\'")}')"`;
+                } else if (isHabis) {
+                    onclickAttr = `onclick="alertMenuHabis('${m.nama.replace(/'/g, "\\'")}')"`;
+                } else {
+                    onclickAttr = `onclick="addToCart(${m.id})"`;
+                }
+
+                // ── Card wrapper class ────────────────────────────────────
+                const cardClass = bisa ?
+                    'group relative border border-gray-200 hover:border-amber-300 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-md' :
+                    'group relative border border-gray-200 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all opacity-70';
 
                 return `
-            <div onclick="${habis ? '' : `addToCart(${m.id})`}" 
-                 class="group relative border border-gray-200 hover:border-amber-300 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-md">
-                ${imageHtml}
-                <div class="p-3">
-                    <div class="text-xs text-gray-500 capitalize mb-1">${m.kategori || '-'}</div>
-                    <div class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2 min-h-[40px]">
-                        ${m.nama}
+                <div ${onclickAttr} class="${cardClass}">
+                    ${overlayHtml}
+                    ${imageHtml}
+                    <div class="p-3">
+                        <div class="text-xs text-gray-500 capitalize mb-1">${m.kategori || '-'}</div>
+                        <div class="font-semibold text-gray-800 text-sm leading-tight line-clamp-2 min-h-[40px]">${m.nama}</div>
+                        <div class="mt-3 text-lg font-bold ${bisa ? 'text-amber-600' : 'text-gray-400'}">${formatRp(m.harga)}</div>
                     </div>
-                    <div class="mt-3 text-lg font-bold text-amber-600">
-                        ${formatRp(m.harga)}
+                    <div class="px-3 pb-3 flex justify-between items-center text-xs">
+                        <div>${stokBadge}</div>
                     </div>
-                </div>
-                <div class="px-3 pb-3 flex justify-between items-center text-xs">
-                    <div>${stokBadge}</div>
-                </div>
-                ${actionHtml}
-            </div>
-        `;
+                    ${actionHtml}
+                </div>`;
             }).join('');
         }
 
-        function warnStok(nama, stok) {
+        function alertMenuNonaktif(nama) {
             Swal.fire({
-                icon: 'warning',
-                title: 'Stok Terbatas',
-                text: `${nama} hanya tersisa ${stok} porsi.`,
-                confirmButtonColor: '#f59e0b'
+                icon: 'info',
+                title: 'Menu Tidak Tersedia',
+                text: `"${nama}" sedang dinonaktifkan oleh admin dan tidak bisa dipesan saat ini.`,
+                confirmButtonColor: '#6b7280',
+                confirmButtonText: 'Mengerti'
             });
         }
 
+        function alertMenuHabis(nama) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stok Habis',
+                text: `"${nama}" sedang kehabisan stok dan tidak bisa dipesan saat ini.`,
+                confirmButtonColor: '#f59e0b',
+                confirmButtonText: 'Mengerti'
+            });
+        }
+
+        function warnStokHabis(nama) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stok Habis',
+                text: `Stok "${nama}" sudah habis — tidak bisa menambah lagi.`,
+                confirmButtonColor: '#f59e0b',
+                confirmButtonText: 'Mengerti'
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        // CART — addToCart (FIXED)
+        // ══════════════════════════════════════════════
         function addToCart(id) {
             const menu = ALL_MENUS.find(m => m.id === id);
             if (!menu) return;
-            const availableStok = getAvailableStok(id);
-            const existing = state.cart.find(c => c.id === id);
-            if (existing && existing.qty >= availableStok) {
-                warnStok(menu.nama, availableStok);
+
+            // Cek nonaktif
+            if (menu.is_aktif === false) {
+                alertMenuNonaktif(menu.nama);
                 return;
             }
-            if (existing) existing.qty++;
-            else state.cart.push({
-                id: menu.id,
-                nama: menu.nama,
-                harga: menu.harga,
-                kategori: menu.kategori,
-                stok: menu.stok,
-                emoji: menu.emoji,
-                qty: 1
-            });
+
+            // Cek stok asli = 0
+            if (menu.stok <= 0) {
+                alertMenuHabis(menu.nama);
+                return;
+            }
+
+            const existing = state.cart.find(c => c.id === id);
+            const qtyInCart = existing ? existing.qty : 0;
+
+            // PERBAIKAN: batas = stok asli (bukan available stok)
+            // Alert muncul hanya saat qty di cart sudah = stok asli
+            if (qtyInCart >= menu.stok) {
+                warnStokHabis(menu.nama);
+                return;
+            }
+
+            if (existing) {
+                existing.qty++;
+            } else {
+                state.cart.push({
+                    id: menu.id,
+                    nama: menu.nama,
+                    harga: menu.harga,
+                    kategori: menu.kategori,
+                    stok: menu.stok,
+                    emoji: menu.emoji,
+                    qty: 1,
+                });
+            }
+
             renderMenuGrid(activeFilter);
             renderCart();
             updateNextBtn();
         }
 
         // ══════════════════════════════════════════════
-        // CART
+        // CART — render & changeQty (FIXED)
         // ══════════════════════════════════════════════
         function renderCart() {
             const totQty = state.cart.reduce((s, c) => s + c.qty, 0);
@@ -786,11 +830,17 @@
             const idx = state.cart.findIndex(c => c.id === id);
             if (idx === -1) return;
             const menu = ALL_MENUS.find(m => m.id === id);
-            const availableStok = menu ? getAvailableStok(id) : 0;
-            if (delta > 0 && state.cart[idx].qty >= availableStok) {
-                warnStok(state.cart[idx].nama, availableStok);
-                return;
+
+            // PERBAIKAN: batas tambah menggunakan stok asli dari ALL_MENUS
+            if (delta > 0) {
+                const stokAsli = menu ? menu.stok : 0;
+                const qtyInCart = state.cart[idx].qty;
+                if (qtyInCart >= stokAsli) {
+                    warnStokHabis(state.cart[idx].nama);
+                    return;
+                }
             }
+
             state.cart[idx].qty += delta;
             if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
             if (state.currentScr === '3') renderMenuGrid(activeFilter);
@@ -892,7 +942,7 @@
                         items: state.cart.map(c => ({
                             id: c.id,
                             qty: c.qty,
-                            harga: c.harga
+                            harga: c.harga,
                         })),
                     }),
                 })
@@ -940,8 +990,7 @@
                 `${isDine ? '🍽️ Dine In' : '🥡 Take Away'}${mejaInfo} · ${state.namaCustomer}`;
             const infoBox = document.getElementById('successInfoBox');
             infoBox.classList.remove('hidden');
-            infoBox.className =
-                'bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed';
+            infoBox.className = 'bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed';
             infoBox.innerHTML = `<p class="font-bold mb-2">💡 Cara menagih setelah selesai:</p>
             <ol class="list-decimal pl-4 space-y-1">
                 <li>Buka menu <strong>Riwayat Transaksi</strong></li>
@@ -967,7 +1016,7 @@
                 step: 1,
                 noTransaksi: null,
                 namaCustomer: '',
-                currentScr: '1'
+                currentScr: '1',
             };
             const base = 'relative border-2 rounded-2xl p-7 cursor-pointer transition-all ';
             document.getElementById('cardDine').className = base + 'border-gray-200 bg-white hover:border-gray-300';
@@ -987,6 +1036,9 @@
             document.getElementById('scr1').classList.remove('hidden');
         }
 
+        // ══════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════
         function getTotal() {
             return state.cart.reduce((s, c) => s + c.harga * c.qty, 0);
         }
@@ -995,18 +1047,14 @@
             return 'Rp ' + n.toLocaleString('id-ID');
         }
 
-        // 🔥 Helper: Hitung stok tersedia = stok asli - qty di cart
+        // getAvailableStok sudah tidak dipakai untuk logika batas,
+        // tapi tetap ada jika dibutuhkan di tempat lain
         function getAvailableStok(menuId) {
             const menu = ALL_MENUS.find(m => m.id === menuId);
             if (!menu) return 0;
-
-            const inCart = state.cart.find(c => c.id === menuId);
-            const qtyInCart = inCart ? inCart.qty : 0;
-
-            return Math.max(0, menu.stok - qtyInCart);
+            return menu.stok; // ✅ kembalikan stok asli
         }
 
-        // Init
         document.addEventListener('DOMContentLoaded', function() {
             renderStepBar();
         });

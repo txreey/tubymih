@@ -115,18 +115,20 @@ class KasirController extends Controller
                 'deskripsi'  => $m->deskripsi ?? '-',
             ]);
 
+        // Ambil SEMUA menu (tanpa filter stok & is_aktif)
+        // supaya menu nonaktif & stok 0 tetap muncul di UI tapi dikunci
         $menus = Menu::with('kategori')
-            ->where('stok', '>', 0)
             ->orderBy('nama_makanan')
             ->get()
             ->map(fn($m) => (object)[
-                'id'          => $m->id,
-                'nama'        => $m->nama_makanan,
-                'harga'       => (int) $m->harga,
-                'kategori'    => $m->kategori->nama_kategori ?? 'Lainnya',
-                'emoji'       => $m->emoji ?? '🍽️',
-                'stok'        => (int) $m->stok,
-                'gambar'      => $m->gambar,
+                'id'       => $m->id,
+                'nama'     => $m->nama_makanan,
+                'harga'    => (int) $m->harga,
+                'kategori' => $m->kategori->nama_kategori ?? 'Lainnya',
+                'emoji'    => $m->emoji ?? '🍽️',
+                'stok'     => (int) $m->stok,
+                'gambar'   => $m->gambar,
+                'is_aktif' => (bool) ($m->is_aktif ?? true),
             ]);
 
         Log::create([
@@ -413,7 +415,7 @@ class KasirController extends Controller
 
     public function indexMeja()
     {
-        $mejas   = Meja::orderBy('no_meja')->get();
+        $mejas    = Meja::orderBy('no_meja')->get();
         $tersedia = $mejas->where('status', 'tersedia')->count();
         $terisi   = $mejas->where('status', 'terisi')->count();
         Log::create([

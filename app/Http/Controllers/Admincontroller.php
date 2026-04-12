@@ -367,8 +367,9 @@ class AdminController extends Controller
 
 
     // ==========================================
-    // KELOLA MENU
+    // KELOLA MENU (SUDAH DIBENARKAN FULL)
     // ==========================================
+
     public function indexMenu(Request $request)
     {
         Log::create([
@@ -399,20 +400,18 @@ class AdminController extends Controller
             'gambar'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = [
+        $menu = Menu::create([
             'id_kategori'   => $validated['id_kategori'],
             'nama_makanan'  => $validated['nama_makanan'],
             'harga'         => $validated['harga'],
             'stok'          => $validated['stok'],
-            'is_aktif'      => true, // default aktif saat dibuat
-        ];
+            'status'        => 'aktif',                    // default aktif
+        ]);
 
         if ($request->hasFile('gambar')) {
             $path = $request->file('gambar')->store('menu', 'public');
-            $data['gambar'] = $path;
+            $menu->update(['gambar' => $path]);
         }
-
-        $menu = Menu::create($data);
 
         Log::create([
             'id_user' => Auth::id(),
@@ -435,36 +434,43 @@ class AdminController extends Controller
         $namaLama  = $menu->nama_makanan;
 
         $validated = $request->validate([
-            'id_kategori'   => 'required|exists:kategori,id',
-            'nama_makanan'  => 'required|string|max:100',
-            'harga'         => 'required|numeric|min:0',
-            'stok'          => 'required|integer|min:0',
+            'id_kategori'   => 'sometimes|exists:kategori,id',
+            'nama_makanan'  => 'sometimes|string|max:100',
+            'harga'         => 'sometimes|numeric|min:0',
+            'stok'          => 'sometimes|integer|min:0',
+            'status'        => 'sometimes|in:aktif,nonaktif,kosong',
             'gambar'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = collect($validated)->except('gambar')->toArray();
 
-        // Geser history HARGA
-        if ((float) $validated['harga'] !== (float) $hargaLama) {
-            $data['harga_sebelumnya'] = $hargaLama;
+        // Auto status dari stok (override kalau tidak ada status eksplisit)
+        // Di dalam updateMenu, bagian auto status:
+        if (isset($validated['stok'])) {
+            if ((int)$validated['stok'] === 0) {
+                $data['status'] = 'kosong';
+            } elseif ((int)$validated['stok'] > 0 && $menu->status === 'kosong') {
+                // Kalau dari kosong balik ada stok → aktif (bukan nonaktif)
+                $data['status'] = isset($validated['status']) ? $validated['status'] : 'aktif';
+            }
         }
 
-        // Geser history STOK
-        if ((int) $validated['stok'] !== (int) $stokLama) {
+        if (isset($validated['harga']) && (float) $validated['harga'] !== (float) $hargaLama) {
+            $data['harga_sebelumnya'] = $hargaLama;
+        }
+        if (isset($validated['stok']) && (int) $validated['stok'] !== (int) $stokLama) {
             $data['stok_sebelumnya'] = $stokLama;
         }
 
         if ($request->hasFile('gambar')) {
-            if ($menu->gambar) {
-                Storage::disk('public')->delete($menu->gambar);
-            }
+            if ($menu->gambar) Storage::disk('public')->delete($menu->gambar);
             $data['gambar'] = $request->file('gambar')->store('menu', 'public');
         }
 
         $menu->update($data);
 
         $perubahan = [];
-        if ($namaLama != $menu->nama_makanan) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $menu->nama_makanan;
+        if (isset($namaLama) && $namaLama != $menu->nama_makanan) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $menu->nama_makanan;
         if ($hargaLama != $menu->harga) $perubahan[] = 'Harga: Rp ' . number_format($hargaLama, 0, ',', '.') . ' → Rp ' . number_format($menu->harga, 0, ',', '.');
         if ($stokLama != $menu->stok) $perubahan[] = 'Stok: ' . $stokLama . ' → ' . $menu->stok;
 
@@ -483,38 +489,20 @@ class AdminController extends Controller
     }
 
     /**
-     * Cek apakah menu sedang ada dalam pesanan yang BELUM LUNAS / BELUM SELESAI.
-     * Jika transaksi sudah lunas/selesai/batal, menu dianggap bebas diubah.
-     */
-    public function checkOrders($id)
-    {
-        $menu = Menu::findOrFail($id);
-
-        // "Sedang dipesan" = ada di transaksi yang belum lunas & belum selesai & belum dibatal
-        // Sesuaikan nilai status di bawah dengan yang ada di tabel transaksi kamu
-        $hasOrders = $menu->detailTransaksi()
-            ->whereHas('transaksi', function ($q) {
-                // Hanya transaksi yang belum lunas yang dianggap "sedang dipesan"
-                $q->where('status', 'tunggak');
-            })
-            ->exists();
-
-        return response()->json([
-            'success'    => true,
-            'has_orders' => $hasOrders,
-        ]);
-    }
-
-    /**
-     * Toggle status aktif / nonaktif menu.
-     * Tidak bisa dilakukan jika menu sedang dalam pesanan yang belum lunas/selesai.
+     * Toggle hanya aktif <-> nonaktif
+     * Tidak bisa toggle jika status = kosong
      */
     public function toggleStatusMenu(Menu $menu)
     {
-        // Cek pesanan yang belum lunas/selesai
+        if ($menu->status === 'kosong') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Menu habis stok. Tidak bisa mengubah status.',
+            ], 422);
+        }
+
         $sedangDipesan = $menu->detailTransaksi()
             ->whereHas('transaksi', function ($q) {
-                // Hanya transaksi yang belum lunas yang mengunci tombol
                 $q->where('status', 'tunggak');
             })
             ->exists();
@@ -526,22 +514,37 @@ class AdminController extends Controller
             ], 422);
         }
 
-        $statusLama  = $menu->is_aktif ? 'Aktif' : 'Nonaktif';
-        $menu->is_aktif = !$menu->is_aktif;
-        $menu->save();
-        $statusBaru  = $menu->is_aktif ? 'Aktif' : 'Nonaktif';
+        $statusBaru = ($menu->status === 'aktif') ? 'nonaktif' : 'aktif';
+
+        $menu->update(['status' => $statusBaru]);
 
         Log::create([
             'id_user'   => Auth::id(),
             'aktivitas' => 'Toggle status menu',
-            'detail'    => 'Menu: ' . $menu->nama_makanan . ' - Status: ' . $statusLama . ' → ' . $statusBaru,
+            'detail'    => 'Menu: ' . $menu->nama_makanan . ' → ' . $statusBaru,
             'waktu'     => now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Status menu diubah menjadi ' . $statusBaru . '.',
+            'message' => 'Status menu diubah menjadi ' . ucfirst($statusBaru) . '.',
             'data'    => $menu->fresh()->load('kategori'),
+        ]);
+    }
+
+    public function checkOrders($id)
+    {
+        $menu = Menu::findOrFail($id);
+
+        $hasOrders = $menu->detailTransaksi()
+            ->whereHas('transaksi', function ($q) {
+                $q->where('status', 'tunggak');
+            })
+            ->exists();
+
+        return response()->json([
+            'success'    => true,
+            'has_orders' => $hasOrders,
         ]);
     }
 

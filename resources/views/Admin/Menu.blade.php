@@ -10,6 +10,74 @@
             <p class="text-gray-600 mt-1">Kelola daftar menu makanan dan minuman</p>
         </div>
 
+        {{-- Statistik Cards Baru --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Total Makanan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-orange-600">Total Makanan</p>
+                        <p class="text-3xl font-bold text-orange-700 mt-1" id="totalMakananCard">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-utensils text-orange-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Minuman -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600">Total Minuman</p>
+                        <p class="text-3xl font-bold text-blue-700 mt-1" id="totalMinumanCard">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-coffee text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Aktif -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-500">Menu Aktif</p>
+                        <p class="text-3xl font-bold text-green-600 mt-1" id="aktifCard">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Nonaktif -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Menu Nonaktif</p>
+                        <p class="text-3xl font-bold text-gray-600 mt-1" id="nonaktifCard">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-ban text-gray-500 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Habis -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-red-500">Menu Habis</p>
+                        <p class="text-3xl font-bold text-red-600 mt-1" id="habisCard">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Filter --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div class="p-6">
@@ -33,8 +101,9 @@
                         <select id="filterStatus"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
                             <option value="">-- Semua --</option>
-                            <option value="1">Aktif</option>
-                            <option value="0">Nonaktif</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                            <option value="kosong">Habis</option>
                         </select>
                     </div>
                     <div class="flex items-end gap-3">
@@ -53,16 +122,10 @@
 
         {{-- Tabel --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
             <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-utensils text-teal-600 text-lg"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-gray-800 leading-none">Daftar Menu</p>
-                        <p class="text-xs text-gray-400 mt-1" id="totalMenuLabel">Total: 0 Menu</p>
-                    </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Daftar Menu</p>
+                    <p class="text-xs text-gray-400 mt-1" id="totalMenuLabel">Total: 0 Menu</p>
                 </div>
                 <button onclick="bukaModalTambah()"
                     class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-xl shadow-sm hover:bg-teal-700 transition text-sm">
@@ -102,7 +165,6 @@
                 Belum ada data menu
             </div>
 
-            {{-- Pagination --}}
             <div id="paginationWrapper"
                 class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-500" id="paginationInfo"></p>
@@ -113,8 +175,7 @@
                     </button>
                     <div id="currentPageBox"
                         class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
-                        1
-                    </div>
+                        1</div>
                     <button onclick="nextPage()" id="btnNext"
                         class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-300 hover:border-teal-500 hover:text-teal-600 transition disabled:opacity-40">
                         <i class="fas fa-chevron-right text-xs"></i>
@@ -340,19 +401,9 @@
                     <p class="text-xl font-bold text-amber-800" id="stokSebelumnya">-</p>
                     <p class="text-xs text-amber-600">Nilai stok sebelum perubahan terakhir dilakukan</p>
                 </div>
-                <div id="stokSebelumnyaLagiWrapper"
-                    class="hidden bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-1">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-history text-orange-500 text-sm"></i>
-                        <p class="text-xs text-orange-700 font-medium">Stok Sebelumnya Lagi</p>
-                    </div>
-                    <p class="text-xl font-bold text-orange-800" id="stokSebelumnyaLagi">-</p>
-                    <p class="text-xs text-orange-600">Nilai stok 2 edit sebelumnya</p>
-                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                        Stok Baru
-                        <span class="text-gray-400 font-normal text-xs ml-1">(positif untuk tambah, negatif untuk
+                        Stok Baru <span class="text-gray-400 font-normal text-xs ml-1">(positif untuk tambah, negatif untuk
                             kurang)</span>
                     </label>
                     <input type="number" id="inputJumlahStok" placeholder="Contoh: 10 atau -5"
@@ -376,9 +427,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // ============================================================
-        // DATA
-        // ============================================================
         let semuaMenu = @json($menus);
         let semuaKategori = @json($kategoris);
         let menuTerfilter = [...semuaMenu];
@@ -394,178 +442,34 @@
         const formatRupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n || 0);
         const PER_PAGE = 5;
         let halamanAktif = 1;
+        let totalHalamanGlobal = 1;
 
-        // ============================================================
-        // FUNGSI BANTUAN
-        // ============================================================
         function escapeHtml(s) {
             const div = document.createElement('div');
             div.appendChild(document.createTextNode(s || ''));
             return div.innerHTML;
         }
 
-        function tampilkanModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-            setTimeout(() => {
-                const konten = document.getElementById(id.replace('Modal', 'Content'));
-                konten.classList.remove('scale-95', 'opacity-0');
-                konten.classList.add('scale-100', 'opacity-100');
-            }, 10);
+        function updateStatistikCards() {
+            const totalMakanan = semuaMenu.filter(m => m.kategori && m.kategori.nama_kategori === 'Makanan').length;
+            const totalMinuman = semuaMenu.filter(m => m.kategori && m.kategori.nama_kategori === 'Minuman').length;
+            const aktif = semuaMenu.filter(m => m.status === 'aktif').length;
+            const nonaktif = semuaMenu.filter(m => m.status === 'nonaktif').length;
+            const habis = semuaMenu.filter(m => m.status === 'kosong').length;
+
+            document.getElementById('totalMakananCard').textContent = totalMakanan;
+            document.getElementById('totalMinumanCard').textContent = totalMinuman;
+            document.getElementById('aktifCard').textContent = aktif;
+            document.getElementById('nonaktifCard').textContent = nonaktif;
+            document.getElementById('habisCard').textContent = habis;
+            document.getElementById('totalMenuLabel').textContent = `Total: ${semuaMenu.length} Menu`;
         }
 
-        function tutupModal(id) {
-            const konten = document.getElementById(id.replace('Modal', 'Content'));
-            konten.classList.remove('scale-100', 'opacity-100');
-            konten.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => document.getElementById(id).classList.add('hidden'), 300);
-        }
-
-        function setLoading(btn, loading) {
-            if (!btn) return;
-            if (loading) {
-                btn.disabled = true;
-                btn.dataset.original = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i> Proses...';
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = btn.dataset.original;
-            }
-        }
-
-        function tampilkanError(id, pesan) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.textContent = pesan;
-                el.classList.remove('hidden');
-            }
-        }
-
-        function setBorderError(id, isError) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (isError) {
-                el.classList.add('border-red-400');
-                el.classList.remove('border-gray-300');
-            } else {
-                el.classList.remove('border-red-400');
-                el.classList.add('border-gray-300');
-            }
-        }
-
-        function bersihkanError(prefix) {
-            const kapital = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-            document.querySelectorAll(`[id^="err${kapital}"]`).forEach(el => {
-                el.textContent = '';
-                el.classList.add('hidden');
-            });
-        }
-
-        function resetBorderError(prefix) {
-            const daftarField = {
-                create: ['createKategoriInduk', 'createKategori', 'createNama', 'createHarga', 'createStok',
-                    'createGambar'
-                ],
-                harga: ['inputHargaBaru'],
-                stok: ['inputJumlahStok'],
-            };
-            (daftarField[prefix] || []).forEach(id => setBorderError(id, false));
-        }
-
-        // ============================================================
-        // HISTORY 1 LEVEL
-        // ============================================================
-        function getHistory(type, menuId) {
-            const key = `${type}_history_${menuId}`;
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : {
-                editCount: 0,
-                lastValue: null
-            };
-        }
-
-        function saveHistory(type, menuId, oldValue) {
-            const key = `${type}_history_${menuId}`;
-            const history = getHistory(type, menuId);
-            localStorage.setItem(key, JSON.stringify({
-                editCount: history.editCount + 1,
-                lastValue: oldValue
-            }));
-        }
-
-        // ============================================================
-        // CEK PESANAN
-        // ============================================================
-        async function cekApakahDipesan(id) {
-            try {
-                const res = await fetch(ROUTES.cekPesanan(id), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': CSRF
-                    }
-                });
-                const data = await res.json();
-                return data.has_orders === true;
-            } catch {
-                return false;
-            }
-        }
-
-        function tampilkanPesedangDipesan() {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Tidak Bisa Diubah!',
-                text: 'Menu ini sedang dipesan. Tidak bisa mengubah harga, stok, maupun status saat menu sedang dalam pesanan aktif.',
-                confirmButtonColor: '#0d9488'
-            });
-        }
-
-        // ============================================================
-        // HELPER: cek is_aktif (DB bisa kirim 1/0 atau true/false)
-        // ============================================================
-        function cekAktif(m) {
-            return m.is_aktif == 1 || m.is_aktif === true;
-        }
-
-        // ============================================================
-        // FILTER — Kategori + Status
-        // ============================================================
-        function terapkanFilter() {
-            const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
-            const induk = document.getElementById('filterKategori').value;
-            const status = document.getElementById('filterStatus').value;
-
-            menuTerfilter = semuaMenu.filter(m => {
-                const cocokKeyword = !keyword || m.nama_makanan.toLowerCase().includes(keyword);
-                const cocokInduk = !induk || (m.kategori?.nama_kategori === induk);
-                let cocokStatus = true;
-                if (status === '1') cocokStatus = cekAktif(m);
-                else if (status === '0') cocokStatus = !cekAktif(m);
-                return cocokKeyword && cocokInduk && cocokStatus;
-            });
-
-            halamanAktif = 1;
-            renderHalaman();
-        }
-
-        function resetFilter() {
-            document.getElementById('filterSearch').value = '';
-            document.getElementById('filterKategori').value = '';
-            document.getElementById('filterStatus').value = '';
-            menuTerfilter = [...semuaMenu];
-            halamanAktif = 1;
-            renderHalaman();
-        }
-
-        // ============================================================
-        // RENDER TABEL
-        // ============================================================
         function renderHalaman() {
             const tbody = document.getElementById('menuTableBody');
             const empty = document.getElementById('emptyState');
             const wrapperPag = document.getElementById('paginationWrapper');
             const total = menuTerfilter.length;
-
-            document.getElementById('totalMenuLabel').textContent = `Total: ${semuaMenu.length} Menu`;
 
             if (!total) {
                 tbody.innerHTML = '';
@@ -591,51 +495,50 @@
                     induk === 'Minuman' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600';
 
                 const gambar = m.gambar ?
-                    `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm"
-                           onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
-                    `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                           <i class="fas fa-image text-lg"></i></div>`;
+                    `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm" onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
+                    `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image text-lg"></i></div>`;
 
-                const warnaStok = m.stok <= 5 ? 'text-red-600 font-bold' :
-                    m.stok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700';
+                let statusHtml = '';
+                if (m.status === 'kosong') {
+                    statusHtml =
+                        `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"><i class="fas fa-times-circle"></i> Habis</span>`;
+                } else if (m.status === 'aktif') {
+                    statusHtml =
+                        `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[8px]"></i> Aktif</span>`;
+                } else {
+                    statusHtml =
+                        `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500"><i class="fas fa-circle text-[8px]"></i> Nonaktif</span>`;
+                }
 
-                // FIX: pakai helper cekAktif agar konsisten antara 1/0 dan true/false
-                const isAktif = cekAktif(m);
-
-                const statusBadge = isAktif ?
-                    `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
-                           <i class="fas fa-circle text-[8px]"></i> Aktif</span>` :
-                    `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
-                           <i class="fas fa-circle text-[8px]"></i> Nonaktif</span>`;
-
-                // FIX: toggle-on (hijau) = sedang aktif, toggle-off (abu) = nonaktif
-                const btnToggle = isAktif ?
-                    `<button onclick="toggleStatus(${m.id})" title="Nonaktifkan Menu"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition">
-                            <i class="fas fa-toggle-on text-sm"></i></button>` :
-                    `<button onclick="toggleStatus(${m.id})" title="Aktifkan Menu"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 hover:bg-gray-200 transition">
-                            <i class="fas fa-toggle-off text-sm"></i></button>`;
+                const btnToggle = (m.status === 'kosong') ?
+                    `<button title="Menu Habis - Tidak bisa toggle" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
+                        <i class="fas fa-toggle-off text-sm"></i>
+                    </button>` :
+                    (m.status === 'aktif' ?
+                        `<button onclick="toggleStatus(${m.id})" title="Nonaktifkan Menu" class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition">
+                            <i class="fas fa-toggle-on text-sm"></i>
+                        </button>` :
+                        `<button onclick="toggleStatus(${m.id})" title="Aktifkan Menu" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 hover:bg-gray-200 transition">
+                            <i class="fas fa-toggle-off text-sm"></i>
+                        </button>`);
 
                 return `
                     <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" id="row-${m.id}">
                         <td class="px-6 py-4 text-sm text-gray-400 font-medium">${nomor}</td>
                         <td class="px-6 py-4 text-sm font-semibold text-teal-600">${escapeHtml(m.nama_makanan)}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span>
-                        </td>
+                        <td class="px-6 py-4"><span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full ${warnaBadge}">${escapeHtml(jenis)}</span></td>
                         <td class="px-6 py-4 text-sm font-semibold text-gray-700" id="harga-${m.id}">${formatRupiah(m.harga)}</td>
-                        <td class="px-6 py-4 text-sm ${warnaStok}" id="stok-${m.id}">${m.stok}</td>
-                        <td class="px-6 py-4" id="status-${m.id}">${statusBadge}</td>
+                        <td class="px-6 py-4 text-sm font-semibold ${
+                            m.stok === 0 ? 'text-red-600' : m.stok <= 3 ? 'text-orange-600' : 'text-gray-700'
+                        }" id="stok-${m.id}">${m.stok}</td>
+                        <td class="px-6 py-4" id="status-${m.id}">${statusHtml}</td>
                         <td class="px-6 py-4">${gambar}</td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
-                                <button onclick="bukaModalHarga(${m.id})" title="Kelola Harga"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">
+                                <button onclick="bukaModalHarga(${m.id})" title="Kelola Harga" class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">
                                     <i class="fas fa-dollar-sign text-xs"></i>
                                 </button>
-                                <button onclick="bukaModalStok(${m.id})" title="Kelola Stok"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                                <button onclick="bukaModalStok(${m.id})" title="Kelola Stok" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
                                     <i class="fas fa-boxes-stacked text-xs"></i>
                                 </button>
                                 ${btnToggle}
@@ -645,9 +548,8 @@
             }).join('');
 
             renderPagination(total, totalHalaman);
+            updateStatistikCards();
         }
-
-        let totalHalamanGlobal = 1;
 
         function renderPagination(total, totalHalaman) {
             totalHalamanGlobal = totalHalaman;
@@ -655,12 +557,6 @@
             const btnPrev = document.getElementById('btnPrev');
             const btnNext = document.getElementById('btnNext');
             const currentPageBox = document.getElementById('currentPageBox');
-
-            if (!total) {
-                document.getElementById('paginationWrapper').classList.add('hidden');
-                return;
-            }
-            document.getElementById('paginationWrapper').classList.remove('hidden');
 
             const mulai = (halamanAktif - 1) * PER_PAGE + 1;
             const sampai = Math.min(halamanAktif * PER_PAGE, total);
@@ -684,6 +580,36 @@
             }
         }
 
+        function terapkanFilter() {
+            const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
+            const induk = document.getElementById('filterKategori').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            menuTerfilter = semuaMenu.filter(m => {
+                const cocokKeyword = !keyword || m.nama_makanan.toLowerCase().includes(keyword);
+                const cocokInduk = !induk || (m.kategori?.nama_kategori === induk);
+
+                let cocokStatus = true;
+                if (statusFilter === 'aktif') cocokStatus = m.status === 'aktif';
+                else if (statusFilter === 'nonaktif') cocokStatus = m.status === 'nonaktif';
+                else if (statusFilter === 'kosong') cocokStatus = m.status === 'kosong';
+
+                return cocokKeyword && cocokInduk && cocokStatus;
+            });
+
+            halamanAktif = 1;
+            renderHalaman();
+        }
+
+        function resetFilter() {
+            document.getElementById('filterSearch').value = '';
+            document.getElementById('filterKategori').value = '';
+            document.getElementById('filterStatus').value = '';
+            menuTerfilter = [...semuaMenu];
+            halamanAktif = 1;
+            renderHalaman();
+        }
+
         // ============================================================
         // MODAL TAMBAH
         // ============================================================
@@ -694,11 +620,10 @@
             };
             semuaKategori.forEach(k => {
                 const induk = k.nama_kategori;
-                if (peta[induk] && !peta[induk].find(x => x.id === k.id))
-                    peta[induk].push({
-                        id: k.id,
-                        jenis: k.jenis
-                    });
+                if (peta[induk]) peta[induk].push({
+                    id: k.id,
+                    jenis: k.jenis
+                });
             });
             return peta;
         }
@@ -709,16 +634,14 @@
                 select.innerHTML = '<option value="" selected disabled>pilih kategori dulu</option>';
                 select.disabled = true;
                 select.classList.add('bg-gray-100', 'cursor-not-allowed');
-                select.classList.remove('bg-white');
                 return;
             }
             const peta = buatPetaKategori();
             const daftar = (peta[nilaiInduk] || []).sort((a, b) => a.jenis.localeCompare(b.jenis));
-            select.innerHTML = '<option value="">-- Pilih Jenis --</option>' +
-                daftar.map(k => `<option value="${k.id}">${escapeHtml(k.jenis)}</option>`).join('');
+            select.innerHTML = '<option value="">-- Pilih Jenis --</option>' + daftar.map(k =>
+                `<option value="${k.id}">${escapeHtml(k.jenis)}</option>`).join('');
             select.disabled = false;
             select.classList.remove('bg-gray-100', 'cursor-not-allowed');
-            select.classList.add('bg-white');
         }
 
         function onKategoriIndukBerubah() {
@@ -726,51 +649,20 @@
             isiDropdownJenis('createKategori', nilai);
             document.getElementById('errCreateKategoriInduk').classList.add('hidden');
             document.getElementById('errCreateKategori').classList.add('hidden');
-            setBorderError('createKategori', false);
         }
 
         function validasiTambah() {
             let valid = true;
-            bersihkanError('create');
-            resetBorderError('create');
+            // bersihkan error (simple version)
+            document.querySelectorAll('[id^="errCreate"]').forEach(el => el.classList.add('hidden'));
 
-            const induk = document.getElementById('createKategoriInduk').value;
-            const katId = document.getElementById('createKategori').value;
-            const nama = document.getElementById('createNama').value.trim();
-            const harga = document.getElementById('createHarga').value;
-            const stok = document.getElementById('createStok').value;
-            const fileGambar = document.getElementById('createGambar').files[0];
+            if (!document.getElementById('createKategoriInduk').value) valid = false;
+            if (!document.getElementById('createKategori').value) valid = false;
+            if (!document.getElementById('createNama').value.trim()) valid = false;
+            if (!document.getElementById('createHarga').value) valid = false;
+            if (!document.getElementById('createStok').value) valid = false;
+            if (!document.getElementById('createGambar').files[0]) valid = false;
 
-            if (!induk) {
-                tampilkanError('errCreateKategoriInduk', 'Kategori wajib dipilih.');
-                setBorderError('createKategoriInduk', true);
-                valid = false;
-            }
-            if (!katId) {
-                tampilkanError('errCreateKategori', 'Jenis wajib dipilih.');
-                setBorderError('createKategori', true);
-                valid = false;
-            }
-            if (!nama) {
-                tampilkanError('errCreateNama', 'Nama menu wajib diisi.');
-                setBorderError('createNama', true);
-                valid = false;
-            }
-            if (harga === '' || Number(harga) < 0) {
-                tampilkanError('errCreateHarga', 'Harga wajib diisi dan tidak boleh negatif.');
-                setBorderError('createHarga', true);
-                valid = false;
-            }
-            if (stok === '' || Number(stok) < 0) {
-                tampilkanError('errCreateStok', 'Stok wajib diisi dan tidak boleh negatif.');
-                setBorderError('createStok', true);
-                valid = false;
-            }
-            if (!fileGambar) {
-                tampilkanError('errCreateGambar', 'Gambar menu wajib diunggah.');
-                setBorderError('createGambar', true);
-                valid = false;
-            }
             return valid;
         }
 
@@ -779,102 +671,63 @@
             document.getElementById('createGambarPreview').classList.add('hidden');
             document.getElementById('createKategoriInduk').value = '';
             isiDropdownJenis('createKategori', '');
-            bersihkanError('create');
-            resetBorderError('create');
             tampilkanModal('createModal');
         }
 
         async function submitCreate() {
-            if (!validasiTambah()) return;
+            if (!validasiTambah()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data belum lengkap'
+                });
+                return;
+            }
 
-            const form = new FormData();
-            form.append('id_kategori', document.getElementById('createKategori').value);
-            form.append('nama_makanan', document.getElementById('createNama').value.trim());
-            form.append('harga', document.getElementById('createHarga').value);
-            form.append('stok', document.getElementById('createStok').value);
+            const form = new FormData(document.getElementById('createForm'));
 
-            const fileGambar = document.getElementById('createGambar').files[0];
-            if (fileGambar) form.append('gambar', fileGambar);
-
-            const btn = document.querySelector('#createContent button[onclick="submitCreate()"]');
-            setLoading(btn, true);
             try {
                 const res = await fetch(ROUTES.simpan, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': CSRF
                     },
-                    body: form,
+                    body: form
                 });
                 const data = await res.json();
 
-                if (!res.ok || !data.success) {
-                    if (res.status === 422 && data.errors) {
-                        const mapError = {
-                            id_kategori: 'errCreateKategori',
-                            nama_makanan: 'errCreateNama',
-                            harga: 'errCreateHarga',
-                            stok: 'errCreateStok',
-                            gambar: 'errCreateGambar'
-                        };
-                        Object.entries(data.errors).forEach(([field, msgs]) => {
-                            if (mapError[field]) tampilkanError(mapError[field], msgs[0]);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: data.message || 'Terjadi kesalahan.'
-                        });
-                    }
-                    return;
+                if (data.success) {
+                    semuaMenu.push(data.data);
+                    menuTerfilter.push(data.data);
+                    renderHalaman();
+                    tutupModal('createModal');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Menu baru ditambahkan',
+                        timer: 2000,
+                        toast: true
+                    });
                 }
-
-                const menuBaru = data.data;
-                semuaMenu.push(menuBaru);
-                menuTerfilter.push(menuBaru);
-
-                halamanAktif = Math.ceil(menuTerfilter.length / PER_PAGE) || 1;
-                renderHalaman();
-
-                setTimeout(() => {
-                    const newRow = document.getElementById(`row-${menuBaru.id}`);
-                    if (newRow) {
-                        newRow.classList.add('bg-teal-50', 'ring-2', 'ring-teal-300');
-                        setTimeout(() => newRow.classList.remove('bg-teal-50', 'ring-2', 'ring-teal-300'),
-                        3000);
-                    }
-                }, 300);
-
-                tutupModal('createModal');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Menu baru berhasil ditambahkan.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            } catch {
+            } catch (e) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
+                    title: 'Gagal',
+                    text: 'Terjadi kesalahan'
                 });
-            } finally {
-                setLoading(btn, false);
             }
         }
 
         // ============================================================
         // MODAL HARGA
         // ============================================================
-        async function bukaModalHarga(id) {
+        window.bukaModalHarga = async function(id) {
             const sedangDipesan = await cekApakahDipesan(id);
             if (sedangDipesan) {
-                tampilkanPesedangDipesan();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Bisa Diubah',
+                    text: 'Menu ini sedang dipesan, harga tidak bisa diubah.'
+                });
                 return;
             }
 
@@ -883,343 +736,295 @@
 
             document.getElementById('hargaMenuId').value = m.id;
             document.getElementById('hargaNama').textContent = m.nama_makanan;
-            document.getElementById('hargaKategori').textContent = m.kategori ?
-                `${m.kategori.nama_kategori} — ${m.kategori.jenis}` : '-';
+            document.getElementById('hargaKategori').textContent = m.kategori ? m.kategori.nama_kategori + ' — ' + m
+                .kategori.jenis : '-';
             document.getElementById('hargaSaatIni').textContent = formatRupiah(m.harga);
             document.getElementById('inputHargaBaru').value = m.harga;
 
-            const wrapper = document.getElementById('hargaSebelumnyaWrapper');
-            if (m.harga_sebelumnya !== null && m.harga_sebelumnya !== undefined) {
-                document.getElementById('hargaSebelumnya').textContent = formatRupiah(m.harga_sebelumnya);
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-            }
-
-            document.getElementById('errHarga').classList.add('hidden');
-            setBorderError('inputHargaBaru', false);
             tampilkanModal('hargaModal');
-        }
+        };
 
-        async function submitHarga() {
+        window.submitHarga = async function() {
             const id = document.getElementById('hargaMenuId').value;
             const hargaBaru = document.getElementById('inputHargaBaru').value;
 
             if (!hargaBaru || Number(hargaBaru) < 0) {
-                tampilkanError('errHarga', 'Harga wajib diisi dan tidak boleh negatif.');
-                setBorderError('inputHargaBaru', true);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Harga tidak valid'
+                });
                 return;
             }
-            setBorderError('inputHargaBaru', false);
 
-            const btn = document.querySelector('#hargaContent button[onclick="submitHarga()"]');
-            setLoading(btn, true);
             try {
-                const m = semuaMenu.find(x => Number(x.id) === Number(id));
-                const hargaLama = m.harga;
-
                 const form = new FormData();
-                form.append('harga', hargaBaru);
                 form.append('_method', 'PUT');
-                form.append('id_kategori', m.id_kategori);
-                form.append('nama_makanan', m.nama_makanan);
-                form.append('stok', m.stok);
+                form.append('harga', hargaBaru);
 
                 const res = await fetch(ROUTES.update(id), {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': CSRF
                     },
-                    body: form,
+                    body: form
                 });
+
                 const data = await res.json();
-                if (!res.ok || !data.success) {
+                if (data.success) {
+                    const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
+                    if (idx !== -1) semuaMenu[idx] = data.data;
+                    menuTerfilter = menuTerfilter.map(m => Number(m.id) === Number(id) ? data.data : m);
+
+                    renderHalaman();
+                    tutupModal('hargaModal');
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Harga diperbarui',
+                        timer: 2000,
+                        toast: true
                     });
-                    return;
                 }
-
-                saveHistory('harga', id, hargaLama);
-                const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
-                if (idx !== -1) semuaMenu[idx] = data.data;
-                menuTerfilter = menuTerfilter.map(m => Number(m.id) === Number(id) ? data.data : m);
-
-                const cell = document.getElementById(`harga-${id}`);
-                if (cell) cell.textContent = formatRupiah(data.data.harga);
-
-                tutupModal('hargaModal');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Harga berhasil diperbarui.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            } catch {
+            } catch (e) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
+                    title: 'Gagal',
+                    text: 'Terjadi kesalahan'
                 });
-            } finally {
-                setLoading(btn, false);
             }
-        }
+        };
 
         // ============================================================
         // MODAL STOK
         // ============================================================
-        let stokSaatIni = 0;
-
-        async function bukaModalStok(id) {
+        window.bukaModalStok = async function(id) {
             const sedangDipesan = await cekApakahDipesan(id);
             if (sedangDipesan) {
-                tampilkanPesedangDipesan();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Bisa Diubah',
+                    text: 'Menu ini sedang dipesan, stok tidak bisa diubah.'
+                });
                 return;
             }
 
             const m = semuaMenu.find(x => Number(x.id) === Number(id));
             if (!m) return;
 
-            stokSaatIni = m.stok;
+            stokSaatIni = parseInt(m.stok);
             document.getElementById('stokMenuId').value = m.id;
             document.getElementById('stokNama').textContent = m.nama_makanan;
             document.getElementById('stokSaatIni').textContent = m.stok;
             document.getElementById('stokTotal').textContent = m.stok;
             document.getElementById('inputJumlahStok').value = '';
-            document.getElementById('errStok').classList.add('hidden');
-            setBorderError('inputJumlahStok', false);
 
-            const wrapper = document.getElementById('stokSebelumnyaWrapper');
-            if (m.stok_sebelumnya !== null && m.stok_sebelumnya !== undefined) {
-                document.getElementById('stokSebelumnya').textContent = m.stok_sebelumnya;
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-            }
-
-            document.getElementById('stokSebelumnyaLagiWrapper').classList.add('hidden');
             tampilkanModal('stokModal');
-        }
+        };
 
-        function hitungTotalStok() {
+        window.hitungTotalStok = function() {
             const jumlah = parseInt(document.getElementById('inputJumlahStok').value) || 0;
-            const total = stokSaatIni + jumlah;
-            const el = document.getElementById('stokTotal');
-            el.textContent = total;
-            el.className = total < 0 ? 'text-3xl font-bold text-red-600' :
-                total > stokSaatIni ? 'text-3xl font-bold text-green-600' : 'text-3xl font-bold text-gray-800';
-        }
+            document.getElementById('stokTotal').textContent = stokSaatIni + jumlah;
+        };
 
-        async function submitStok() {
+        window.submitStok = async function() {
             const id = document.getElementById('stokMenuId').value;
-            const jumlah = parseInt(document.getElementById('inputJumlahStok').value);
-            document.getElementById('errStok').classList.add('hidden');
+            const jumlah = parseInt(document.getElementById('inputJumlahStok').value) || 0;
 
-            if (isNaN(jumlah) || jumlah === 0) {
-                tampilkanError('errStok', 'Masukkan angka penambahan atau pengurangan (tidak boleh 0).');
-                setBorderError('inputJumlahStok', true);
+            if (jumlah === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Masukkan jumlah stok'
+                });
                 return;
             }
+
             const newStok = stokSaatIni + jumlah;
             if (newStok < 0) {
-                tampilkanError('errStok',
-                    `Stok tidak cukup. Stok saat ini ${stokSaatIni}, maksimal dikurangi ${stokSaatIni}.`);
-                setBorderError('inputJumlahStok', true);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Stok tidak boleh negatif'
+                });
                 return;
             }
-            setBorderError('inputJumlahStok', false);
 
-            const btn = document.querySelector('#stokContent button[onclick="submitStok()"]');
-            setLoading(btn, true);
             try {
                 const m = semuaMenu.find(x => Number(x.id) === Number(id));
-                const stokLama = stokSaatIni;
-
                 const form = new FormData();
-                form.append('stok', newStok);
                 form.append('_method', 'PUT');
-                form.append('id_kategori', m.id_kategori);
-                form.append('nama_makanan', m.nama_makanan);
-                form.append('harga', m.harga);
+                form.append('stok', newStok);
+
+                // Stok 0 → kosong | dari kosong ke > 0 → aktif
+                if (newStok === 0) {
+                    form.append('status', 'kosong');
+                } else if (newStok > 0 && m && m.status === 'kosong') {
+                    form.append('status', 'aktif');
+                }
 
                 const res = await fetch(ROUTES.update(id), {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json'
+                        'X-CSRF-TOKEN': CSRF
                     },
-                    body: form,
+                    body: form
                 });
+
                 const data = await res.json();
-                if (!res.ok || !data.success) {
+                if (data.success) {
+                    const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
+                    if (idx !== -1) semuaMenu[idx] = data.data;
+                    menuTerfilter = menuTerfilter.map(m => Number(m.id) === Number(id) ? data.data : m);
+
+                    renderHalaman();
+                    tutupModal('stokModal');
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: `Stok menjadi ${newStok}`,
+                        timer: 2000,
+                        toast: true
                     });
-                    return;
                 }
-
-                saveHistory('stok', id, stokLama);
-                const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
-                if (idx !== -1) semuaMenu[idx] = data.data;
-                menuTerfilter = menuTerfilter.map(m => Number(m.id) === Number(id) ? data.data : m);
-
-                const cell = document.getElementById(`stok-${id}`);
-                if (cell) {
-                    cell.textContent = newStok;
-                    cell.className =
-                        `px-6 py-4 text-sm ${newStok <= 5 ? 'text-red-600 font-bold' : newStok <= 15 ? 'text-amber-600 font-semibold' : 'text-gray-700'}`;
-                }
-
-                tutupModal('stokModal');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: `Stok diperbarui menjadi ${newStok} pcs.`,
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            } catch {
+            } catch (e) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
+                    title: 'Gagal',
+                    text: 'Terjadi kesalahan saat update stok'
                 });
-            } finally {
-                setLoading(btn, false);
             }
-        }
+        };
 
         // ============================================================
-        // TOGGLE STATUS — FIX: sync menuTerfilter + pakai cekAktif()
+        // TOGGLE STATUS
         // ============================================================
-        async function toggleStatus(id) {
-            const sedangDipesan = await cekApakahDipesan(id);
-            if (sedangDipesan) {
-                tampilkanPesedangDipesan();
-                return;
-            }
-
+        window.toggleStatus = async function(id) {
             const m = semuaMenu.find(x => Number(x.id) === Number(id));
             if (!m) return;
 
-            const isAktif = cekAktif(m);
-            const labelBaru = isAktif ? 'nonaktifkan' : 'aktifkan';
+            if (m.status === 'kosong') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stok Habis',
+                    text: 'Tidak bisa mengubah status menu yang stoknya habis.'
+                });
+                return;
+            }
 
-            const konfirmasi = await Swal.fire({
-                title: `${isAktif ? 'Nonaktifkan' : 'Aktifkan'} menu ini?`,
-                text: `Menu "${m.nama_makanan}" akan di${labelBaru}.`,
+            // Cek dulu apakah sedang dipesan
+            const sedangDipesan = await cekApakahDipesan(id);
+            if (sedangDipesan) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Bisa Diubah',
+                    text: 'Menu ini sedang dipesan, status tidak bisa diubah.'
+                });
+                return;
+            }
+
+            const akanAktif = m.status === 'nonaktif';
+            const label = akanAktif ? 'Aktifkan' : 'Nonaktifkan';
+
+            const konfirm = await Swal.fire({
+                title: `${label} menu?`,
+                text: `Menu "${m.nama_makanan}" akan di${label.toLowerCase()}`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: isAktif ? '#6b7280' : '#0d9488',
-                cancelButtonColor: '#ef4444',
-                confirmButtonText: `Ya, ${labelBaru}!`,
-                cancelButtonText: 'Batal',
+                confirmButtonText: `Ya, ${label}!`
             });
-            if (!konfirmasi.isConfirmed) return;
+
+            if (!konfirm.isConfirmed) return;
 
             try {
                 const res = await fetch(ROUTES.toggleStatus(id), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': CSRF
+                    },
+                    body: JSON.stringify({
+                        status: akanAktif ? 'aktif' : 'nonaktif'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
+                    if (idx !== -1) semuaMenu[idx] = data.data;
+                    menuTerfilter = menuTerfilter.map(menu => Number(menu.id) === Number(id) ? data.data : menu);
+
+                    renderHalaman();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: `Status menjadi ${data.data.status}`,
+                        timer: 1800,
+                        toast: true
+                    });
+                }
+            } catch (e) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Terjadi kesalahan'
+                });
+            }
+        };
+
+        // ============================================================
+        // HELPER MODAL
+        // ============================================================
+        function tampilkanModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            setTimeout(() => {
+                const konten = document.getElementById(id.replace('Modal', 'Content'));
+                if (konten) konten.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function tutupModal(id) {
+            const konten = document.getElementById(id.replace('Modal', 'Content'));
+            if (konten) konten.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => document.getElementById(id).classList.add('hidden'), 300);
+        }
+
+        async function cekApakahDipesan(id) {
+            try {
+                const res = await fetch(ROUTES.cekPesanan(id), {
+                    headers: {
                         'X-CSRF-TOKEN': CSRF
                     }
                 });
                 const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: data.message
-                    });
-                    return;
-                }
-
-                // FIX: update semuaMenu lalu sync menuTerfilter dengan map
-                const idx = semuaMenu.findIndex(x => Number(x.id) === Number(id));
-                if (idx !== -1) semuaMenu[idx] = data.data;
-
-                menuTerfilter = menuTerfilter.map(m =>
-                    Number(m.id) === Number(id) ? data.data : m
-                );
-
-                // Re-render agar badge & ikon toggle langsung berubah
-                renderHalaman();
-
-                const statusBaru = cekAktif(data.data) ? 'Aktif' : 'Nonaktif';
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: `Status menu diubah menjadi ${statusBaru}.`,
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
+                return data.has_orders === true;
             } catch {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Tidak bisa terhubung ke server.'
-                });
+                return false;
             }
         }
 
-        // ============================================================
-        // EVENT LISTENERS & INIT
-        // ============================================================
+        // INIT
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('filterSearch').addEventListener('input', terapkanFilter);
             document.getElementById('filterKategori').addEventListener('change', terapkanFilter);
             document.getElementById('filterStatus').addEventListener('change', terapkanFilter);
 
-            document.getElementById('createGambar').addEventListener('change', function() {
-                const preview = document.getElementById('createGambarPreview');
-                const errGambar = document.getElementById('errCreateGambar');
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = e => {
-                        preview.src = e.target.result;
-                        preview.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(this.files[0]);
-                    errGambar.classList.add('hidden');
-                    setBorderError('createGambar', false);
-                } else {
-                    preview.classList.add('hidden');
-                }
-            });
-
+            updateStatistikCards();
             renderHalaman();
         });
 
-        // Expose ke global scope
+        // Expose ke window
+        window.bukaModalTambah = bukaModalTambah;
+        window.submitCreate = submitCreate;
+        window.onKategoriIndukBerubah = onKategoriIndukBerubah;
         window.bukaModalHarga = bukaModalHarga;
+        window.submitHarga = submitHarga;
         window.bukaModalStok = bukaModalStok;
+        window.hitungTotalStok = hitungTotalStok;
+        window.submitStok = submitStok;
         window.toggleStatus = toggleStatus;
         window.terapkanFilter = terapkanFilter;
         window.resetFilter = resetFilter;
         window.prevPage = prevPage;
         window.nextPage = nextPage;
-        window.hitungTotalStok = hitungTotalStok;
         window.tutupModal = tutupModal;
-        window.submitCreate = submitCreate;
-        window.submitHarga = submitHarga;
-        window.submitStok = submitStok;
-        window.onKategoriIndukBerubah = onKategoriIndukBerubah;
-        window.bukaModalTambah = bukaModalTambah;
     </script>
 @endsection

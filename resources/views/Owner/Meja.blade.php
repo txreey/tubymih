@@ -22,7 +22,7 @@
                 <p class="text-4xl font-bold text-green-600 mt-3" id="summaryTersedia">0</p>
             </div>
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
-                <p class="text-sm font-medium text-gray-600">Meja Terisi / Reserved</p>
+                <p class="text-sm font-medium text-gray-600">Meja Terisi</p>
                 <p class="text-4xl font-bold text-red-600 mt-3" id="summaryTerisi">0</p>
             </div>
         </div>
@@ -143,11 +143,6 @@
         .s-terisi {
             background: #fee2e2;
             color: #b91c1c;
-        }
-
-        .s-reserved {
-            background: #fef3c7;
-            color: #92400e;
         }
     </style>
 

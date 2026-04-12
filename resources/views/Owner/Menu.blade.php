@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    {{-- MODAL DETAIL HARGA & STOK (SAMA SEPERTI ADMIN) --}}
+    {{-- MODAL DETAIL HARGA & STOK --}}
     <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="detailContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0 max-h-[90vh] flex flex-col">
@@ -167,7 +167,7 @@
                     </div>
                 </div>
 
-                {{-- Harga & Stok Sekarang --}}
+                {{-- Harga & Stok Saat Ini --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
                         <p class="text-xs text-emerald-600 font-medium mb-1">
@@ -187,69 +187,46 @@
                 {{-- Divider --}}
                 <div class="flex items-center gap-3">
                     <div class="flex-1 h-px bg-gray-200"></div>
-                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Riwayat Perubahan</p>
+                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Riwayat Perubahan Terakhir</p>
                     <div class="flex-1 h-px bg-gray-200"></div>
                 </div>
 
-                {{-- RIWAYAT HARGA --}}
-                <div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <i class="fas fa-money-bill-wave text-emerald-600 text-xs"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-800">Riwayat Harga</p>
-                    </div>
-
-                    <div id="hargaSlot1" class="hidden mb-3">
-                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-history text-amber-500 text-sm"></i>
-                                    <p class="text-xs text-amber-700 font-medium">Harga Sebelum Edit Terakhir</p>
-                                </div>
-                            </div>
-                            <p class="text-xl font-bold text-amber-800" id="hargaSlot1Val">-</p>
-                            <p class="text-xs text-amber-600 mt-1">Nilai harga sebelum perubahan terakhir dilakukan</p>
+                {{-- Harga & Stok Sebelum Edit (Ukuran & Posisi Sama) --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Harga Sebelum -->
+                    <div id="hargaSlot1" class="hidden">
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                            <p class="text-xs text-amber-600 font-medium mb-1">
+                                <i class="fas fa-history mr-1"></i>Harga Sebelum Edit Terakhir
+                            </p>
+                            <p class="text-2xl font-bold text-amber-800" id="hargaSlot1Val">-</p>
+                            <p class="text-xs text-amber-600 mt-2">Nilai sebelum perubahan terakhir</p>
                         </div>
                     </div>
 
-                    <div id="hargaKosong"
-                        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
-                        <i class="fas fa-clock text-2xl mb-2 block"></i>
-                        Belum ada riwayat perubahan harga
+                    <!-- Stok Sebelum -->
+                    <div id="stokSlot1" class="hidden">
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                            <p class="text-xs text-amber-600 font-medium mb-1">
+                                <i class="fas fa-history mr-1"></i>Stok Sebelum Edit Terakhir
+                            </p>
+                            <p class="text-2xl font-bold text-amber-800" id="stokSlot1Val">-</p>
+                            <p class="text-xs text-amber-600 mt-2">Nilai sebelum perubahan terakhir</p>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Divider --}}
-                <div class="h-px bg-gray-100"></div>
+                <!-- Pesan Kosong jika tidak ada riwayat -->
+                <div id="hargaKosong"
+                    class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
+                    <i class="fas fa-clock text-2xl mb-2 block"></i>
+                    Belum ada riwayat perubahan harga
+                </div>
 
-                {{-- RIWAYAT STOK --}}
-                <div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <i class="fas fa-boxes-stacked text-blue-600 text-xs"></i>
-                        </div>
-                        <p class="text-sm font-bold text-gray-800">Riwayat Stok</p>
-                    </div>
-
-                    <div id="stokSlot1" class="hidden mb-3">
-                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-history text-amber-500 text-sm"></i>
-                                    <p class="text-xs text-amber-700 font-medium">Stok Sebelum Edit Terakhir</p>
-                                </div>
-                            </div>
-                            <p class="text-xl font-bold text-amber-800" id="stokSlot1Val">-</p>
-                            <p class="text-xs text-amber-600 mt-1">Nilai stok sebelum perubahan terakhir dilakukan</p>
-                        </div>
-                    </div>
-
-                    <div id="stokKosong"
-                        class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
-                        <i class="fas fa-clock text-2xl mb-2 block"></i>
-                        Belum ada riwayat perubahan stok
-                    </div>
+                <div id="stokKosong"
+                    class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-gray-400 text-sm">
+                    <i class="fas fa-clock text-2xl mb-2 block"></i>
+                    Belum ada riwayat perubahan stok
                 </div>
 
             </div>
