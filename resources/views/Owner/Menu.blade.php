@@ -306,6 +306,7 @@
         function resetFilter() {
             document.getElementById('filterSearch').value = '';
             document.getElementById('filterKategori').value = '';
+            document.getElementById('filterJenis').value = '';
             resetDropdownJenis();
             menuTerfilter = [...semuaMenu];
             halamanAktif = 1;
@@ -318,7 +319,7 @@
             const wrapperPag = document.getElementById('paginationWrapper');
             const total = menuTerfilter.length;
 
-            document.getElementById('totalMenuLabel').textContent = `Total: ${semuaMenu.length} Menu`;
+            document.getElementById('totalMenuLabel').textContent = `Total: ${menuTerfilter.length} Menu`;
 
             if (!total) {
                 tbody.innerHTML = '';
@@ -467,6 +468,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('filterSearch').addEventListener('input', terapkanFilter);
             document.getElementById('filterKategori').addEventListener('change', filterKategoriChange);
+            document.getElementById('filterJenis').addEventListener('change', terapkanFilter); // ← tambah ini
             updateCards();
             renderHalaman();
         });

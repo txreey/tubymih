@@ -380,8 +380,6 @@ class AdminController extends Controller
         ]);
 
         $menus = Menu::with('kategori')
-            ->when($request->search, fn($q, $s) => $q->where('nama_makanan', 'like', "%$s%"))
-            ->when($request->kategori, fn($q, $k) => $q->where('id_kategori', $k))
             ->orderBy('nama_makanan')
             ->get();
 

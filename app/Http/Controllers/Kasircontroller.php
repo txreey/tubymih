@@ -128,7 +128,7 @@ class KasirController extends Controller
                 'emoji'    => $m->emoji ?? '🍽️',
                 'stok'     => (int) $m->stok,
                 'gambar'   => $m->gambar,
-                'is_aktif' => (bool) ($m->is_aktif ?? true),
+                'is_aktif' => $m->status === 'aktif', // ✅ dari enum status
             ]);
 
         Log::create([

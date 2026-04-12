@@ -11,7 +11,7 @@
         </div>
 
         {{-- Statistik Cards Baru --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Total Makanan -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div class="flex items-center justify-between">
@@ -76,7 +76,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- Filter --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
@@ -450,21 +450,6 @@
             return div.innerHTML;
         }
 
-        function updateStatistikCards() {
-            const totalMakanan = semuaMenu.filter(m => m.kategori && m.kategori.nama_kategori === 'Makanan').length;
-            const totalMinuman = semuaMenu.filter(m => m.kategori && m.kategori.nama_kategori === 'Minuman').length;
-            const aktif = semuaMenu.filter(m => m.status === 'aktif').length;
-            const nonaktif = semuaMenu.filter(m => m.status === 'nonaktif').length;
-            const habis = semuaMenu.filter(m => m.status === 'kosong').length;
-
-            document.getElementById('totalMakananCard').textContent = totalMakanan;
-            document.getElementById('totalMinumanCard').textContent = totalMinuman;
-            document.getElementById('aktifCard').textContent = aktif;
-            document.getElementById('nonaktifCard').textContent = nonaktif;
-            document.getElementById('habisCard').textContent = habis;
-            document.getElementById('totalMenuLabel').textContent = `Total: ${semuaMenu.length} Menu`;
-        }
-
         function renderHalaman() {
             const tbody = document.getElementById('menuTableBody');
             const empty = document.getElementById('emptyState');
@@ -480,6 +465,8 @@
 
             empty.classList.add('hidden');
             wrapperPag.classList.remove('hidden');
+
+            document.getElementById('totalMenuLabel').textContent = `Total: ${menuTerfilter.length} Menu`;
 
             const totalHalaman = Math.ceil(total / PER_PAGE);
             if (halamanAktif > totalHalaman) halamanAktif = totalHalaman;
@@ -498,10 +485,22 @@
                     `<img src="/storage/${m.gambar}" class="w-12 h-12 object-cover rounded-lg shadow-sm" onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=No+Img'">` :
                     `<div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image text-lg"></i></div>`;
 
+                // let statusHtml = '';
+                // if (m.status === 'kosong') {
+                //     statusHtml =
+                //         `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"><i class="fas fa-times-circle"></i> Habis</span>`;
+                // } else if (m.status === 'aktif') {
+                //     statusHtml =
+                //         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[8px]"></i> Aktif</span>`;
+                // } else {
+                //     statusHtml =
+                //         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500"><i class="fas fa-circle text-[8px]"></i> Nonaktif</span>`;
+                // }
+
                 let statusHtml = '';
-                if (m.status === 'kosong') {
+                if (m.stok === 0) {
                     statusHtml =
-                        `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"><i class="fas fa-times-circle"></i> Habis</span>`;
+                        `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500"><i class="fas fa-circle text-[8px]"></i> Kosong</span>`;
                 } else if (m.status === 'aktif') {
                     statusHtml =
                         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[8px]"></i> Aktif</span>`;
@@ -510,17 +509,17 @@
                         `<span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500"><i class="fas fa-circle text-[8px]"></i> Nonaktif</span>`;
                 }
 
-                const btnToggle = (m.status === 'kosong') ?
-                    `<button title="Menu Habis - Tidak bisa toggle" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
+                const btnToggle = (m.stok === 0) ?
+                    `<button title="Stok Habis - Tidak bisa toggle" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
                         <i class="fas fa-toggle-off text-sm"></i>
                     </button>` :
                     (m.status === 'aktif' ?
                         `<button onclick="toggleStatus(${m.id})" title="Nonaktifkan Menu" class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition">
-                            <i class="fas fa-toggle-on text-sm"></i>
-                        </button>` :
+                        <i class="fas fa-toggle-on text-sm"></i>
+                    </button>` :
                         `<button onclick="toggleStatus(${m.id})" title="Aktifkan Menu" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 hover:bg-gray-200 transition">
-                            <i class="fas fa-toggle-off text-sm"></i>
-                        </button>`);
+                        <i class="fas fa-toggle-off text-sm"></i>
+                    </button>`);
 
                 return `
                     <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" id="row-${m.id}">
@@ -548,7 +547,7 @@
             }).join('');
 
             renderPagination(total, totalHalaman);
-            updateStatistikCards();
+            // updateStatistikCards();
         }
 
         function renderPagination(total, totalHalaman) {
@@ -590,9 +589,14 @@
                 const cocokInduk = !induk || (m.kategori?.nama_kategori === induk);
 
                 let cocokStatus = true;
-                if (statusFilter === 'aktif') cocokStatus = m.status === 'aktif';
-                else if (statusFilter === 'nonaktif') cocokStatus = m.status === 'nonaktif';
-                else if (statusFilter === 'kosong') cocokStatus = m.status === 'kosong';
+                if (statusFilter === 'aktif') {
+                    cocokStatus = m.status === 'aktif' && m.stok > 0;
+                } else if (statusFilter === 'nonaktif') {
+                    // nonaktif = status nonaktif ATAU stok 0 (karena tampilnya sama)
+                    cocokStatus = m.status === 'nonaktif' || m.stok === 0;
+                } else if (statusFilter === 'kosong') {
+                    cocokStatus = m.stok === 0;
+                }
 
                 return cocokKeyword && cocokInduk && cocokStatus;
             });
@@ -741,6 +745,15 @@
             document.getElementById('hargaSaatIni').textContent = formatRupiah(m.harga);
             document.getElementById('inputHargaBaru').value = m.harga;
 
+            // Tampilkan harga sebelumnya kalau ada
+            const wrapperHarga = document.getElementById('hargaSebelumnyaWrapper');
+            if (m.harga_sebelumnya) {
+                document.getElementById('hargaSebelumnya').textContent = formatRupiah(m.harga_sebelumnya);
+                wrapperHarga.classList.remove('hidden');
+            } else {
+                wrapperHarga.classList.add('hidden');
+            }
+
             tampilkanModal('hargaModal');
         };
 
@@ -817,6 +830,15 @@
             document.getElementById('stokSaatIni').textContent = m.stok;
             document.getElementById('stokTotal').textContent = m.stok;
             document.getElementById('inputJumlahStok').value = '';
+
+            // Tampilkan stok sebelumnya kalau ada
+            const wrapperStok = document.getElementById('stokSebelumnyaWrapper');
+            if (m.stok_sebelumnya !== null && m.stok_sebelumnya !== undefined) {
+                document.getElementById('stokSebelumnya').textContent = m.stok_sebelumnya + ' pcs';
+                wrapperStok.classList.remove('hidden');
+            } else {
+                wrapperStok.classList.add('hidden');
+            }
 
             tampilkanModal('stokModal');
         };
@@ -1007,7 +1029,7 @@
             document.getElementById('filterKategori').addEventListener('change', terapkanFilter);
             document.getElementById('filterStatus').addEventListener('change', terapkanFilter);
 
-            updateStatistikCards();
+            // updateStatistikCards();
             renderHalaman();
         });
 
