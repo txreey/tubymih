@@ -11,6 +11,10 @@ use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LaporanPendapatanExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class OwnerController extends Controller
@@ -486,6 +490,9 @@ class OwnerController extends Controller
     // ==========================================
     // EXPORT PDF
     // ==========================================
+    // ==========================================
+    // EXPORT PDF
+    // ==========================================
     public function exportPdf(Request $request)
     {
         $validated = $request->validate([
@@ -494,7 +501,7 @@ class OwnerController extends Controller
             'id_kasir' => 'nullable|exists:users,id',
         ]);
 
-        $query = Transaksi::with(['kasir', 'detailTransaksi'])
+        $query = Transaksi::with(['kasir', 'detailTransaksi.menu'])
             ->where('status', 'lunas')
             ->latest();
 
@@ -510,14 +517,34 @@ class OwnerController extends Controller
 
         $transaksis = $query->get();
 
-        $export = new \App\Exports\LaporanPendapatanExport($transaksis, $validated);
+        // Grouping sama persis seperti Excel
+        $grouped = $transaksis->groupBy(function ($trx) {
+            $tanggal = $trx->tanggal
+                ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')
+                : '0000-00-00';
+            return $tanggal . '|' . ($trx->id_kasir ?? 'unknown');
+        });
+
+        $kasirNama = !empty($validated['id_kasir'])
+            ? optional(\App\Models\User::find($validated['id_kasir']))->nama ?? 'Semua Kasir'
+            : 'Semua Kasir';
+
+        $periode = ($validated['dari'] ?? 'Awal') . ' s/d ' . ($validated['sampai'] ?? 'Sekarang');
+
+        $totalQty = $transaksis->sum(fn($trx) => $trx->detailTransaksi->sum('qty'));
+        $totalPendapatan = $transaksis->sum('total_harga');
+
+        $pdf = Pdf::loadView('owner.Pdf_export', compact(
+            'grouped',
+            'kasirNama',
+            'periode',
+            'totalQty',
+            'totalPendapatan'
+        ))->setPaper('a4', 'landscape');
+
         $filename = 'laporan_pendapatan_' . now()->format('Ymd_His') . '.pdf';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            $export,
-            $filename,
-            \Maatwebsite\Excel\Excel::DOMPDF
-        );
+        return $pdf->download($filename);
     }
 
     // ==========================================

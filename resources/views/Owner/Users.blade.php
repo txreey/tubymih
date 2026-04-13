@@ -5,7 +5,7 @@
 @section('content')
     <div class="space-y-8 max-w-7xl mx-auto p-6">
 
-        {{-- Header --}}
+        {{-- HEADER --}}
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Kelola User</h1>
             <p class="text-gray-600 mt-1">Kelola akun kasir dan admin</p>
@@ -515,7 +515,7 @@
     </style>
 
     <script>
-        // ─── STATE ───────────────────────────────────────────────────────
+        // ─── DATA & KONSTANTA ───────────────────────────────────────────────
         let allUsers = @json($users);
         let filteredUsers = [...allUsers];
         const CSRF = '{{ csrf_token() }}';

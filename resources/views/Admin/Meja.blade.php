@@ -35,7 +35,6 @@
                             <option value="">Semua Status</option>
                             <option value="tersedia">Tersedia</option>
                             <option value="terisi">Terisi</option>
-                            <option value="reserved">Reserved</option>
                         </select>
                     </div>
                     <div class="flex items-end gap-3">
