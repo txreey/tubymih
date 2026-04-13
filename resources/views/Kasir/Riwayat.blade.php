@@ -275,7 +275,7 @@
         const ALAMAT_RESTORAN = '{{ config('app.alamat_restoran', 'Jl. Raya Nr Kadu 04') }}';
         const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 
-        // CSRF TOKEN (PERBAIKAN UTAMA)
+        // CSRF TOKEN
         const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         function formatRp(angka) {
@@ -801,7 +801,6 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        // Auto refresh setiap 60 detik
         setInterval(() => {
             renderTable();
         }, 60000);

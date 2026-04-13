@@ -161,7 +161,7 @@
     </div>
 
     <script>
-        // Realtime filter — auto submit saat berubah
+        // Realtime filter 
         document.addEventListener('DOMContentLoaded', function() {
             ['dari_tanggal', 'sampai_tanggal', 'filterRole'].forEach(id => {
                 document.getElementById(id)?.addEventListener('change', function() {

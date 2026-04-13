@@ -15,7 +15,7 @@
             </div>
 
             <!-- Quick Action Buttons -->
-            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4"> {{-- Changed from 3 to 2 columns --}}
+            <div class="grid grid-cols-2 sm:grid-cols-2 gap-4"> 
                 <a href="{{ route('kasir.order.index') }}"
                     class="group bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center">
                     <svg class="w-10 h-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -65,7 +65,7 @@
             </div>
         </div>
 
-        {{-- Grafik — hanya tampil jika ada data transaksi --}}
+        {{-- Grafik --}}
         @if ($chartData->isNotEmpty())
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Harian</h3>
@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    {{-- Chart.js hanya di-load jika grafik ditampilkan --}}
+    {{-- Chart.js --}}
     @if ($chartData->isNotEmpty())
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         <script>

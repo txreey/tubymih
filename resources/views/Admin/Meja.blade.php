@@ -96,7 +96,7 @@
                 Belum ada data meja
             </div>
 
-            {{-- Pagination Compact dengan Arrow --}}
+            {{-- Pagination --}}
             <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-500" id="paginationInfo"></p>
 
@@ -211,7 +211,7 @@
         </div>
     </div>
 
-    {{-- MODAL EDIT MEJA (Status fix Tersedia) --}}
+    {{-- MODAL EDIT MEJA --}}
     <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="editContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
@@ -568,7 +568,7 @@
         }
 
         async function submitCreate() {
-            // ... (kode submitCreate tetap sama seperti sebelumnya)
+            
             const noMeja = document.getElementById('createNoMeja').value.trim();
             const tipeMeja = document.getElementById('createTipeMeja').value;
             const kapasitas = document.getElementById('createKapasitas').value.trim();
@@ -663,7 +663,6 @@
             const meja = allMeja.find(m => Number(m.id) === Number(id));
             if (!meja) return;
 
-            // Cegah edit jika status bukan tersedia
             if (meja.status !== 'tersedia') {
                 Swal.fire({
                     icon: 'warning',

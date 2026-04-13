@@ -14,7 +14,7 @@
                 </div>
             </div>
 
-            <!-- Stat Cards (Navigation Cards) -->
+            <!-- (Navigation Cards) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
                 <!-- Total User -->
@@ -117,7 +117,7 @@
             <!-- Chart + Menu Terlaris -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <!-- Chart Pendapatan 7 Hari Terakhir (KIRI) -->
+                <!-- Chart Pendapatan -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-5">Pendapatan 7 Hari Terakhir</h3>
                     <div class="h-80">
@@ -125,7 +125,7 @@
                     </div>
                 </div>
 
-                <!-- Menu Terlaris 7 Hari Terakhir (KANAN) - Maksimal 5, tanpa scroll -->
+                <!-- Menu Terlaris -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-5">Menu Terlaris 7 Hari Terakhir</h3>
                     <div class="space-y-4">

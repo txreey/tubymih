@@ -24,7 +24,7 @@ class OwnerController extends Controller
     // ==========================================
     public function dashboard()
     {
-        // LOG: Owner melihat dashboard
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat dashboard',
@@ -35,7 +35,7 @@ class OwnerController extends Controller
         // 1. Total Menu 
         $total_menu = Menu::count();
 
-        // 2. Total Kasir Aktif (tetap dihitung untuk cadangan)
+        // 2. Total Kasir Aktif
         $total_kasir = User::where('role', 'kasir')
             ->where('status', 'aktif')
             ->count();
@@ -43,11 +43,11 @@ class OwnerController extends Controller
         // 3. Total Meja
         $total_meja = Meja::count();
 
-        // 4. Total User (Hanya Admin + Kasir, Owner TIDAK DIHITUNG)
+        // 4. Total User 
         $total_user = User::whereIn('role', ['admin', 'kasir'])
             ->count();
 
-        // 5. Pendapatan Hari Ini (hanya lunas)
+        // 5. Pendapatan Hari Ini 
         $pendapatan_hari = Transaksi::where('status', 'lunas')
             ->whereDate('tanggal', Carbon::today())
             ->sum('total_harga');
@@ -63,7 +63,7 @@ class OwnerController extends Controller
             ->whereYear('tanggal', Carbon::now()->year)
             ->sum('total_harga');
 
-        // 8. Jumlah Transaksi Hari Ini (semua status)
+        // 8. Jumlah Transaksi
         $transaksi_hari_ini = Transaksi::whereDate('tanggal', Carbon::today())
             ->count();
 
@@ -82,7 +82,7 @@ class OwnerController extends Controller
             ]);
         }
 
-        // 10. MENU TERLARIS 7 HARI TERAKHIR (REAL) - Maksimal 5
+        // 10. MENU TERLARIS
         $menu_terlaris = \App\Models\DetailTransaksi::select('id_menu')
             ->with('menu')
             ->whereHas('transaksi', function ($query) {
@@ -101,7 +101,6 @@ class OwnerController extends Controller
                 ];
             });
 
-        // Jika tidak ada data transaksi
         if ($menu_terlaris->isEmpty()) {
             $menu_terlaris = collect([
                 ['name' => 'Belum ada transaksi', 'qty' => 0],
@@ -132,7 +131,7 @@ class OwnerController extends Controller
     // ==========================================
     public function indexMenu(Request $request)
     {
-        // LOG: Owner melihat daftar menu
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat daftar menu',
@@ -140,7 +139,6 @@ class OwnerController extends Controller
             'waktu' => now(),
         ]);
 
-        // Kirim SEMUA data ke view — filter & pagination ditangani JS
         $menus = Menu::with('kategori')->orderBy('nama_makanan')->get();
 
         return view('owner.menu', compact('menus'));
@@ -151,7 +149,7 @@ class OwnerController extends Controller
     // ==========================================
     public function indexUser(Request $request)
     {
-        // LOG: Owner melihat daftar user
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat daftar user',
@@ -159,7 +157,6 @@ class OwnerController extends Controller
             'waktu' => now(),
         ]);
 
-        // Kirim semua user non-owner — filter & pagination ditangani JS
         $users = User::whereIn('role', ['admin', 'kasir'])
             ->orderBy('nama')
             ->get();
@@ -189,7 +186,7 @@ class OwnerController extends Controller
             'alamat'   => $request->alamat,
         ]);
 
-        // LOG: Owner menambah user baru
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Menambah user baru',
@@ -236,7 +233,7 @@ class OwnerController extends Controller
         $user->update($data);
         $user->refresh();
 
-        // LOG: Owner mengupdate user
+        // LOG: 
         $perubahan = [];
         if ($namaLama != $user->nama) $perubahan[] = 'Nama: ' . $namaLama . ' → ' . $user->nama;
         if ($roleLama != $user->role) $perubahan[] = 'Role: ' . $roleLama . ' → ' . $user->role;
@@ -263,7 +260,7 @@ class OwnerController extends Controller
 
         $user->delete();
 
-        // LOG: Owner menghapus user
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Menghapus user',
@@ -285,7 +282,7 @@ class OwnerController extends Controller
         $user->status = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
         $user->save();
 
-        // LOG: Owner mengubah status user
+        // LOG:
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Mengubah status user',
@@ -309,7 +306,7 @@ class OwnerController extends Controller
     // ==========================================
     public function indexMeja(Request $request)
     {
-        // LOG: Owner melihat daftar meja
+        // LOG: 
         Log::create([
             'id_user' => Auth::id(),
             'aktivitas' => 'Melihat daftar meja',
@@ -317,7 +314,6 @@ class OwnerController extends Controller
             'waktu' => now(),
         ]);
 
-        // Kirim SEMUA data ke view — filter & pagination ditangani JS
         $mejas = Meja::orderBy('no_meja')->get();
 
         return view('owner.meja', compact('mejas'));
@@ -359,7 +355,6 @@ class OwnerController extends Controller
             $t->tipe_order      = $t->jenis_pemesanan ?? $t->tipe_order ?? '-';
             $t->nama_meja       = $t->nama_meja ?? '-';
 
-            // Mapping items supaya sama dengan halaman Kasir
             $t->items = $t->detailTransaksi->map(function ($d) {
                 return (object)[
                     'nama'         => $d->menu->nama_makanan ?? $d->nama_menu ?? '-',
@@ -371,7 +366,7 @@ class OwnerController extends Controller
             return $t;
         });
 
-        // Data untuk card statistik
+        // card statistik
         $totalTransaksi = Transaksi::count();
         $totalLunas     = Transaksi::where('status', 'lunas')->count();
         $totalNunggak   = Transaksi::where('status', 'tunggak')->count();
@@ -490,9 +485,6 @@ class OwnerController extends Controller
     // ==========================================
     // EXPORT PDF
     // ==========================================
-    // ==========================================
-    // EXPORT PDF
-    // ==========================================
     public function exportPdf(Request $request)
     {
         $validated = $request->validate([
@@ -517,7 +509,6 @@ class OwnerController extends Controller
 
         $transaksis = $query->get();
 
-        // Grouping sama persis seperti Excel
         $grouped = $transaksis->groupBy(function ($trx) {
             $tanggal = $trx->tanggal
                 ? \Carbon\Carbon::parse($trx->tanggal)->format('Y-m-d')

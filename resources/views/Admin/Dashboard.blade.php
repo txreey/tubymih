@@ -18,7 +18,7 @@
 
         <div class="max-w-7xl mx-auto px-6 space-y-10">
 
-            {{-- NAVIGASI CEPAT YANG SEKALIGUS STATISTIK --}}
+            {{-- NAVIGASI CEPAT SEKALIGUS STATISTIK --}}
             <div>
                 <h3 class="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-5 px-1">Navigasi Cepat</h3>
 

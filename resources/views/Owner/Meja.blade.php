@@ -11,7 +11,7 @@
             <p class="text-gray-600 mt-1">Semua meja yang tersedia di restoran</p>
         </div>
 
-        {{-- Summary Cards — dihitung dinamis dari JS --}}
+        {{-- Summary Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 text-center hover:shadow-lg transition">
                 <p class="text-sm font-medium text-gray-600">Total Meja</p>
@@ -117,7 +117,7 @@
                         <i class="fas fa-chevron-left text-xs"></i>
                     </button>
 
-                    <!-- Kotak Angka Halaman Saat Ini -->
+                    <!-- Kotak Angka -->
                     <div id="currentPageBox"
                         class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
                         1

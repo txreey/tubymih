@@ -150,7 +150,6 @@
             </div>
 
             @if ($laporanData->count() === 0)
-                {{-- empty state already rendered inside table --}}
             @endif
         </div>
     </div>

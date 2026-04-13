@@ -46,7 +46,6 @@ class AuthController extends Controller
             'waktu'     => now(),
         ]);
 
-        // Redirect ke dashboard sesuai role
         return redirect($this->redirectByRole($user->role));
     }
 
@@ -67,9 +66,6 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Anda berhasil logout.');
     }
 
-    /**
-     * Tentukan URL dashboard berdasarkan role
-     */
     private function redirectByRole(string $role): string
     {
         return match ($role) {

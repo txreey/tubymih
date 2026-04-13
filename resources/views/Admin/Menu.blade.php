@@ -536,7 +536,6 @@
             }).join('');
 
             renderPagination(total, totalHalaman);
-            // updateStatistikCards();
         }
 
         function renderPagination(total, totalHalaman) {
@@ -581,7 +580,6 @@
                 if (statusFilter === 'aktif') {
                     cocokStatus = m.status === 'aktif' && m.stok > 0;
                 } else if (statusFilter === 'nonaktif') {
-                    // nonaktif = status nonaktif ATAU stok 0 (karena tampilnya sama)
                     cocokStatus = m.status === 'nonaktif' || m.stok === 0;
                 } else if (statusFilter === 'kosong') {
                     cocokStatus = m.stok === 0;
@@ -646,7 +644,6 @@
 
         function validasiTambah() {
             let valid = true;
-            // bersihkan error (simple version)
             document.querySelectorAll('[id^="errCreate"]').forEach(el => el.classList.add('hidden'));
 
             if (!document.getElementById('createKategoriInduk').value) valid = false;
@@ -734,7 +731,7 @@
             document.getElementById('hargaSaatIni').textContent = formatRupiah(m.harga);
             document.getElementById('inputHargaBaru').value = m.harga;
 
-            // Tampilkan harga sebelumnya kalau ada
+            // Tampilkan harga sebelumnya
             const wrapperHarga = document.getElementById('hargaSebelumnyaWrapper');
             if (m.harga_sebelumnya) {
                 document.getElementById('hargaSebelumnya').textContent = formatRupiah(m.harga_sebelumnya);
@@ -820,7 +817,7 @@
             document.getElementById('stokTotal').textContent = m.stok;
             document.getElementById('inputJumlahStok').value = '';
 
-            // Tampilkan stok sebelumnya kalau ada
+            // Tampilkan stok sebelumnya
             const wrapperStok = document.getElementById('stokSebelumnyaWrapper');
             if (m.stok_sebelumnya !== null && m.stok_sebelumnya !== undefined) {
                 document.getElementById('stokSebelumnya').textContent = m.stok_sebelumnya + ' pcs';
@@ -864,7 +861,6 @@
                 form.append('_method', 'PUT');
                 form.append('stok', newStok);
 
-                // Stok 0 → kosong | dari kosong ke > 0 → aktif
                 if (newStok === 0) {
                     form.append('status', 'kosong');
                 } else if (newStok > 0 && m && m.status === 'kosong') {
@@ -920,7 +916,7 @@
                 return;
             }
 
-            // Cek dulu apakah sedang dipesan
+            // Cek sedang dipesan
             const sedangDipesan = await cekApakahDipesan(id);
             if (sedangDipesan) {
                 Swal.fire({

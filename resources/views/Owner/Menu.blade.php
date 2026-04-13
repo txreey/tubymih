@@ -11,7 +11,7 @@
             <p class="text-gray-600 mt-1">Semua menu yang tersedia di sistem</p>
         </div>
 
-        {{-- Summary Cards — 5 card satu baris --}}
+        {{-- Summary Cards  --}}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 
             {{-- Makanan --}}
@@ -81,7 +81,7 @@
 
         </div>
 
-        {{-- Filter (sama persis dengan admin) --}}
+        {{-- Filter --}}
         <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -123,7 +123,7 @@
             </div>
         </div>
 
-        {{-- Tabel (kolom sama dengan admin, tanpa tombol aksi edit) --}}
+        {{-- Tabel --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
                 <div class="flex items-center gap-3">
@@ -196,7 +196,7 @@
         </div>
     </div>
 
-    {{-- MODAL DETAIL HARGA & STOK (tetap sama seperti owner sebelumnya) --}}
+    {{-- MODAL DETAIL HARGA & STOK --}}
     <div id="detailModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div id="detailContent"
             class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full mx-4 transform transition-all duration-300 scale-95 opacity-0 max-h-[90vh] flex flex-col">
@@ -307,7 +307,7 @@
     </div>
 
     <script>
-        // ── Data awal dari server ──────────────────────────────────────────
+        // ── Data awal ──────────────────────────────────────────
         let semuaMenu = @json($menus);
         let menuTerfilter = [...semuaMenu];
         const PER_PAGE = 5;
@@ -337,7 +337,7 @@
                 semuaMenu.filter(m => m.stok === 0).length;
         }
 
-        // ── Filter (identik dengan admin) ─────────────────────────────────
+        // ── Filter ─────────────────────────────────
         function terapkanFilter() {
             const keyword = document.getElementById('filterSearch').value.toLowerCase().trim();
             const induk = document.getElementById('filterKategori').value;
@@ -415,7 +415,7 @@
                            <i class="fas fa-image text-lg"></i>
                        </div>`;
 
-                // Status badge — identik logika dengan admin (stok 0 = kosong)
+                // Status badge 
                 let statusHtml = '';
                 if (m.stok === 0) {
                     statusHtml =
@@ -516,7 +516,7 @@
             document.getElementById('detailKategori').textContent = m.kategori ?
                 `${m.kategori.nama_kategori} — ${m.kategori.jenis}` : '-';
 
-            // Status badge di dalam modal
+            // Status badge
             const badgeEl = document.getElementById('detailStatusBadge');
             if (m.stok === 0) {
                 badgeEl.innerHTML =
@@ -569,7 +569,6 @@
                 if (!res.ok) return;
                 const data = await res.json();
 
-                // Simpan posisi filter aktif sebelum update
                 const keyword = document.getElementById('filterSearch').value;
                 const induk = document.getElementById('filterKategori').value;
                 const statusFilter = document.getElementById('filterStatus').value;
@@ -577,10 +576,8 @@
                 semuaMenu = data;
                 updateCards();
 
-                // Re-terapkan filter supaya tabel langsung ter-update
                 terapkanFilter();
             } catch (e) {
-                // Diam-diam gagal — tidak mengganggu UX
             }
         }
 
@@ -593,11 +590,10 @@
             updateCards();
             renderHalaman();
 
-            // Mulai polling setiap 15 detik
             setInterval(fetchMenuTerbaru, 15000);
         });
 
-        // Expose ke window
+        // Expose window
         window.terapkanFilter = terapkanFilter;
         window.resetFilter = resetFilter;
         window.prevPage = prevPage;

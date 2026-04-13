@@ -159,7 +159,7 @@
                 Belum ada transaksi
             </div>
 
-            {{-- Pagination Arrow Style (sama seperti Owner) --}}
+            {{-- Pagination --}}
             <div id="paginationWrapper" class="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
                 <p class="text-xs text-gray-400" id="paginationInfo"></p>
                 <div class="flex items-center gap-1.5">
@@ -285,7 +285,7 @@
             return '<span class="inline-flex px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">⏰ Belum Bayar</span>';
         }
 
-        // Isi Dropdown Kasir
+        // Dropdown Kasir
         function isiDropdownKasir() {
             const kasirSet = new Set();
             allTransaksi.forEach(t => {

@@ -90,7 +90,7 @@
                 Belum ada data kategori
             </div>
 
-            {{-- Pagination dengan Arrow + Satu Kotak Angka --}}
+            {{-- Pagination --}}
             <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-500" id="paginationInfo"></p>
                 <div class="flex items-center gap-1.5">

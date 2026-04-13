@@ -140,7 +140,7 @@ class KasirController extends Controller
     }
 
     // ==========================================
-    // SIMPAN TRANSAKSI BARU (Kirim Dapur)
+    // SIMPAN TRANSAKSI BARU
     // ==========================================
     public function orderStore(Request $request)
     {

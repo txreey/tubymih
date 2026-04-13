@@ -94,7 +94,7 @@
             letter-spacing: 0.3px;
         }
 
-        /* Garis bawah header lebih tebal */
+        /* Garis bawah header */
         thead tr th:first-child {
             border-radius: 0;
         }
@@ -111,7 +111,6 @@
             background-color: #EEF2FF;
         }
 
-        /* Zebra hanya baris genap */
         tr.zebra td {
             background-color: #F0FDF4;
         }
@@ -124,7 +123,7 @@
             text-align: right;
         }
 
-        /* Kolom No & Qty selalu tengah */
+        /* Kolom No & Qty */
         td.no-col,
         td.qty-col {
             text-align: center;
@@ -144,8 +143,6 @@
         tfoot tr td:nth-child(5) {
             background-color: #0a5c56;
         }
-
-        /* sedikit lebih gelap kolom kosong */
 
         /* ── FOOTER ── */
         .footer {

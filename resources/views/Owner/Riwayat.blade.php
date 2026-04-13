@@ -246,10 +246,12 @@
         const ALAMAT_RESTORAN = '{{ config('app.alamat_restoran', 'Jl. Raya Wr. Kadu 84') }}';
         const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 
+        // Format Rupiah
         function formatRp(angka) {
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka || 0);
         }
 
+        // Format Tanggal
         function formatTanggal(tanggal) {
             if (!tanggal) return '-';
             const date = new Date(tanggal);
@@ -262,6 +264,7 @@
             });
         }
 
+        // Format Tanggal untuk Struk 
         function formatTanggalStruk(tanggal) {
             if (!tanggal) return '-';
             const date = new Date(tanggal);
@@ -273,12 +276,14 @@
             return `${day}-${month}-${year} ${hour}:${min}`;
         }
 
+        // Cek transaksi (>3 jam)
         function isTerlambat(trx) {
             if (trx.status !== 'tunggak') return false;
             const created = new Date(trx.created_at || trx.tanggal);
             return (Date.now() - created.getTime()) > THREE_HOURS_MS;
         }
 
+        // Badge Tipe Order
         function getTipeBadge(tipe) {
             if (tipe === 'dine_in')
             return '<span class="inline-flex px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">🍽️ Dine In</span>';
@@ -287,6 +292,7 @@
             return '<span class="inline-flex px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">-</span>';
         }
 
+        // Badge Status Pembayaran
         function getStatusBadge(trx) {
             if (trx.status === 'lunas')
                 return '<span class="inline-flex px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">✅ Lunas</span>';
@@ -313,6 +319,7 @@
             });
         }
 
+        // Update Statistik di Header
         function updateStats() {
             const lunasCount = allTransaksi.filter(t => t.status === 'lunas').length;
             const belumBayarCount = allTransaksi.filter(t => t.status === 'tunggak').length;
@@ -326,6 +333,7 @@
             document.getElementById('statBelumBayar').textContent = belumBayarCount;
         }
 
+        // Render Tabel
         function renderTable() {
             const tbody = document.getElementById('riwayatTableBody');
             const empty = document.getElementById('emptyState');
@@ -395,6 +403,7 @@
             document.getElementById('btnNext').disabled = currentPage === totalPages;
         }
 
+        // Pagination
         function prevPage() {
             if (currentPage > 1) {
                 currentPage--;
@@ -410,6 +419,7 @@
             }
         }
 
+        // Filter
         function applyFilter() {
             const search = document.getElementById('filterSearch').value.toLowerCase().trim();
             const kasir = document.getElementById('filterKasir').value;

@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    // DASHBOARD (tetep sama)
+    // =========================
+    // DASHBOARD 
+    // =========================
     public function dashboard()
     {
         Log::create([
@@ -57,7 +59,7 @@ class AdminController extends Controller
     }
 
     // =============================================
-    // USER MANAGEMENT – HANYA UNTUK KASIR
+    // USER MANAGEMENT 
     // =============================================
     public function indexUser(Request $request)
     {
@@ -355,7 +357,7 @@ class AdminController extends Controller
 
 
     // ==========================================
-    // KELOLA MENU (SUDAH DIBENARKAN FULL)
+    // KELOLA MENU 
     // ==========================================
 
     public function indexMenu(Request $request)
@@ -471,10 +473,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Toggle hanya aktif <-> nonaktif
-     * Tidak bisa toggle jika status = kosong
-     */
     public function toggleStatusMenu(Menu $menu)
     {
         if ($menu->status === 'kosong') {
@@ -665,7 +663,9 @@ class AdminController extends Controller
         ]);
     }
 
+    // ==========================
     // RIWAYAT TRANSAKSI
+    // ==========================
     public function indexRiwayat()
     {
         Log::create([
@@ -710,7 +710,9 @@ class AdminController extends Controller
         return view('admin.riwayat', compact('transaksis', 'totalTransaksi', 'totalPendapatan'));
     }
 
+    // =========================================
     // LAPORAN PENDAPATAN
+    // ========================================
     public function laporan(Request $request)
     {
         $kasirs = User::where('role', 'kasir')->orderBy('nama')->get();

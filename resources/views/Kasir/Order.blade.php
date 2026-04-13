@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            {{-- ── SCR 2: Pilih Meja (hanya untuk Dine In) ── --}}
+            {{-- ── SCR 2: Pilih Meja ── --}}
             <div class="order-screen hidden" id="scr2">
                 <h2 class="text-2xl font-bold text-gray-800 mb-1">Pilih Meja</h2>
                 <p class="text-sm text-gray-400 mb-1">Tap meja yang tersedia — bisa pilih <strong
@@ -633,13 +633,13 @@
                 const inCart = state.cart.find(c => c.id === m.id);
                 const qtyInCart = inCart ? inCart.qty : 0;
 
-                // ── PERBAIKAN: gunakan stok asli dari server, BUKAN dikurangi cart ──
-                const stokAsli = m.stok; // stok murni dari DB
-                const sisaStok = stokAsli - qtyInCart; // sisa yang belum dipesan (untuk tampilan badge)
+                const stokAsli = m.stok;
+
+                const sisaStok = stokAsli - qtyInCart; 
 
                 // ── Tentukan status menu ──────────────────────────────────
                 const isNonaktif = m.is_aktif === false;
-                const isHabis = !isNonaktif && stokAsli <= 0; // habis = stok asli 0, bukan sisa
+                const isHabis = !isNonaktif && stokAsli <= 0; 
                 const bisa = !isNonaktif && !isHabis;
 
                 // ── Gambar ───────────────────────────────────────────────
@@ -656,7 +656,6 @@
                     stokBadge =
                         `<span class="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Stok Habis</span>`;
                 } else if (sisaStok <= 0) {
-                    // Stok asli > 0 tapi sudah habis dimasukkan ke cart semua
                     stokBadge =
                         `<span class="text-xs font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">Maks. di keranjang</span>`;
                 } else {
@@ -675,7 +674,7 @@
                     }
                 }
 
-                // ── Overlay gelap untuk nonaktif & habis ─────────────────
+                // ── nonaktif & habis ─────────────────
                 const overlayHtml = (isNonaktif || isHabis) ?
                     `<div class="absolute inset-0 bg-white/60 rounded-2xl pointer-events-none"></div>` : '';
 
@@ -763,8 +762,6 @@
             const existing = state.cart.find(c => c.id === id);
             const qtyInCart = existing ? existing.qty : 0;
 
-            // PERBAIKAN: batas = stok asli (bukan available stok)
-            // Alert muncul hanya saat qty di cart sudah = stok asli
             if (qtyInCart >= menu.stok) {
                 warnStokHabis(menu.nama);
                 return;
@@ -831,7 +828,6 @@
             if (idx === -1) return;
             const menu = ALL_MENUS.find(m => m.id === id);
 
-            // PERBAIKAN: batas tambah menggunakan stok asli dari ALL_MENUS
             if (delta > 0) {
                 const stokAsli = menu ? menu.stok : 0;
                 const qtyInCart = state.cart[idx].qty;
@@ -1047,12 +1043,10 @@
             return 'Rp ' + n.toLocaleString('id-ID');
         }
 
-        // getAvailableStok sudah tidak dipakai untuk logika batas,
-        // tapi tetap ada jika dibutuhkan di tempat lain
         function getAvailableStok(menuId) {
             const menu = ALL_MENUS.find(m => m.id === menuId);
             if (!menu) return 0;
-            return menu.stok; // ✅ kembalikan stok asli
+            return menu.stok;
         }
 
         document.addEventListener('DOMContentLoaded', function() {

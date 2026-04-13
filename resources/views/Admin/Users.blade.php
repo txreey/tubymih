@@ -34,7 +34,7 @@
                         </select>
                     </div>
 
-                    <!-- Tombol Cari & Reset (lebih kecil) -->
+                    <!-- Tombol Cari & Reset -->
                     <div class="lg:col-span-4 flex items-end gap-5">
                         <button onclick="applyFilter()"
                             class="flex-1 px-6 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm text-sm">
@@ -100,7 +100,7 @@
                 Belum ada data user
             </div>
 
-            {{-- Pagination dengan Arrow + Satu Kotak Angka --}}
+            {{-- Pagination --}}
             <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
                 <p class="text-xs text-gray-500" id="paginationInfo"></p>
 
@@ -111,7 +111,7 @@
                         <i class="fas fa-chevron-left text-xs"></i>
                     </button>
 
-                    <!-- Kotak Angka Saat Ini -->
+                    <!-- Kotak Angka -->
                     <div id="currentPageBox"
                         class="px-3 py-1 bg-white border border-teal-500 rounded-lg font-semibold text-teal-700 text-sm min-w-[36px] text-center">
                         1
@@ -689,7 +689,6 @@
                 renderTable();
             }
 
-            // Inisialisasi saat halaman dimuat
             document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('filterSearch').addEventListener('input', applyFilter);
                 document.getElementById('filterStatus').addEventListener('change', applyFilter);

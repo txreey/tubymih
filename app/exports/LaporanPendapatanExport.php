@@ -126,21 +126,21 @@ class LaporanPendapatanExport implements
         $dicetak = 'Dicetak pada: ' . \Carbon\Carbon::now()->locale('id')->isoFormat('D MMMM YYYY, HH:mm');
 
         return [
-            // Baris 1 — Nama toko
+            // Nama toko
             ['TUBYMIH', '', '', '', '', '', ''],
-            // Baris 2 — Judul laporan
+            // Judul laporan
             ['LAPORAN PENDAPATAN KASIR', '', '', '', '', '', ''],
-            // Baris 3 — Tagline kecil
+            // Tagline kecil
             ['Sistem Manajemen Kasir — Dokumen Resmi', '', '', '', '', '', ''],
-            // Baris 4 — pemisah kosong
+            // pemisah kosong
             ['', '', '', '', '', '', ''],
-            // Baris 5 — Periode
+            // Periode
             ['Periode  : ' . $periode, '', '', '', '', '', ''],
-            // Baris 6 — Kasir
+            // Kasir
             ['Kasir       : ' . $kasirNama, '', '', '', '', '', ''],
-            // Baris 7 — Dicetak pada
+            // Dicetak pada
             ['', '', '', '', '', '', $dicetak],
-            // Baris 8 — Header kolom
+            // Header kolom
             ['No', 'Tanggal', 'Kasir', 'Jml Transaksi', 'Menu', 'Qty', 'Pendapatan'],
         ];
     }
@@ -148,30 +148,30 @@ class LaporanPendapatanExport implements
     public function styles(Worksheet $sheet)
     {
         return [
-            // Baris 1 — TUBYMIH
+            //  TUBYMIH
             1 => [
                 'font'      => ['bold' => true, 'size' => 18, 'color' => ['rgb' => '0F766E']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 2 — Judul laporan
+            // Judul laporan
             2 => [
                 'font'      => ['bold' => true, 'size' => 13, 'color' => ['rgb' => '4F46E5']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 3 — Tagline
+            // Tagline
             3 => [
                 'font'      => ['size' => 9, 'color' => ['rgb' => 'AAAAAA']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 5–6 — Meta info
+            // Meta info
             5 => ['font' => ['bold' => true, 'size' => 11]],
             6 => ['font' => ['bold' => true, 'size' => 11]],
-            // Baris 7 — Dicetak pada (abu, kecil, rata kanan)
+            //  Dicetak pada
             7 => [
                 'font'      => ['size' => 9, 'color' => ['rgb' => 'AAAAAA']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             ],
-            // Baris 8 — Header kolom tabel
+            // Header kolom tabel
             8 => [
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
                 'fill' => [
@@ -211,20 +211,19 @@ class LaporanPendapatanExport implements
                 foreach ([1, 2, 3, 4, 5, 6] as $row) {
                     $sheet->mergeCells("A{$row}:G{$row}");
                 }
-                // Baris 7: merge A–F, G tetap sendiri (dicetak pada)
+                
                 $sheet->mergeCells('A7:F7');
 
                 // ── Tinggi baris header ───────────────────────────────────
                 $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getRowDimension(2)->setRowHeight(22);
                 $sheet->getRowDimension(3)->setRowHeight(16);
-                $sheet->getRowDimension(4)->setRowHeight(8);  // spacer tipis
+                $sheet->getRowDimension(4)->setRowHeight(8);  
                 $sheet->getRowDimension(5)->setRowHeight(20);
                 $sheet->getRowDimension(6)->setRowHeight(20);
                 $sheet->getRowDimension(7)->setRowHeight(16);
                 $sheet->getRowDimension(8)->setRowHeight(24);
 
-                // ── Garis bawah tebal di bawah baris 3 (mirip border-bottom PDF) ──
                 $sheet->getStyle('A3:G3')->applyFromArray([
                     'borders' => [
                         'bottom' => [
@@ -234,14 +233,13 @@ class LaporanPendapatanExport implements
                     ],
                 ]);
 
-                // ── Background box meta (baris 5–7) ──────────────────────
+                // ── Background box meta ──────────────────────
                 $sheet->getStyle('A5:G7')->applyFromArray([
                     'fill' => [
                         'fillType'   => Fill::FILL_SOLID,
                         'startColor' => ['rgb' => 'F8FAFF'],
                     ],
                 ]);
-                // Border kiri biru pada baris meta
                 foreach ([5, 6, 7] as $row) {
                     $sheet->getStyle("A{$row}")->applyFromArray([
                         'borders' => [
@@ -287,7 +285,7 @@ class LaporanPendapatanExport implements
                     }
                 }
 
-                // ── Baris TOTAL — warna teal (sama dengan PDF) ───────────
+                // ── Baris TOTAL ───────────────────────────────────
                 $sheet->getStyle('A' . $lastRow . ':G' . $lastRow)->applyFromArray([
                     'font' => [
                         'bold'  => true,
@@ -302,8 +300,7 @@ class LaporanPendapatanExport implements
                 $sheet->mergeCells('A' . $lastRow . ':C' . $lastRow);
                 $sheet->getRowDimension($lastRow)->setRowHeight(22);
 
-                // ── Zebra striping baris data ─────────────────────────────
-                $dataEnd = $lastRow - 2; // skip spacer + total
+                $dataEnd = $lastRow - 2; 
                 for ($row = 9; $row <= $dataEnd; $row++) {
                     if ($row % 2 === 0) {
                         $sheet->getStyle('A' . $row . ':G' . $row)->applyFromArray([
@@ -315,7 +312,6 @@ class LaporanPendapatanExport implements
                     }
                 }
 
-                // ── Baris footer (di bawah total) ────────────────────────
                 $footerRow = $lastRow + 2;
                 $sheet->setCellValue(
                     'A' . $footerRow,
