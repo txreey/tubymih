@@ -14,46 +14,28 @@
                 </div>
             </div>
 
-            <!-- Stat Cards - 4 kolom (Navigation Cards) -->
+            <!-- Stat Cards (Navigation Cards) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-                <!-- Card 1: Total Menu -->
-                <a href="{{ route('owner.menu') }}"
+                <!-- Total User -->
+                <a href="{{ route('owner.users.index') }}"
                     class="block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Menu</p>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($data['total_menu']) }}</p>
-                        </div>
-                        <div class="text-teal-500 bg-teal-50 p-3 rounded-lg group-hover:bg-teal-100 transition-colors">
-                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Card 2: Transaksi Hari Ini (Baru) -->
-                <a href="{{ route('owner.riwayat') }}"
-                    class="block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Transaksi Hari Ini</p>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">
-                                {{ number_format($data['transaksi_hari_ini'] ?? 0) }}</p>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total User</p>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($data['total_user']) }}</p>
                         </div>
                         <div
-                            class="text-orange-500 bg-orange-50 p-3 rounded-lg group-hover:bg-orange-100 transition-colors">
+                            class="text-purple-500 bg-purple-50 p-3 rounded-lg group-hover:bg-purple-100 transition-colors">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM6 17a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </div>
                     </div>
                 </a>
 
-                <!-- Card 3: Total Meja -->
+                <!-- Total Meja -->
                 <a href="{{ route('owner.meja') }}"
                     class="block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                     <div class="flex items-center justify-between">
@@ -70,19 +52,37 @@
                     </div>
                 </a>
 
-                <!-- Card 4: Total User -->
-                <a href="{{ route('owner.users.index') }}"
+                <!-- Total Menu -->
+                <a href="{{ route('owner.menu') }}"
                     class="block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total User</p>
-                            <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($data['total_user']) }}</p>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Menu</p>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($data['total_menu']) }}</p>
                         </div>
-                        <div
-                            class="text-purple-500 bg-purple-50 p-3 rounded-lg group-hover:bg-purple-100 transition-colors">
+                        <div class="text-teal-500 bg-teal-50 p-3 rounded-lg group-hover:bg-teal-100 transition-colors">
                             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM6 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Transaksi Hari Ini -->
+                <a href="{{ route('owner.riwayat') }}"
+                    class="block bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Transaksi Hari Ini</p>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">
+                                {{ number_format($data['transaksi_hari_ini'] ?? 0) }}</p>
+                        </div>
+                        <div
+                            class="text-orange-500 bg-orange-50 p-3 rounded-lg group-hover:bg-orange-100 transition-colors">
+                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
                     </div>

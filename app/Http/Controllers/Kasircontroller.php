@@ -69,7 +69,7 @@ class KasirController extends Controller
                     'no_transaksi'  => $trx->no_transaksi,
                     'kasir_nama'    => $trx->kasir->nama ?? '-',
                     'tipe_order'    => $trx->jenis_pemesanan === 'dine_in' ? 'Dine in' : 'Take away',
-                    'meja'          => $trx->meja->no_meja ?? '-',
+                    'meja'          => $trx->nama_meja ?? '-',
                     'item_text'     => $totalMenu . '/' . $totalItem,
                     'total_harga'   => $trx->total_harga,
                     'status'        => $trx->status,
@@ -167,18 +167,23 @@ class KasirController extends Controller
 
             $jenisPemesanan = $request->tipe_order === 'dine_in' ? 'dine_in' : 'takeaway';
 
+            $namaMejas = !empty($idMejas)
+                ? Meja::whereIn('id', $idMejas)->pluck('no_meja')->join(', ')
+                : null;
+
             $transaksi = Transaksi::create([
-                'id_kasir'          => Auth::id(),
-                'id_meja'           => $idMejaUtama,
-                'no_transaksi'      => $noTransaksi,
-                'jenis_pemesanan'   => $jenisPemesanan,
-                'nama_pelanggan'    => $request->nama_pelanggan,
-                'tanggal'           => now(),
-                'total_harga'       => $total,
-                'jumlah_bayar'      => 0,
-                'kembalian'         => 0,
-                'status'            => self::STATUS_TUNGGAK,
-                'waktu_pemesanan'   => now(),
+                'id_kasir'        => Auth::id(),
+                'id_meja'         => $idMejaUtama,
+                'nama_meja'       => $namaMejas,
+                'no_transaksi'    => $noTransaksi,
+                'jenis_pemesanan' => $jenisPemesanan,
+                'nama_pelanggan'  => $request->nama_pelanggan,
+                'tanggal'         => now(),
+                'total_harga'     => $total,
+                'jumlah_bayar'    => 0,
+                'kembalian'       => 0,
+                'status'          => self::STATUS_TUNGGAK,
+                'waktu_pemesanan' => now(),
             ]);
 
             foreach ($request->items as $item) {
@@ -257,8 +262,9 @@ class KasirController extends Controller
                 Menu::where('id', $detail->id_menu)->increment('stok', $detail->qty);
             }
 
-            if (in_array($transaksi->jenis_pemesanan, ['dine_in']) && $transaksi->id_meja) {
-                Meja::where('id', $transaksi->id_meja)->update(['status' => 'tersedia']);
+            if ($transaksi->jenis_pemesanan === 'dine_in' && $transaksi->nama_meja) {
+                $namaMembers = array_map('trim', explode(',', $transaksi->nama_meja));
+                Meja::whereIn('no_meja', $namaMembers)->update(['status' => 'tersedia']);
             }
 
             $transaksi->update(['status' => 'batal']);
@@ -299,7 +305,7 @@ class KasirController extends Controller
             ->map(function ($t) {
                 $t->nama_kasir     = $t->kasir->nama ?? '-';
                 $t->nama_pelanggan = $t->nama_pelanggan ?? '-';
-                $t->nama_meja      = $t->meja->no_meja ?? null;
+                $t->nama_meja = $t->nama_meja ?? '-';
                 $t->tipe_order     = $t->jenis_pemesanan;
                 $t->items = $t->detailTransaksi->map(function ($d) {
                     return (object)[
@@ -352,8 +358,9 @@ class KasirController extends Controller
                 'kembalian'    => $request->kembalian,
             ]);
 
-            if ($transaksi->jenis_pemesanan === 'dine_in' && $transaksi->id_meja) {
-                Meja::where('id', $transaksi->id_meja)->update(['status' => 'tersedia']);
+            if ($transaksi->jenis_pemesanan === 'dine_in' && $transaksi->nama_meja) {
+                $namaMembers = array_map('trim', explode(',', $transaksi->nama_meja));
+                Meja::whereIn('no_meja', $namaMembers)->update(['status' => 'tersedia']);
             }
 
             DB::commit();

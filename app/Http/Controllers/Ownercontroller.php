@@ -353,7 +353,7 @@ class OwnerController extends Controller
             $t->nama_kasir      = $t->kasir->nama ?? '-';
             $t->nama_pelanggan  = $t->nama_pelanggan ?? '-';
             $t->tipe_order      = $t->jenis_pemesanan ?? $t->tipe_order ?? '-';
-            $t->nama_meja       = $t->meja->no_meja ?? '-';
+            $t->nama_meja       = $t->nama_meja ?? '-';
 
             // Mapping items supaya sama dengan halaman Kasir
             $t->items = $t->detailTransaksi->map(function ($d) {

@@ -43,6 +43,22 @@
                         <p class="text-xs text-gray-500 mt-0.5">Total Users</p>
                     </a>
 
+                    {{-- Meja --}}
+                    <a href="{{ route('admin.meja.index') }}"
+                        class="bg-white border border-gray-200 hover:border-emerald-400 hover:shadow transition-all rounded-2xl p-5 text-center group">
+                        <div
+                            class="w-10 h-10 mx-auto bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2.5">
+                                <rect x="2" y="7" width="20" height="10" rx="2" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 7V5m12 2V5M6 17v2m12-2v2" />
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-gray-800 text-sm">Meja</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $data['total_meja'] }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Total Meja</p>
+                    </a>
+
                     {{-- Kategori --}}
                     <a href="{{ route('admin.kategori.index') }}"
                         class="bg-white border border-gray-200 hover:border-emerald-400 hover:shadow transition-all rounded-2xl p-5 text-center group">
@@ -77,22 +93,6 @@
                         <p class="font-semibold text-gray-800 text-sm">Menu</p>
                         <p class="text-2xl font-bold text-gray-900 mt-1">{{ $data['total_menu'] }}</p>
                         <p class="text-xs text-gray-500 mt-0.5">Total Menu</p>
-                    </a>
-
-                    {{-- Meja --}}
-                    <a href="{{ route('admin.meja.index') }}"
-                        class="bg-white border border-gray-200 hover:border-emerald-400 hover:shadow transition-all rounded-2xl p-5 text-center group">
-                        <div
-                            class="w-10 h-10 mx-auto bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2.5">
-                                <rect x="2" y="7" width="20" height="10" rx="2" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 7V5m12 2V5M6 17v2m12-2v2" />
-                            </svg>
-                        </div>
-                        <p class="font-semibold text-gray-800 text-sm">Meja</p>
-                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $data['total_meja'] }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">Total Meja</p>
                     </a>
 
                     {{-- Riwayat Transaksi --}}

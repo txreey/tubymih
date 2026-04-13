@@ -28,8 +28,7 @@
 
         <!-- KIRI LOGO -->
         <div class="w-1/2 flex items-center justify-center relative z-10">
-            <div class="w-60 h-60 rounded-full overflow-hidden 
-                        border-4 border-pink-400 shadow-xl">
+            <div class="w-60 h-60 rounded-full overflow-hidden">
                 <img src="{{ asset('images/Logo.jpg') }}"
                      class="w-full h-full object-cover"
                      onerror="this.src='https://via.placeholder.com/240x240/f9caca/4a7c59?text=TM'">

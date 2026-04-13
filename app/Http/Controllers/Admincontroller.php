@@ -579,7 +579,6 @@ class AdminController extends Controller
         $kategori = Kategori::create([
             'nama_kategori' => $request->nama_kategori,
             'jenis'         => $request->jenis,
-            'jumlah'        => 0,
         ]);
 
         Log::create([
@@ -692,7 +691,7 @@ class AdminController extends Controller
                 'created_at'     => $trx->tanggal,
                 'nama_kasir'     => $trx->kasir->nama ?? '-',
                 'tipe_order'     => $trx->jenis_pemesanan,
-                'nama_meja'      => $trx->meja->no_meja ?? '-',
+                'nama_meja'      => $trx->nama_meja ?? '-',
                 'status'         => $trx->status,
                 'total_harga'    => $trx->total_harga,
                 'jumlah_bayar'   => $trx->jumlah_bayar,

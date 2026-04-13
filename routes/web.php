@@ -66,7 +66,7 @@ Route::middleware(['auth', 'role:admin'])
 
         // Riwayat Transaksi
         Route::get('/riwayat', [AdminController::class, 'indexRiwayat'])->name('riwayat');
-
+        // Laporan
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
     });
 
@@ -88,17 +88,16 @@ Route::middleware(['auth', 'role:kasir'])
         // Riwayat Transaksi
         Route::get('/riwayat',               [KasirController::class, 'riwayat'])->name('riwayat');
 
-        // Reservasi
-        Route::get('/reservasi',             [KasirController::class, 'reservasiIndex'])->name('reservasi');
-        // Tambahkan route ini di dalam route group kasir
-        Route::get('/reservasi/aktif', [KasirController::class, 'getReservasiAktif'])->name('kasir.reservasi.aktif');
+        // // Reservasi
+        // Route::get('/reservasi',             [KasirController::class, 'reservasiIndex'])->name('reservasi');
+        // Route::get('/reservasi/aktif', [KasirController::class, 'getReservasiAktif'])->name('kasir.reservasi.aktif');
 
-        // Aktifkan Reservasi (dipanggil dari modal di reservasi.blade.php)
-        Route::post(
-            '/reservasi/{id}/aktifkan',
-            [KasirController::class, 'aktifkanReservasi']
-        )
-            ->name('reservasi.aktifkan');
+        // // Aktifkan Reservasi
+        // Route::post(
+        //     '/reservasi/{id}/aktifkan',
+        //     [KasirController::class, 'aktifkanReservasi']
+        // )
+        //     ->name('reservasi.aktifkan');
 
         // Tagih Pembayaran
         Route::patch(
@@ -107,14 +106,14 @@ Route::middleware(['auth', 'role:kasir'])
         )
             ->name('order.tagih');
 
-        // Cetak Struk (opsional, jika kamu pakai)
+        // Cetak Struk
         Route::get(
             '/order/{id}/struk',
             [KasirController::class, 'cetakStruk']
         )
             ->name('order.struk');
 
-        // Batalkan Transaksi (opsional)
+        // Batalkan Transaksi 
         Route::delete(
             '/order/{id}/batal',
             [KasirController::class, 'batalTransaksi']
@@ -129,24 +128,25 @@ Route::middleware(['auth', 'role:owner'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
+        // Dashboard
         Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('dashboard');
-
+        // Menu 
         Route::get('/menu', [OwnerController::class, 'indexMenu'])->name('menu');
+        // Meja
         Route::get('/meja', [OwnerController::class, 'indexMeja'])->name('meja');
-
-        // Users CRUD
+        // Users
         Route::get('/users', [OwnerController::class, 'indexUser'])->name('users.index');
         Route::post('/users', [OwnerController::class, 'storeUser'])->name('users.store');
         Route::put('/users/{id}', [OwnerController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{id}', [OwnerController::class, 'destroyUser'])->name('users.destroy');
         Route::post('/users/{id}/toggle-status', [OwnerController::class, 'toggleStatusUser'])->name('users.toggleStatus');
-
+        // Riwayat Transaksi
         Route::get('/riwayat-transaksi', [OwnerController::class, 'riwayatTransaksi'])->name('riwayat');
+        // Laporan
         Route::get('/laporan', [OwnerController::class, 'laporan'])->name('laporan');
-
+        // Export Laporan
         Route::get('/laporan/export-excel', [OwnerController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('/laporan/export-pdf',   [OwnerController::class, 'exportPdf'])->name('laporan.export.pdf');
-
-        // LOG AKTIVITAS (yang diminta)
+        // Log Aktivitas
         Route::get('/log-aktivitas', [OwnerController::class, 'logAktivitas'])->name('log');
     });;
