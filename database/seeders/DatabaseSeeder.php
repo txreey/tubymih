@@ -12,18 +12,39 @@ class DatabaseSeeder extends Seeder
     {
         $users = [
             [
-                'nama'     => 'Dalendra Rasel',
-                'username' => 'kasir',
-                'password' => Hash::make('kasir123'),
-                'no_hp'    => '081208736537',
+                'nama'     => 'Owner Mimih',
+                'username' => 'owner',
+                'password' => Hash::make('owner123'),
+                'no_hp'    => '081200000003',
+                'role'     => 'owner',
+                'alamat'   => null,
+                'status'   => 'aktif',
+            ],
+            [
+                'nama'     => 'Sugiharto',
+                'username' => 'sumin',
+                'password' => Hash::make('sumin333'),
+                'no_hp'    => '089767652345',
+                'role'     => 'admin',
+                'alamat'   => 'Jl. Magefy',
+                'status'   => 'aktif',
+            ],
+            [
+                'nama'     => 'Dalendra',
+                'username' => 'Dasir',
+                'password' => Hash::make('dasir333'),
+                'no_hp'    => '234567876543',
                 'role'     => 'kasir',
-                'alamat'   => 'Jl. Kasir Satu No. 1',
+                'alamat'   => 'Jl. Raya Bandung No.Km 12 41211 Jawa Barat',
                 'status'   => 'aktif',
             ],
         ];
 
         foreach ($users as $u) {
-            User::firstOrCreate(['username' => $u['username']], $u);
+            User::updateOrCreate(
+                ['username' => $u['username']],
+                $u
+            );
         }
     }
 }

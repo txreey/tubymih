@@ -510,7 +510,7 @@
                 return;
             }
             selectJenis.disabled = false;
-            selectJenis.innerHTML = '<option value="">-- Semua Jenis --</option>';
+            selectJenis.innerHTML = '<option value=""> Semua Jenis </option>';
             [...new Set(semuaKategori.filter(k => k.nama_kategori === kategori).map(k => k.jenis))].forEach(j => {
                 const opt = document.createElement('option');
                 opt.value = j;

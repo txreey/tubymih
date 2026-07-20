@@ -83,9 +83,9 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Username</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                Role</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Role</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                 Aksi</th>
                         </tr>
@@ -825,8 +825,11 @@
                     showError('errEditPassword', 'Password minimal 6 karakter.');
                     ok = false;
                 }
-                if (!hp || !/^[0-9]{12}$/.test(hp)) {
-                    showError('errEditNoHp', 'Nomor HP harus tepat 12 digit angka. Contoh: 081234567890');
+                if (!hp || hp.length < 11 || hp.length > 13 || !/^08\d+$/.test(hp)) {
+                    showError(
+                        'errEditNoHp',
+                        'Nomor HP harus diawali 08 dan terdiri dari 11–13 digit angka.'
+                    );
                     ok = false;
                 }
                 return ok;

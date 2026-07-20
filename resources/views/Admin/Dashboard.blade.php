@@ -22,7 +22,7 @@
             <div>
                 <h3 class="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-5 px-1">Navigasi Cepat</h3>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
 
                     {{-- Users --}}
                     <a href="{{ route('admin.users.index') }}"

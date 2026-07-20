@@ -472,15 +472,15 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
                             ${canEditOrDelete ? `
-                                    <button class="ab ab-edit" onclick="window.doEdit(${meja.id})" title="Edit">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <button class="ab ab-del" onclick="window.doDelete(${meja.id})" title="Hapus">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                ` : `
-                                    <span class="text-xs text-gray-400">Tidak dapat diubah</span>
-                                `}
+                                            <button class="ab ab-edit" onclick="window.doEdit(${meja.id})" title="Edit">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </button>
+                                            <button class="ab ab-del" onclick="window.doDelete(${meja.id})" title="Hapus">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        ` : `
+                                            <span class="text-xs text-gray-400">Tidak dapat diubah</span>
+                                        `}
                         </div>
                     </td>
                 </tr>`;
@@ -568,7 +568,7 @@
         }
 
         async function submitCreate() {
-            
+
             const noMeja = document.getElementById('createNoMeja').value.trim();
             const tipeMeja = document.getElementById('createTipeMeja').value;
             const kapasitas = document.getElementById('createKapasitas').value.trim();
@@ -615,6 +615,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify({
@@ -716,6 +717,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify(payload)
@@ -775,6 +777,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': CSRF
                     },
                     body: JSON.stringify({

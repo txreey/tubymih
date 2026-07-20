@@ -66,14 +66,14 @@
         </div>
 
         {{-- Grafik --}}
-        @if ($chartData->isNotEmpty())
+        {{-- @if ($chartData->isNotEmpty())
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pendapatan Harian</h3>
                 <div style="height: 280px;">
                     <canvas id="pendapatanChart"></canvas>
                 </div>
             </div>
-        @endif
+        @endif --}}
 
         <!-- Tabel Laporan -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

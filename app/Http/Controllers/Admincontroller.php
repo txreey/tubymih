@@ -9,6 +9,7 @@ use App\Models\DetailTransaksi;
 use App\Models\User;
 use App\Models\Meja;
 use App\Models\Kategori;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -93,7 +94,7 @@ class AdminController extends Controller
             'nama'      => 'required|string|max:100',
             'username'  => 'required|string|max:100|unique:users|regex:/^[a-zA-Z0-9._-]+$/',
             'password'  => 'required|string|min:6',
-            'no_hp'     => ['required', 'regex:/^08[0-9]{10}$/'],
+            'no_hp'     => ['required', 'regex:/^08[0-9]{11}$/'],
             'alamat'    => 'required|string',
             'status'    => 'required|in:aktif,nonaktif',
         ], $this->userMessages());
@@ -130,7 +131,7 @@ class AdminController extends Controller
             'nama'      => 'required|string|max:100',
             'username'  => ['required', 'string', 'max:100', Rule::unique('users')->ignore($user->id), 'regex:/^[a-zA-Z0-9._-]+$/'],
             'password'  => 'nullable|string|min:6',
-            'no_hp'     => ['required', 'regex:/^08[0-9]{10}$/'],
+            'no_hp' => ['required', 'regex:/^08[0-9]{9,11}$/'],
             'alamat'    => 'required|string',
             'status'    => 'required|in:aktif,nonaktif',
         ], $this->userMessages());

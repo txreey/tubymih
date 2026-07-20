@@ -94,7 +94,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Kategori</label>
                         <select id="filterKategori"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
-                            <option value="">-- Semua --</option>
+                            <option value=""> Semua Kategori </option>
                             <option value="Makanan">Makanan</option>
                             <option value="Minuman">Minuman</option>
                         </select>
@@ -103,7 +103,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
                         <select id="filterStatus"
                             class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-sm">
-                            <option value="">-- Semua --</option>
+                            <option value=""> Semua Status </option>
                             <option value="aktif">Aktif</option>
                             <option value="nonaktif">Nonaktif</option>
                             <option value="kosong">Habis</option>
